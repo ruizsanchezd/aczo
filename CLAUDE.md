@@ -74,26 +74,88 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
 
 1. **Fidelidad al Figma primero.** Si algo se ve distinto al Figma, es un bug. Ante la duda
    sobre un valor visual, sigue el Figma; no inventes.
-2. **La animación es el producto.** Cuida especialmente duración, easing, orden/stagger,
+2. **🚫 Tokens SIEMPRE. Prohibido hardcodear valores.** Todo valor visual sale de un token del
+   sistema de diseño: color, tipografía, espaciado, radio, borde, sombra, duración y easing.
+   Nunca escribas el valor a pelo, ni siquiera "solo por probar".
+
+   | ❌ Prohibido | ✅ Así sí |
+   | --- | --- |
+   | `#f6fe01`, `rgb(246,254,1)`, `bg-yellow-300` | `bg-highlight-vivid` |
+   | `text-zinc-500`, `text-[#4d4d4d]` | `text-content-mid` |
+   | `p-[16px]`, `p-4`, `gap-[24px]` | `p-04`, `gap-06` |
+   | `rounded-[8px]`, `rounded-xl` | `rounded-md` |
+   | `duration-300`, `ease-[0,0,0.58,1]` | `motion-micro-appear` |
+   | `text-sm`, `text-[14px]`, `font-medium` | `text-label-m` (o `<Text variant="label-m">`) |
+   | `shadow-lg`, `box-shadow: 0 2px 4px…` | `shadow-md` |
+
+   Ojo con las clases **por defecto de Tailwind** que parecen inocentes pero no son del sistema:
+   `p-4`, `text-sm`, `gap-2`, `text-gray-500`, `rounded-xl`, `duration-200`… Todas prohibidas.
+   La lista de lo que sí existe está en `/estilos` y en la tabla de la sección **Tokens**.
+
+   **Si el token que necesitas no existe:** no te lo inventes ni improvises un valor. Para,
+   dilo, y pregunta si hay que sacarlo del Figma o si se está usando el token equivocado. Las
+   dos únicas excepciones son valores que no son de diseño (p. ej. `max-w-[52ch]` para medir
+   una línea de texto, o una distancia concreta de una animación puntual) y hay que comentar
+   en el código por qué va a pelo.
+3. **La animación es el producto.** Cuida especialmente duración, easing, orden/stagger,
    interrupciones y que respete `prefers-reduced-motion`. Que se sienta natural, no robótico.
-3. **Datos mock, siempre locales.** Guárdalos en archivos tipo `mocks/` o `fixtures/` y que
+4. **Datos mock, siempre locales.** Guárdalos en archivos tipo `mocks/` o `fixtures/` y que
    sean fáciles de encontrar y editar. Nada de claves, tokens ni endpoints reales.
-4. **Código legible como referencia.** Otra persona lo va a leer para reimplementarlo en el
+5. **Código legible como referencia.** Otra persona lo va a leer para reimplementarlo en el
    repo real. Prioriza claridad sobre "listura". Comenta el POR QUÉ de una animación cuando no
    sea obvio (p. ej. por qué ese easing o esa duración).
-5. **Simplicidad.** Prefiere lo mínimo que consiga el efecto. No añadas dependencias pesadas si
+6. **Simplicidad.** Prefiere lo mínimo que consiga el efecto. No añadas dependencias pesadas si
    no aportan a la animación/prototipo.
-6. **Documenta lo que el dev de frontend necesita replicar.** En cada pantalla/interacción no
+7. **Documenta lo que el dev de frontend necesita replicar.** En cada pantalla/interacción no
    trivial, deja claro: qué dispara la animación, duración, easing/curva, y estados.
 
 ## Stack
 
 - **Framework:** Next.js 16 (App Router) + React 19 + TypeScript.
-- **Estilos:** Tailwind CSS v4.
+- **Estilos:** Tailwind CSS v4, con los tokens del Figma en `src/app/globals.css`.
 - **Componentes:** sin librería de componentes por ahora (nada de shadcn/ui). Si se decide
   añadir una, documentarlo aquí.
-- **Animación:** aún sin librería. Empezar con CSS/Tailwind; si una interacción necesita algo
-  más elaborado (gestos, física, timelines), valorar añadir `motion` y documentarlo aquí.
+- **Animación:** aún sin librería. Empezar con CSS/Tailwind usando las utilidades de motion;
+  si una interacción necesita algo más elaborado (gestos, física, timelines), valorar añadir
+  `motion` y documentarlo aquí.
+
+### Tokens del sistema de diseño
+
+Los tokens están extraídos de las variables del Figma **Library** y viven en dos sitios:
+
+- `src/app/globals.css` — todos los tokens como utilidades de Tailwind.
+- `src/lib/motion.ts` — los tokens de motion en JavaScript, para animar desde código.
+
+Hay una página de referencia en **`/estilos`** que los pinta todos: sirve para abrirla al lado
+del Figma y comprobar que coinciden. Si algo no cuadra, es un bug.
+
+Recuerda el **principio 2**: tokens siempre, hardcodear valores está prohibido. Esta tabla es
+la referencia de lo que existe.
+
+| Familia | Cómo se usa | Ejemplos |
+| --- | --- | --- |
+| Color | `bg-*`, `text-*`, `border-*` | `bg-background-low`, `text-content-mid`, `border-border-low`, `bg-highlight-vivid` |
+| Tipografía | `text-<familia>-<talla>` | `text-body-m`, `text-label-s`, `text-title-l`, `text-heading-xl` (+ `font-heading`) |
+| Espaciado | escala `00`–`10` | `p-04` (16px), `gap-06` (24px), `mt-02` (8px) |
+| Radios | `rounded-*` | `rounded-sm` (4), `rounded-md` (8), `rounded-lg` (16), `rounded-full` (999) |
+| Sombra | `shadow-md` | el único `style-shadow-m` del Figma |
+| Motion | `motion-*` | `motion-micro-states`, `motion-macro-levelup` |
+| Sección | `layout-section` | ancho máximo + padding lateral responsive |
+
+Para tipografía se puede usar el componente `<Text variant="…">` de
+`src/components/ui/Text.tsx`, que ya aplica familia, tamaño, interlineado y peso correctos.
+
+**Motion:** las utilidades `motion-*` fijan duración y curva de una vez; hay que añadir la
+propiedad a animar (`transition-colors`, `transition-transform`…). Los seis tokens semánticos
+son `micro-states`, `micro-leave`, `micro-appear`, `macro-levelup`, `macro-leveldown` y
+`macro-structure`. `prefers-reduced-motion` ya está respetado globalmente.
+
+**Pendientes conocidos:**
+
+- La fuente de marca `Bradford LL TT` (los `heading`) es de pago y no está en el repo. De momento
+  se usa una serif parecida como sustituto, así que **los titulares no son fieles al Figma**.
+- Los tokens implementados son los del **modo claro**. La librería de Figma también tiene modo
+  oscuro (el fondo base es `#0d0d0d`); si se necesita, hay que extraerlo y añadirlo.
 - **Datos mock:** cuando existan, en `src/mocks/` o `src/lib/`, fáciles de encontrar y editar.
 - **Cómo arrancar en local:** `npm install` y luego `npm run dev` (servidor en
   `http://localhost:3000`).
