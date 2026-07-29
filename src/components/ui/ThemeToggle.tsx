@@ -10,20 +10,24 @@ import { useEffect, useState } from "react";
  *
  * "Sistema" quita el atributo, así que vuelve a mandar el ajuste del ordenador.
  *
- * No guarda la elección: al recargar vuelve a "Sistema". Es a propósito, para
- * no tener que lidiar con el parpadeo del primer pintado en un prototipo.
+ * Arranca en "Claro" porque es el modo en el que va el producto (lo fuerza
+ * layout.tsx). El oscuro está aquí para poder verlo: sigue implementado, en la
+ * recámara, por si algún día se activa.
+ *
+ * No guarda la elección: al recargar vuelve a "Claro". Es a propósito, para no
+ * tener que lidiar con el parpadeo del primer pintado en un prototipo.
  */
 
 type Mode = "system" | "light" | "dark";
 
 const options: { value: Mode; label: string }[] = [
-  { value: "system", label: "Sistema" },
   { value: "light", label: "Claro" },
   { value: "dark", label: "Oscuro" },
+  { value: "system", label: "Sistema" },
 ];
 
 export function ThemeToggle() {
-  const [mode, setMode] = useState<Mode>("system");
+  const [mode, setMode] = useState<Mode>("light");
 
   useEffect(() => {
     const root = document.documentElement;

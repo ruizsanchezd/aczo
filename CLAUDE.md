@@ -155,6 +155,23 @@ son `micro-states`, `micro-leave`, `micro-appear`, `macro-levelup`, `macro-level
 
 ### Modo claro y oscuro
 
+**El producto va SIEMPRE en modo claro.** Lo fuerza `data-theme="light"` en el `<html>` de
+`src/app/layout.tsx`. El modo oscuro está implementado y se queda **en la recámara** por si algún
+día se activa: para volver a que siga el ajuste del sistema de cada persona, basta con quitar ese
+atributo. No hay nada más que cambiar.
+
+> ⚠️ **No confundir "modo oscuro" con "superficie oscura".** Son dos cosas distintas:
+>
+> - **Modo oscuro:** toda la interfaz cambia según el ajuste del sistema. Desactivado.
+> - **Superficie oscura:** una pieza concreta que es oscura **siempre**, también en modo claro.
+>   Es el caso de la tarjeta "Ahorro Aczo", el fondo de la pantalla de carga y la banda "Aczo
+>   garantiza". Estas se hacen con tokens que **no cambian entre modos** (`highlight-deep`,
+>   `highlight-muted`, la familia `highlight` en general) y con textos `content-always-light` /
+>   `content-always-dark` en lugar de `content-high` / `content-inverse`.
+>
+> Si pintas texto sobre una superficie oscura con `text-content-high`, funcionará en claro y se
+> volverá invisible el día que se active el oscuro. Usa siempre los `always-*` ahí.
+
 Los dos modos del Figma están implementados. **No hay que hacer nada especial para
 soportarlos:** si usas los tokens de color, el cambio de modo ya funciona solo. No escribas
 variantes `dark:` a mano.
@@ -166,11 +183,12 @@ iguales en ambos modos (la familia `highlight`, la paleta `extended`, los `high`
 
 Qué modo se aplica lo decide `color-scheme`:
 
-- Por defecto manda el **ajuste del sistema** de cada persona.
-- Se puede forzar con `data-theme="light"` o `data-theme="dark"` en `<html>`.
+- `data-theme="light"` en `<html>` fuerza el claro. **Es lo que hay puesto ahora.**
+- `data-theme="dark"` fuerza el oscuro.
+- Sin el atributo, manda el ajuste del sistema de cada persona.
 
-En `/estilos` hay un interruptor (`ThemeToggle`) para ver los dos modos. No guarda la elección:
-al recargar vuelve a "Sistema".
+En `/estilos` hay un interruptor (`ThemeToggle`) para ver los dos modos y comprobar que el oscuro
+sigue sano. No guarda la elección: al recargar vuelve a "Claro".
 
 ### Fuentes
 
