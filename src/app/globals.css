@@ -1,26 +1,297 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   TOKENS DEL SISTEMA DE DISEÑO — Aczo
+   ----------------------------------------------------------------------------
+   Extraídos de las variables del Figma "Tavira Cápital (Aczo) | Library".
+   Figma es la fuente de la verdad: NO cambies valores aquí sin cambiarlos allí.
+
+   Nombres: se conserva el nombre de Figma siempre que Tailwind lo permita.
+   Donde había colisión con utilidades propias de Tailwind, se indica el mapeo:
+
+     Figma                        Tailwind
+     style-border-radius-null  →  rounded-none
+     style-border-radius-s     →  rounded-sm
+     style-border-radius-m     →  rounded-md
+     style-border-radius-l     →  rounded-lg
+     style-border-radius-full  →  rounded-full
+     style-border-width-m      →  border
+     style-border-width-l      →  border-2
+     style-opacity-hover       →  opacity-60
+     style-opacity-pressed     →  opacity-30
+     style-shadow-m            →  shadow-md
+   ========================================================================== */
+
+@theme {
+  /* --- Color · contenido (texto e iconos) ------------------------------- */
+  --color-content-high: #000000;
+  --color-content-mid: #4d4d4d;
+  --color-content-low: #737373;
+  --color-content-inverse: #ffffff;
+  --color-content-always-light: #ffffff;
+  --color-content-always-dark: #000000;
+  --color-content-state-disabled: #a6a6a6;
+
+  /* --- Color · fondos --------------------------------------------------- */
+  --color-background-base: #ffffff;
+  --color-background-low: #f2f2f2;
+  --color-background-mid: #e6e6e6;
+  --color-background-high: #000000;
+  --color-background-inverse: #000000;
+  --color-background-overlay: #00000059;
+  --color-background-state-disabled: #f2f2f2;
+
+  /* --- Color · bordes --------------------------------------------------- */
+  --color-border-low: #e6e6e6;
+  --color-border-mid: #a6a6a6;
+  --color-border-high: #000000;
+  --color-border-inverse: #ffffff;
+  --color-border-state-disabled: #f2f2f2;
+
+  /* --- Color · highlight (el amarillo de marca y su familia) ------------ */
+  --color-highlight-vivid: #f6fe01;
+  --color-highlight-soft: #f4fbae;
+  --color-highlight-muted: #767214;
+  --color-highlight-neutral: #d5d3b4;
+  --color-highlight-deep: #20270f;
+
+  /* --- Color · feedback ------------------------------------------------- */
+  --color-success-high: #157d3b;
+  --color-success-low: #e1fcd4;
+  --color-danger-high: #c61818;
+  --color-danger-low: #fed9d9;
+  --color-info-high: #1863c6;
+  --color-info-low: #dceefe;
+  --color-warning-high: #a45c14;
+  --color-warning-low: #fff2e6;
+
+  /* --- Color · extended (paleta ampliada, p. ej. para gráficas) --------- */
+  --color-extended-one-light: #f4fbae;
+  --color-extended-one-mid: #f6fe01;
+  --color-extended-one-dark: #767214;
+  --color-extended-two-light: #ede4ff;
+  --color-extended-two-mid: #a33ffb;
+  --color-extended-two-dark: #713bb8;
+  --color-extended-three-light: #d7f8ff;
+  --color-extended-three-mid: #30bfff;
+  --color-extended-three-dark: #0f559f;
+  --color-extended-four-light: #fff2e6;
+  --color-extended-four-mid: #fb843f;
+  --color-extended-four-dark: #c66f18;
+  --color-extended-five-light: #e1fcd4;
+  --color-extended-five-mid: #3eee61;
+  --color-extended-five-dark: #157d3b;
+
+  /* --- Tipografía · familias -------------------------------------------- */
+  /* body, label y title usan Inter. heading usa Bradford LL TT (ver nota
+     en layout.tsx: es una fuente de pago, de momento hay un sustituto). */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading), Georgia, "Times New Roman", serif;
+
+  /* --- Tipografía · escala ---------------------------------------------- */
+  /* body — Inter 400 · texto corrido */
+  --text-body-s: 12px;
+  --text-body-s--line-height: 16px;
+  --text-body-s--font-weight: 400;
+  --text-body-m: 14px;
+  --text-body-m--line-height: 20px;
+  --text-body-m--font-weight: 400;
+  --text-body-l: 16px;
+  --text-body-l--line-height: 24px;
+  --text-body-l--font-weight: 400;
+
+  /* label — Inter 500 · botones, etiquetas, elementos de interfaz */
+  --text-label-s: 12px;
+  --text-label-s--line-height: 16px;
+  --text-label-s--font-weight: 500;
+  --text-label-m: 14px;
+  --text-label-m--line-height: 20px;
+  --text-label-m--font-weight: 500;
+  --text-label-l: 16px;
+  --text-label-l--line-height: 24px;
+  --text-label-l--font-weight: 500;
+
+  /* title — Inter 400 · títulos de interfaz */
+  --text-title-s: 18px;
+  --text-title-s--line-height: 26px;
+  --text-title-s--font-weight: 400;
+  --text-title-m: 20px;
+  --text-title-m--line-height: 28px;
+  --text-title-m--font-weight: 400;
+  --text-title-l: 24px;
+  --text-title-l--line-height: 32px;
+  --text-title-l--font-weight: 400;
+  --text-title-xl: 32px;
+  --text-title-xl--line-height: 40px;
+  --text-title-xl--font-weight: 400;
+
+  /* heading — Bradford LL TT 500 · titulares de marca (usar con font-heading) */
+  --text-heading-s: 24px;
+  --text-heading-s--line-height: 32px;
+  --text-heading-s--font-weight: 500;
+  --text-heading-m: 32px;
+  --text-heading-m--line-height: 40px;
+  --text-heading-m--font-weight: 500;
+  --text-heading-l: 40px;
+  --text-heading-l--line-height: 48px;
+  --text-heading-l--font-weight: 500;
+  --text-heading-xl: 56px;
+  --text-heading-xl--line-height: 64px;
+  --text-heading-xl--font-weight: 500;
+
+  /* --- Layout · escala de espaciado ------------------------------------- */
+  /* Se usa en p-*, m-*, gap-*, size-*, etc. Ej.: gap-04 = 16px */
+  --spacing-00: 0px;
+  --spacing-01: 4px;
+  --spacing-02: 8px;
+  --spacing-03: 12px;
+  --spacing-04: 16px;
+  --spacing-05: 20px;
+  --spacing-06: 24px;
+  --spacing-07: 32px;
+  --spacing-08: 40px;
+  --spacing-09: 48px;
+  --spacing-10: 64px;
+
+  /* --- Style · radios de esquina ---------------------------------------- */
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* --- Style · sombra --------------------------------------------------- */
+  --shadow-md: 0 2px 4px 0 #0000000d, 0 8px 24px 0 #0000001a;
+
+  /* --- Motion · easings ------------------------------------------------- */
+  /* Curvas globales. Se usan como ease-1 … ease-4. */
+  --ease-1: linear;
+  --ease-2: cubic-bezier(0.42, 0, 1, 1); /* ease in */
+  --ease-3: cubic-bezier(0, 0, 0.58, 1); /* ease out */
+  --ease-4: cubic-bezier(0.42, 0, 0.58, 1); /* ease in out */
+}
+
+/* ============================================================================
+   TOKENS QUE NO ENCAJAN EN @theme
+   Se exponen como variables CSS para usarlas a mano cuando haga falta.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Style · grosor de borde y opacidades de estado */
+  --style-border-width-m: 1px;
+  --style-border-width-l: 2px;
+  --style-opacity-default: 1;
+  --style-opacity-hover: 0.6;
+  --style-opacity-pressed: 0.3;
+
+  /* Motion · duraciones globales */
+  --motion-timing-1: 200ms;
+  --motion-timing-2: 250ms;
+  --motion-timing-3: 350ms;
+  --motion-timing-4: 400ms;
+  --motion-timing-5: 500ms;
+  --motion-timing-6: 800ms;
+
+  /* Layout · sección (móvil; el desktop se ajusta más abajo) */
+  --layout-section-padding: 16px;
+  --layout-section-max-width: 600px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (width >= 48rem) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --layout-section-padding: 32px;
+    --layout-section-max-width: 1200px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================================
+   UTILIDADES DE MOTION (tokens semánticos)
+   ----------------------------------------------------------------------------
+   Cada utilidad fija duración + curva de una vez, tal y como está definido en
+   la página "Motion" del Figma. Añade tú la propiedad a animar
+   (transition-colors, transition-transform, transition-all…).
+
+   Ejemplo:  <button className="transition-colors motion-micro-states">
+
+   Nota: en Figma, "appear" usa ease-in y "leave" usa ease-out. Es lo contrario
+   de la convención habitual, pero se respeta el Figma a propósito.
+   ========================================================================== */
+
+/* Micro — cambios pequeños dentro de un elemento */
+
+/* Estados: hover, pressed, focus, selected. */
+@utility motion-micro-states {
+  transition-duration: var(--motion-timing-1); /* 200ms */
+  transition-timing-function: var(--ease-1); /* linear */
+}
+
+/* Algo desaparece: cierre de tooltip, toast que se va, elemento que sale. */
+@utility motion-micro-leave {
+  transition-duration: var(--motion-timing-2); /* 250ms */
+  transition-timing-function: var(--ease-3); /* ease out */
+}
+
+/* Algo aparece: tooltip, toast, elemento que entra. */
+@utility motion-micro-appear {
+  transition-duration: var(--motion-timing-3); /* 350ms */
+  transition-timing-function: var(--ease-2); /* ease in */
+}
+
+/* Macro — cambios de pantalla o de jerarquía */
+
+/* Subir de nivel: abrir un detalle, entrar en una pantalla hija. */
+@utility motion-macro-levelup {
+  transition-duration: var(--motion-timing-3); /* 350ms */
+  transition-timing-function: var(--ease-3); /* ease out */
+}
+
+/* Bajar de nivel: volver atrás, cerrar un detalle. */
+@utility motion-macro-leveldown {
+  transition-duration: var(--motion-timing-4); /* 400ms */
+  transition-timing-function: var(--ease-2); /* ease in */
+}
+
+/* Reorganización de la estructura: layout que se recoloca, panel que empuja. */
+@utility motion-macro-structure {
+  transition-duration: var(--motion-timing-5); /* 500ms */
+  transition-timing-function: var(--ease-4); /* ease in out */
+}
+
+/* ============================================================================
+   UTILIDAD DE LAYOUT
+   ========================================================================== */
+
+/* Contenedor de sección: ancho máximo y padding lateral según los tokens. */
+@utility layout-section {
+  width: 100%;
+  max-width: var(--layout-section-max-width);
+  margin-inline: auto;
+  padding-inline: var(--layout-section-padding);
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  body {
+    background-color: var(--color-background-base);
+    color: var(--color-content-high);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-m);
+    line-height: var(--text-body-m--line-height);
+  }
+
+  /* Accesibilidad: si la persona ha pedido menos movimiento en su sistema,
+     se anulan las animaciones. Obligatorio en todos los prototipos. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
