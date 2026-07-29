@@ -9,6 +9,7 @@ import { Text } from "@/components/ui/Text";
 import {
   ahorroComercializadora,
   ahorroDireccion,
+  conMantenimiento,
   euros,
   kwh,
   numSuministros,
@@ -16,6 +17,7 @@ import {
   type DireccionSuministros,
   type Suministro,
 } from "@/mocks/aczo";
+import { NumeroAnimado } from "./NumeroAnimado";
 
 /**
  * TablaAhorro — el detalle por comercializadora de la pantalla de recomendación.
@@ -40,6 +42,10 @@ import {
  *
  * El nivel 4 está diseñado solo como wireframe en Figma: aquí se le han aplicado
  * los tokens del sistema (tipografías, grises, verdes de feedback y espaciados).
+ *
+ * MANTENIMIENTO: la tabla recibe si el mantenimiento está activado y descuenta su
+ * cuota (por punto de suministro) de todas las cifras de ahorro, en los tres
+ * niveles: comercializadora, total por dirección y fila de cada suministro.
  */
 
 /** Panel plegable: la técnica de 0fr → 1fr comentada arriba. */
@@ -103,7 +109,13 @@ function FilaDato({
   );
 }
 
-function DetalleSuministro({ suministro }: { suministro: Suministro }) {
+function DetalleSuministro({
+  suministro,
+  mantenimientoGlobal,
+}: {
+  suministro: Suministro;
+  mantenimientoGlobal: boolean;
+}) {
   const [mantenimiento, setMantenimiento] = useState(
     suministro.detalle.mantenimiento,
   );
@@ -151,9 +163,13 @@ function DetalleSuministro({ suministro }: { suministro: Suministro }) {
 
       <div className="flex items-center justify-between gap-04 border-t border-border-low pt-04">
         <span className="flex items-center gap-03">
+          {/* Si el interruptor de arriba ya ha añadido mantenimiento a TODOS
+              los puntos, este queda encendido y desactivado: se manda desde
+              arriba, y así se entiende que no está roto. */}
           <Switch
-            checked={mantenimiento}
+            checked={mantenimientoGlobal || mantenimiento}
             onChange={setMantenimiento}
+            disabled={mantenimientoGlobal}
             label={`Añadir mantenimiento en ${suministro.nombre}`}
           />
           <Text variant="body-m" color="mid" as="span">
@@ -175,8 +191,15 @@ function DetalleSuministro({ suministro }: { suministro: Suministro }) {
 /* Nivel 3 — fila de un suministro                                            */
 /* -------------------------------------------------------------------------- */
 
-function FilaSuministro({ suministro }: { suministro: Suministro }) {
+function FilaSuministro({
+  suministro,
+  mantenimiento,
+}: {
+  suministro: Suministro;
+  mantenimiento: boolean;
+}) {
   const [abierto, setAbierto] = useState(false);
+  const ahorro = conMantenimiento(suministro.ahorro, 1, mantenimiento);
 
   return (
     <li className="border-b border-border-low last:border-b-00">
@@ -204,7 +227,7 @@ function FilaSuministro({ suministro }: { suministro: Suministro }) {
             €{euros(suministro.costeActual)}/año
           </Text>
           <span className="flex md:justify-start">
-            <Tag tone="success">€{euros(suministro.ahorro)}/año</Tag>
+            <Tag tone="success">€{euros(ahorro)}/año</Tag>
           </span>
         </span>
 
@@ -212,7 +235,10 @@ function FilaSuministro({ suministro }: { suministro: Suministro }) {
       </button>
 
       <Plegable abierto={abierto}>
-        <DetalleSuministro suministro={suministro} />
+        <DetalleSuministro
+          suministro={suministro}
+          mantenimientoGlobal={mantenimiento}
+        />
       </Plegable>
     </li>
   );
@@ -224,13 +250,20 @@ function FilaSuministro({ suministro }: { suministro: Suministro }) {
 
 function GrupoDireccion({
   direccion,
+  mantenimiento,
   inicialAbierto = false,
 }: {
   direccion: DireccionSuministros;
+  mantenimiento: boolean;
   inicialAbierto?: boolean;
 }) {
   const [abierto, setAbierto] = useState(inicialAbierto);
   const puntos = direccion.suministros.length;
+  const total = conMantenimiento(
+    ahorroDireccion(direccion),
+    puntos,
+    mantenimiento,
+  );
 
   return (
     <div className="overflow-hidden rounded-md">
@@ -272,13 +305,17 @@ function GrupoDireccion({
 
           <ul>
             {direccion.suministros.map((s) => (
-              <FilaSuministro key={s.id} suministro={s} />
+              <FilaSuministro
+                key={s.id}
+                suministro={s}
+                mantenimiento={mantenimiento}
+              />
             ))}
           </ul>
 
           <div className="flex justify-end border-t border-border-low px-04 py-03">
             <Text variant="label-m" as="span">
-              Total €{euros(ahorroDireccion(direccion))}/año
+              Total €{euros(total)}/año
             </Text>
           </div>
         </div>
@@ -294,14 +331,21 @@ function GrupoDireccion({
 function FilaComercializadora({
   comercializadora,
   mensual,
+  mantenimiento,
   onComparar,
 }: {
   comercializadora: Comercializadora;
   mensual: boolean;
+  mantenimiento: boolean;
   onComparar: () => void;
 }) {
   const [abierto, setAbierto] = useState(false);
-  const ahorro = ahorroComercializadora(comercializadora);
+  const puntos = numSuministros(comercializadora);
+  const ahorro = conMantenimiento(
+    ahorroComercializadora(comercializadora),
+    puntos,
+    mantenimiento,
+  );
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
@@ -321,7 +365,7 @@ function FilaComercializadora({
             ))}
           </span>
           <Text variant="body-m" color="mid" as="span">
-            {numSuministros(comercializadora)} suministros
+            {puntos} suministros
           </Text>
         </span>
 
@@ -342,8 +386,12 @@ function FilaComercializadora({
             {/* En el Figma el ahorro grande lleva el símbolo detrás
                 ("+5.520 €/año") y los importes de la tabla lo llevan delante
                 ("€12.600/año"). Se respetan las dos formas. */}
+            {/* Es la cifra grande de la fila: cuenta al cambiar de periodo o al
+                activar el mantenimiento, igual que en las tarjetas de plan. Los
+                importes pequeños de dentro cambian de golpe a propósito: son
+                docenas y animarlos todos a la vez sería ruido. */}
             <span className="font-heading text-heading-s whitespace-nowrap text-content-high">
-              +{euros(cifra)} €/{mensual ? "mes" : "año"}
+              +<NumeroAnimado value={cifra} /> €/{mensual ? "mes" : "año"}
             </span>
           </span>
 
@@ -365,6 +413,7 @@ function FilaComercializadora({
             <GrupoDireccion
               key={d.id}
               direccion={d}
+              mantenimiento={mantenimiento}
               // La primera dirección viene abierta: al desplegar una
               // comercializadora se ve contenido de verdad, no otra fila cerrada.
               inicialAbierto={i === 0}
@@ -381,10 +430,13 @@ function FilaComercializadora({
 export function TablaAhorro({
   comercializadoras,
   mensual,
+  mantenimiento = false,
   onComparar,
 }: {
   comercializadoras: Comercializadora[];
   mensual: boolean;
+  /** true = el mantenimiento resta su cuota de todas las cifras de ahorro. */
+  mantenimiento?: boolean;
   onComparar: (c: Comercializadora) => void;
 }) {
   return (
@@ -394,6 +446,7 @@ export function TablaAhorro({
           key={c.id}
           comercializadora={c}
           mensual={mensual}
+          mantenimiento={mantenimiento}
           onComparar={() => onComparar(c)}
         />
       ))}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
-import type { Plan } from "@/mocks/aczo";
+import { conMantenimiento, TOTAL_PUNTOS, type Plan } from "@/mocks/aczo";
 import { NumeroAnimado } from "./NumeroAnimado";
 
 /**
@@ -19,7 +19,8 @@ import { NumeroAnimado } from "./NumeroAnimado";
  *   - Al pasar por encima, la tarjeta se eleva 2 px y coge la sombra del sistema
  *     (shadow-md). Es sutil a propósito: son tres tarjetas de decisión, no deben
  *     competir entre ellas ni "saltar".
- *   - La cifra cuenta al cambiar entre anual y mensual (ver NumeroAnimado).
+ *   - La cifra cuenta al cambiar entre anual y mensual, y también al activar el
+ *     mantenimiento (ver NumeroAnimado).
  *   - El logo de cada comercializadora es un hueco reservado con el tamaño
  *     exacto del Figma (80 × 40). Cuando lleguen los archivos, se sustituye el
  *     contenido de ese hueco y no hay que tocar nada más.
@@ -27,16 +28,23 @@ import { NumeroAnimado } from "./NumeroAnimado";
 export function TarjetaPlan({
   plan,
   mensual,
+  mantenimiento = false,
   onElegir,
 }: {
   plan: Plan;
   /** true = enseñar el ahorro por mes en vez de por año. */
   mensual: boolean;
+  /** true = el mantenimiento está contratado, así que su cuota resta ahorro. */
+  mantenimiento?: boolean;
   /** "Hacer switching": lleva al paso de firma. */
   onElegir: () => void;
 }) {
   const destacada = plan.recomendado;
-  const cifra = mensual ? plan.ahorroAnual / 12 : plan.ahorroAnual;
+  // El mantenimiento se cobra por punto de suministro, y los planes cubren
+  // todos los puntos de la propuesta: la cuota es la misma en las tres
+  // tarjetas, así que la comparación entre planes no cambia.
+  const ahorro = conMantenimiento(plan.ahorroAnual, TOTAL_PUNTOS, mantenimiento);
+  const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
     <article

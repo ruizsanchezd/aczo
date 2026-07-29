@@ -405,26 +405,165 @@ export const SOCIEDADES: Sociedad[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
+/* Alertas: contratos con permanencia y facturas vencidas                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Lo que se ve en el panel lateral que se abre con "Revisar permanencias".
+ *
+ * Las dos pestañas del panel usan la misma ficha; lo que cambia es el dato de
+ * la caja gris: en permanencias es cuándo acaba y cuánto costaría salirse, y en
+ * vencidas es de cuándo es la factura y qué queda pendiente.
+ */
+export type ContratoAlerta = {
+  id: string;
+  comercializadora: string;
+  /** Nombre del archivo de la factura de la que salió el dato. */
+  archivo: string;
+  tarifa: string;
+  sociedad: string;
+  cif: string;
+  cups: string;
+  /** Etiqueta de la caja gris: "Fin estimado", "Fecha de la factura"… */
+  etiquetaFecha: string;
+  fecha: string;
+  /**
+   * Horquilla del importe (coste de salirse, o importe pendiente).
+   * `null` = no se ha podido estimar; la ficha lo dice en su sitio.
+   */
+  importe: { min: number; max: number } | null;
+};
+
+export const PERMANENCIAS: ContratoAlerta[] = [
+  {
+    id: "perm-1",
+    comercializadora: "Iberdrola",
+    archivo: "factura_iberdrola_2024_03.pdf",
+    tarifa: "Tarifa 2.0TD",
+    sociedad: "Restaurantes Mediterráneo S.L.",
+    cif: "B-12345678",
+    cups: "ES0031406225146001JN0F",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Marzo 2027",
+    importe: { min: 320, max: 400 },
+  },
+  {
+    id: "perm-2",
+    comercializadora: "Naturgy",
+    archivo: "factura_naturgy_2024_03.pdf",
+    tarifa: "Tarifa 2.0TD",
+    sociedad: "Grupo Hostelero Norte S.L.",
+    cif: "B-82014567",
+    cups: "ES0021877401925003KP1A",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Enero 2027",
+    importe: null,
+  },
+  {
+    id: "perm-3",
+    comercializadora: "Endesa",
+    archivo: "factura_endesa_2024_02.pdf",
+    tarifa: "Tarifa 3.0TD",
+    sociedad: "Café Central S.L.",
+    cif: "B-28567891",
+    cups: "ES0031408890114002MT7C",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Septiembre 2026",
+    importe: { min: 480, max: 610 },
+  },
+  {
+    id: "perm-4",
+    comercializadora: "Repsol",
+    archivo: "factura_repsol_2024_01.pdf",
+    tarifa: "Tarifa 3.1",
+    sociedad: "Restaurantes Mediterráneo S.L.",
+    cif: "B-12345678",
+    cups: "ES0021877455201007QW3D",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Junio 2026",
+    importe: { min: 150, max: 210 },
+  },
+  {
+    id: "perm-5",
+    comercializadora: "Iberdrola",
+    archivo: "factura_iberdrola_2024_01.pdf",
+    tarifa: "Tarifa 2.0TD",
+    sociedad: "Grupo Hostelero Norte S.L.",
+    cif: "B-82014567",
+    cups: "ES0031406778310004BN9E",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Diciembre 2026",
+    importe: { min: 260, max: 340 },
+  },
+];
+
+export const FACTURAS_VENCIDAS: ContratoAlerta[] = [
+  {
+    id: "venc-1",
+    comercializadora: "Endesa",
+    archivo: "factura_endesa_2022_11.pdf",
+    tarifa: "Tarifa 2.0TD",
+    sociedad: "Café Central S.L.",
+    cif: "B-28567891",
+    cups: "ES0031408890114002MT7C",
+    etiquetaFecha: "Fecha de la factura",
+    fecha: "Noviembre 2022",
+    importe: null,
+  },
+  {
+    id: "venc-2",
+    comercializadora: "Naturgy",
+    archivo: "factura_naturgy_2023_02.pdf",
+    tarifa: "Tarifa 3.2",
+    sociedad: "Grupo Hostelero Norte S.L.",
+    cif: "B-82014567",
+    cups: "ES0021877401925003KP1A",
+    etiquetaFecha: "Fecha de la factura",
+    fecha: "Febrero 2023",
+    importe: null,
+  },
+  {
+    id: "venc-3",
+    comercializadora: "Iberdrola",
+    archivo: "factura_iberdrola_2023_04.pdf",
+    tarifa: "Tarifa 2.0TD",
+    sociedad: "Restaurantes Mediterráneo S.L.",
+    cif: "B-12345678",
+    cups: "ES0031406225146001JN0F",
+    etiquetaFecha: "Fecha de la factura",
+    fecha: "Abril 2023",
+    importe: null,
+  },
+];
+
+/* -------------------------------------------------------------------------- */
 /* Filtros de la tabla                                                        */
 /* -------------------------------------------------------------------------- */
 
+/*
+ * Las opciones NO repiten el nombre del filtro ("Tipo de suministro: Luz").
+ * Solo la opción que no filtra nada dice de qué va el desplegable ("Todos los
+ * suministros"), que es justo la que hace falta para no dejar tres desplegables
+ * seguidos poniendo "Todos".
+ */
+
 export const FILTROS_TIPO = [
-  { value: "todos", label: "Tipo de suministro: Todos" },
-  { value: "luz", label: "Tipo de suministro: Luz" },
-  { value: "gas", label: "Tipo de suministro: Gas" },
+  { value: "todos", label: "Todos los suministros" },
+  { value: "luz", label: "Luz" },
+  { value: "gas", label: "Gas" },
 ] as const;
 
 export const FILTROS_TARIFA = [
-  { value: "todas", label: "Tarifa: Todas" },
-  { value: "2.0TD", label: "Tarifa: 2.0TD" },
-  { value: "3.0TD", label: "Tarifa: 3.0TD" },
-  { value: "3.1", label: "Tarifa: 3.1" },
-  { value: "3.2", label: "Tarifa: 3.2" },
+  { value: "todas", label: "Todas las tarifas" },
+  { value: "2.0TD", label: "2.0TD" },
+  { value: "3.0TD", label: "3.0TD" },
+  { value: "3.1", label: "3.1" },
+  { value: "3.2", label: "3.2" },
 ] as const;
 
 export const FILTROS_SOCIEDAD = [
-  { value: "todas", label: "Sociedad: Todas" },
-  ...SOCIEDADES.map((s) => ({ value: s.id, label: `Sociedad: ${s.nombre}` })),
+  { value: "todas", label: "Todas las sociedades" },
+  ...SOCIEDADES.map((s) => ({ value: s.id, label: s.nombre })),
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -451,18 +590,47 @@ export function numSuministros(c: Comercializadora): number {
   return suministrosDe(c).length;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Mantenimiento                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * El mantenimiento es una cuota fija por punto de suministro: 2 €/mes, 24 €/año.
+ * No es gratis, así que al activarlo el ahorro estimado BAJA un poco. Es lo que
+ * hace el interruptor "Añadir mantenimiento" de la pantalla de recomendación.
+ *
+ * Está aquí, con el resto de los datos de mentira, para que se pueda cambiar la
+ * cuota en un solo sitio y todas las cifras de la pantalla sigan cuadrando.
+ */
+export const MANTENIMIENTO_MENSUAL_POR_PUNTO = 2;
+export const MANTENIMIENTO_ANUAL_POR_PUNTO = MANTENIMIENTO_MENSUAL_POR_PUNTO * 12;
+
+/** Resta la cuota de mantenimiento de un ahorro anual, si está activado. */
+export function conMantenimiento(
+  ahorroAnual: number,
+  puntos: number,
+  activo: boolean,
+): number {
+  return activo
+    ? ahorroAnual - puntos * MANTENIMIENTO_ANUAL_POR_PUNTO
+    : ahorroAnual;
+}
+
+/** Total de puntos de suministro de la propuesta. */
+export const TOTAL_PUNTOS = COMERCIALIZADORAS.reduce(
+  (total, c) => total + numSuministros(c),
+  0,
+);
+
 /** Resumen que se enseña en la pantalla de firma. */
 export const RESUMEN = {
   sociedades: SOCIEDADES.length + 3, // hay más sociedades de las que piden IBAN
-  puntosSuministro: COMERCIALIZADORAS.reduce(
-    (total, c) => total + numSuministros(c),
-    0,
-  ),
+  puntosSuministro: TOTAL_PUNTOS,
   puntosConMantenimiento: COMERCIALIZADORAS.flatMap(suministrosDe).filter(
     (s) => s.detalle.mantenimiento,
   ).length,
   /** Puntos que quedan fuera por tener permanencia activa. */
-  puntosConPermanencia: 2,
+  puntosConPermanencia: PERMANENCIAS.length,
 };
 
 /**
