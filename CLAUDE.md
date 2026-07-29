@@ -113,11 +113,14 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
 
 - **Framework:** Next.js 16 (App Router) + React 19 + TypeScript.
 - **Estilos:** Tailwind CSS v4, con los tokens del Figma en `src/app/globals.css`.
-- **Componentes:** sin librería de componentes por ahora (nada de shadcn/ui). Si se decide
-  añadir una, documentarlo aquí.
-- **Animación:** aún sin librería. Empezar con CSS/Tailwind usando las utilidades de motion;
-  si una interacción necesita algo más elaborado (gestos, física, timelines), valorar añadir
-  `motion` y documentarlo aquí.
+- **Componentes:** sin librería de componentes (nada de shadcn/ui). Los componentes del sistema
+  de diseño están hechos a mano en `src/components/ui/`, uno por archivo, a partir de la
+  documentación de la librería de Figma: `Button`, `Input` (con `Textarea`, `Select`,
+  `PasswordInput`, `SearchInput`), `Checkbox`, `Radio`, `Switch`, `Tag`, `ProgressBar`
+  (+ `SegmentedProgress`), `Alert`, `Icon` y `Text`.
+- **Animación:** sin librería. Todo con CSS/Tailwind usando las utilidades de motion y unas
+  pocas animaciones de una pasada definidas en `globals.css` (`anim-*`). Si alguna interacción
+  llega a necesitar gestos o timelines de verdad, valorar añadir `motion` y documentarlo aquí.
 
 ### Tokens del sistema de diseño
 
@@ -178,7 +181,23 @@ al recargar vuelve a "Sistema".
 Las dos se cargan en `src/app/layout.tsx`, que define `--font-inter` y `--font-bradford`. Esos
 nombres **no pueden coincidir** con los tokens `--font-sans` / `--font-heading` de `@theme`, o
 las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
-- **Datos mock:** cuando existan, en `src/mocks/` o `src/lib/`, fáciles de encontrar y editar.
+### Qué hay construido
+
+- **`/recorrido`** — el recorrido completo del prototipo, las seis pantallas del Figma de UI
+  Design: subida de facturas → datos → análisis → recomendación → firma → alta en tramitación.
+  Cada pantalla es un archivo en `src/components/prototipo/`, y `Recorrido.tsx` las une.
+- **`/estilos`** — la página de referencia de tokens.
+- **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
+  mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una
+  animación, hay que actualizarlo.**
+
+Pendiente: los **logos de las comercializadoras**. El hueco está reservado con el tamaño del
+Figma (80 × 40) y de momento enseña el nombre. Cuando lleguen los archivos van en
+`public/logos/` como `totalenergies.svg`, `repsol.svg`, `naturgy.svg`, `octopus.svg`,
+`iberdrola.svg`, y solo hay que cambiar el componente `HuecoLogo` de `TarjetaPlan.tsx`.
+
+- **Datos mock:** todos en `src/mocks/aczo.ts`, un solo archivo. Los totales no están escritos a
+  mano: se calculan sumando los suministros, así que al editar una cifra todo sigue cuadrando.
 - **Cómo arrancar en local:** `npm install` y luego `npm run dev` (servidor en
   `http://localhost:3000`).
 - **Dependencias:** al añadir una nueva, instalar siempre la **última versión** publicada

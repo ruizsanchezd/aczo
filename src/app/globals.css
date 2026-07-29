@@ -298,6 +298,123 @@
 }
 
 /* ============================================================================
+   ANIMACIONES DEL PROTOTIPO
+   ----------------------------------------------------------------------------
+   Las utilidades motion-* de arriba sirven para transiciones (de un estado a
+   otro). Estas son animaciones de una sola pasada: entradas de pantalla, cosas
+   que aparecen, y el giro de la pantalla de carga.
+
+   Todas usan los MISMOS tokens de duración y curva. Ninguna inventa valores.
+
+   Cómo se usan:
+     <div className="anim-entra-adelante">          una pantalla que entra
+     <div className="anim-aparece" style={{ animationDelay: "80ms" }}>
+                                                    entrada en cascada
+   ========================================================================== */
+
+@keyframes aczo-entra-adelante {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes aczo-entra-atras {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes aczo-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes aczo-aparece-simple {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes aczo-escala-entrada {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* El giro de las cruces de la pantalla de carga.
+   La cruz tiene 4 puntas simétricas: al llegar a 90° vuelve a estar igual que
+   al empezar. Por eso el ciclo es de 90° y no de 360°: así el "tic" nunca se
+   ve saltar. steps(3) da el giro a saltos, como un reloj. */
+@keyframes aczo-gira-cuarto {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+
+/* Una pantalla entra avanzando (se va hacia delante en el recorrido). */
+@utility anim-entra-adelante {
+  animation: aczo-entra-adelante var(--motion-timing-3) var(--ease-3) both;
+}
+
+/* Una pantalla entra retrocediendo (se ha vuelto atrás). */
+@utility anim-entra-atras {
+  animation: aczo-entra-atras var(--motion-timing-4) var(--ease-2) both;
+}
+
+/* Algo aparece subiendo un poco. Para entradas en cascada. */
+@utility anim-aparece {
+  animation: aczo-aparece var(--motion-timing-3) var(--ease-2) both;
+}
+
+/* Algo aparece sin moverse. Para velos y fondos. */
+@utility anim-aparece-simple {
+  animation: aczo-aparece-simple var(--motion-timing-3) var(--ease-2) both;
+}
+
+/* Algo aparece creciendo desde el centro. Para la ventana modal. */
+@utility anim-escala-entrada {
+  animation: aczo-escala-entrada var(--motion-timing-3) var(--ease-3) both;
+}
+
+/* Giro a saltos, en cuartos de vuelta. */
+@utility anim-gira-saltos {
+  animation: aczo-gira-cuarto var(--motion-timing-6) steps(3) infinite;
+}
+
+/* Giro continuo, sin saltos. Se usa con el interruptor de la pantalla de carga
+   para poder comparar las dos sensaciones. */
+@utility anim-gira-suave {
+  animation: aczo-gira-cuarto var(--motion-timing-6) linear infinite;
+}
+
+/* ============================================================================
    UTILIDAD DE LAYOUT
    ========================================================================== */
 
