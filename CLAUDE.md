@@ -169,11 +169,15 @@ Qué modo se aplica lo decide `color-scheme`:
 En `/estilos` hay un interruptor (`ThemeToggle`) para ver los dos modos. No guarda la elección:
 al recargar vuelve a "Sistema".
 
-**Pendientes conocidos:**
+### Fuentes
 
-- La fuente de marca `Bradford LL TT` (los `heading`) es de pago y no está en el repo. De momento
-  se usa una serif parecida como sustituto, así que **los titulares no son fieles al Figma**.
-  El archivo va en `src/fonts/` (ver `src/fonts/README.md`).
+- `body`, `label` y `title` → **Inter** (gratuita, se carga de Google Fonts).
+- `heading` → **Bradford LL TT Medium**, la fuente de marca. Es la real, licenciada; el archivo
+  está en `src/fonts/`. Se usa con `font-heading` o con `<Text variant="heading-*">`.
+
+Las dos se cargan en `src/app/layout.tsx`, que define `--font-inter` y `--font-bradford`. Esos
+nombres **no pueden coincidir** con los tokens `--font-sans` / `--font-heading` de `@theme`, o
+las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
 - **Datos mock:** cuando existan, en `src/mocks/` o `src/lib/`, fáciles de encontrar y editar.
 - **Cómo arrancar en local:** `npm install` y luego `npm run dev` (servidor en
   `http://localhost:3000`).

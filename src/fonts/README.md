@@ -1,41 +1,44 @@
 # Fuentes
 
-## 👉 Deja aquí el archivo de `Bradford LL TT`
+## Qué hay aquí
 
-Esta es la carpeta. El archivo va **dentro de `src/fonts/`**, al mismo nivel que este
-documento. No hace falta que hagas nada más: déjalo ahí y dime que ya está, que yo lo
-conecto.
+**`Bradford LL TT` (Medium / 500)** — la fuente de marca, la de los titulares (`heading`).
+Es la de verdad, de la fundición [Lineto](https://lineto.com). La licencia está confirmada.
 
-### Qué archivo hace falta
+Hay dos archivos del mismo tipo:
 
-- **Peso:** `Medium` (500). Es el único que usa el sistema de diseño para los `heading`.
-- **Formato:** el mejor es **`.woff2`**. Si solo tienes `.otf` o `.ttf`, también sirve.
-- **Nombre:** da igual cómo se llame, pero si puedes déjalo como
-  `BradfordLLTT-Medium.woff2` (o la extensión que sea).
+| Archivo | Para qué |
+| --- | --- |
+| `BradfordLLTT-Medium.woff2` | **La que usa la web.** 101 KB, es la que se carga en el navegador. |
+| `BradfordLLTT-Medium.ttf` | El original tal cual llegó de la fundición (350 KB). No se usa en la web; se guarda como copia de seguridad y por si algún día hace falta otro formato. |
 
-Si de la fundición te llegan varios pesos (Regular, Bold…), déjalos todos y ya veo yo
-cuáles conectar.
+Está conectada en `src/app/layout.tsx` y se usa con la clase `font-heading` (o con el
+componente `<Text variant="heading-l">`, que ya la aplica).
 
-### Por qué está aquí y no en `public/`
+## La otra fuente: Inter
 
-Next.js procesa las fuentes de esta carpeta y las sirve optimizadas, sin parpadeo al
-cargar. Si estuvieran en `public/` no lo haría.
+`body`, `label` y `title` usan **Inter**, que es gratuita y de código abierto. No hace falta
+ningún archivo: se descarga automáticamente de Google Fonts y Next.js la sirve ya optimizada
+desde el propio proyecto. No hay nada que hacer con ella.
 
 ---
 
-## Estado actual
+## Si algún día hay que añadir otro peso
 
-Ahora mismo **falta la fuente de marca**, así que los titulares (`heading`) se ven con
-una serif parecida (Newsreader, de Google Fonts) como sustituto temporal. Están
-configurados en `src/app/layout.tsx`.
+1. Deja el archivo en esta carpeta (mejor `.woff2`; si es `.ttf` u `.otf`, se puede convertir).
+2. Dilo y se conecta en `src/app/layout.tsx`.
 
-Esto significa que **los titulares del prototipo NO son fieles al Figma** todavía. El
-resto de la tipografía (`body`, `label`, `title`) usa Inter y sí es correcta.
+Para convertir un `.ttf` u `.otf` a `.woff2` (pesa un 70% menos):
+
+```bash
+python3 -c "
+from fontTools.ttLib import TTFont
+f = TTFont('ARCHIVO.ttf'); f.flavor = 'woff2'; f.save('ARCHIVO.woff2')
+"
+```
 
 ## Nota sobre la licencia
 
-`Bradford LL TT` es una fuente **de pago** (de la fundición Lineto). Este repositorio es
-privado, así que guardar el archivo aquí es lo normal para un prototipo interno — pero
-conviene que confirmes que la licencia que tenéis cubre su uso en un proyecto web,
-aunque sea interno. Si en algún momento el repositorio se hiciera público, la fuente
-tendría que salir de aquí.
+`Bradford LL TT` es una fuente **de pago**. Este repositorio es **privado**, que es la
+condición que hace correcto guardarla aquí. Si en algún momento el repositorio se hiciera
+público, la fuente tendría que salir de aquí.

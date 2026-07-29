@@ -217,10 +217,10 @@ export default function EstilosPage() {
         </div>
         <div className="mt-07 rounded-md bg-background-low p-04">
           <Text variant="body-s" color="mid">
-            Los <strong>heading</strong> son de marca y en Figma usan Bradford LL
-            TT. Es una fuente de pago que todavía no está en el repo, así que se
-            ven con una serif parecida. No son fieles al Figma hasta que se
-            añada la fuente real.
+            Los <strong>heading</strong> usan <strong>Bradford LL TT</strong>, la
+            fuente de marca. Las demás familias (<strong>title</strong>,{" "}
+            <strong>label</strong> y <strong>body</strong>) usan{" "}
+            <strong>Inter</strong>.
           </Text>
         </div>
       </Section>

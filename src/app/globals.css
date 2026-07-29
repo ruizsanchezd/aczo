@@ -98,10 +98,12 @@
   --color-extended-five-dark: #157d3b;
 
   /* --- Tipografía · familias -------------------------------------------- */
-  /* body, label y title usan Inter. heading usa Bradford LL TT (ver nota
-     en layout.tsx: es una fuente de pago, de momento hay un sustituto). */
+  /* body, label y title usan Inter; heading usa Bradford LL TT (la de marca).
+     Las dos se cargan en layout.tsx, que es quien define --font-inter y
+     --font-bradford. Ojo: los nombres de esas dos variables NO pueden
+     coincidir con los tokens de aquí, o se referenciarían a sí mismos. */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-heading), Georgia, "Times New Roman", serif;
+  --font-heading: var(--font-bradford), Georgia, "Times New Roman", serif;
 
   /* --- Tipografía · escala ---------------------------------------------- */
   /* body — Inter 400 · texto corrido */
