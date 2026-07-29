@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+.pnp/
+.pnp.js
+
+# Builds / salidas
+dist/
+build/
+out/
+.next/
+.turbo/
+.vite/
+
+# Entorno y secretos (este es un prototipo: nunca deberían existir de verdad)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Caché
+.cache/
+*.tsbuildinfo
