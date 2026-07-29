@@ -403,15 +403,11 @@
   animation: aczo-escala-entrada var(--motion-timing-3) var(--ease-3) both;
 }
 
-/* Giro a saltos, en cuartos de vuelta. */
+/* Giro a saltos, en cuartos de vuelta: tres tirones por cuarto de vuelta.
+   Es el giro del spinner de la pantalla de carga. Se eligió a saltos y no
+   continuo porque se siente como "una máquina trabajando". */
 @utility anim-gira-saltos {
   animation: aczo-gira-cuarto var(--motion-timing-6) steps(3) infinite;
-}
-
-/* Giro continuo, sin saltos. Se usa con el interruptor de la pantalla de carga
-   para poder comparar las dos sensaciones. */
-@utility anim-gira-suave {
-  animation: aczo-gira-cuarto var(--motion-timing-6) linear infinite;
 }
 
 /* ============================================================================

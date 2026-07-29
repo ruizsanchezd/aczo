@@ -84,14 +84,12 @@ se comporte igual sobre cualquier superficie.
 
 **La animación principal del prototipo.** Tres cosas a la vez:
 
-1. **Las cruces giran.** La cruz de la marca tiene 4 puntas simétricas: al girar **90°** vuelve a
-   estar exactamente igual que al empezar. Por eso el ciclo de la animación es de 90° y no de 360°:
-   el giro se ve continuo y **nunca se aprecia el salto** al reiniciarse.
-   - Ciclo: **800 ms** (`motion-timing-6`).
-   - Dos versiones, con un interruptor en pantalla para compararlas:
-     - **A saltos** (`steps(3)`): tres tirones por cuarto de vuelta. Se siente mecánico, "una
-       máquina trabajando". Es la opción por defecto.
-     - **Suave** (lineal): giro continuo, más orgánico.
+1. **Las cruces giran, a saltos.** La cruz de la marca tiene 4 puntas simétricas: al girar **90°**
+   vuelve a estar exactamente igual que al empezar. Por eso el ciclo de la animación es de 90° y no
+   de 360°: el giro se ve continuo y **nunca se aprecia el salto** al reiniciarse.
+   - Ciclo: **800 ms** (`motion-timing-6`), con `steps(3)`: tres tirones por cuarto de vuelta.
+   - **A saltos y no continuo** es una decisión tomada: se siente mecánico, "una máquina
+     trabajando", y encaja con el carácter de la marca mejor que un giro suave.
    - Las tres giran **sincronizadas**. Para ponerlas en cascada bastaría con darle a cada una un
      `animation-delay` distinto.
 2. **Los pasos se completan.** Al terminar un paso, su cruz **deja de girar y se convierte en un
@@ -101,9 +99,6 @@ se comporte igual sobre cualquier superficie.
 
 Al llegar al 100 % hay **500 ms de respiro** antes de cambiar de pantalla: si se salta de golpe, no
 se llega a leer que ha terminado.
-
-> El interruptor "Giro suave" es un **control de prototipo**, no forma parte del diseño. Está para
-> decidir cuál de las dos sensaciones se queda. Cuando se decida, se quita.
 
 ## Pantalla 4 · Tu ahorro potencial
 

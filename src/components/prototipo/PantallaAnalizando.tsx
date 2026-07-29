@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { BrandPattern } from "@/components/brand/BrandPattern";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { Switch } from "@/components/ui/Switch";
 import { Text } from "@/components/ui/Text";
 import { PASOS_ANALISIS } from "@/mocks/aczo";
 
@@ -13,16 +12,15 @@ import { PASOS_ANALISIS } from "@/mocks/aczo";
  *
  * LA ANIMACIÓN PRINCIPAL DEL PROTOTIPO. Tres cosas a la vez:
  *
- * 1. LAS CRUCES GIRAN.
+ * 1. LAS CRUCES GIRAN, A SALTOS.
  *    La cruz de la marca tiene 4 puntas simétricas: al girar 90° vuelve a estar
  *    exactamente igual que al empezar. Por eso el ciclo de la animación es de
  *    90° y no de 360°: el giro se ve continuo y nunca se aprecia un salto al
  *    reiniciarse. El ciclo dura 800 ms (motion-timing-6).
  *
- *    Hay dos versiones y un interruptor abajo para compararlas:
- *      - A saltos (por defecto): steps(3), tres tirones por cuarto de vuelta.
- *        Se siente mecánico, "una máquina trabajando".
- *      - Suave: giro continuo. Se siente más orgánico.
+ *    El giro va a saltos —steps(3), tres tirones por cuarto de vuelta— y no
+ *    continuo. Es una decisión tomada: se siente mecánico, "una máquina
+ *    trabajando", y encaja con el carácter de la marca mejor que un giro suave.
  *
  *    Las tres giran SINCRONIZADAS, como se pidió. Si en algún momento se quiere
  *    en cascada, basta con darle a cada una un animationDelay distinto.
@@ -44,7 +42,6 @@ const REFRESCO = 40;
 
 export function PantallaAnalizando({ onTerminar }: { onTerminar: () => void }) {
   const [progreso, setProgreso] = useState(0);
-  const [giroSuave, setGiroSuave] = useState(false);
 
   const total = DURACION_PASO * PASOS_ANALISIS.length;
 
@@ -98,11 +95,7 @@ export function PantallaAnalizando({ onTerminar }: { onTerminar: () => void }) {
                       <Icon name="check-circle" />
                     </span>
                   ) : (
-                    <span
-                      className={
-                        giroSuave ? "anim-gira-suave" : "anim-gira-saltos"
-                      }
-                    >
+                    <span className="anim-gira-saltos">
                       <Icon name="spark" />
                     </span>
                   )}
@@ -122,20 +115,6 @@ export function PantallaAnalizando({ onTerminar }: { onTerminar: () => void }) {
         </ul>
 
         <ProgressBar value={progreso} label="Análisis de documentación" />
-      </div>
-
-      {/* CONTROL DE PROTOTIPO — no forma parte del diseño.
-          Está aquí solo para poder comparar las dos sensaciones de giro y
-          decidir cuál se queda. Al elegir, se quita este bloque. */}
-      <div className="absolute bottom-06 left-1/2 z-10 flex -translate-x-1/2 items-center gap-03 rounded-full bg-background-overlay px-04 py-02">
-        <Text variant="body-s" color="always-light" as="span">
-          Giro suave
-        </Text>
-        <Switch
-          checked={giroSuave}
-          onChange={setGiroSuave}
-          label="Alternar entre giro a saltos y giro suave"
-        />
       </div>
     </div>
   );
