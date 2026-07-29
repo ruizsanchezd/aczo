@@ -32,8 +32,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // data-theme="light" fuerza el modo claro en todo el prototipo.
+    //
+    // El producto va SIEMPRE en claro. El modo oscuro está implementado y se
+    // queda en la recámara por si algún día se activa: los tokens de color
+    // siguen declarados como light-dark(claro, oscuro) en globals.css, así que
+    // basta con quitar este atributo para que vuelva a seguir el ajuste del
+    // sistema de cada persona.
+    //
+    // OJO, no confundir con las SUPERFICIES OSCURAS (la tarjeta "Ahorro Aczo",
+    // el fondo de la pantalla de carga, la banda "Aczo garantiza"). Esas son
+    // oscuras siempre, también en modo claro, y no tienen nada que ver con esto:
+    // usan tokens que no cambian entre modos (highlight-deep, highlight-muted)
+    // y textos content-always-light / content-always-dark.
     <html
       lang="es"
+      data-theme="light"
       className={`${inter.variable} ${bradford.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
