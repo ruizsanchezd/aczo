@@ -23,49 +23,64 @@
    ========================================================================== */
 
 @theme {
-  /* --- Color · contenido (texto e iconos) ------------------------------- */
-  --color-content-high: #000000;
-  --color-content-mid: #4d4d4d;
-  --color-content-low: #737373;
-  --color-content-inverse: #ffffff;
-  --color-content-always-light: #ffffff;
-  --color-content-always-dark: #000000;
-  --color-content-state-disabled: #a6a6a6;
+  /* --- Color ------------------------------------------------------------
+     Los tokens que cambian entre modo claro y oscuro se escriben como
+     light-dark(claro, oscuro). Así los dos valores viven juntos y no hay dos
+     listas que se puedan desincronizar.
 
-  /* --- Color · fondos --------------------------------------------------- */
-  --color-background-base: #ffffff;
-  --color-background-low: #f2f2f2;
-  --color-background-mid: #e6e6e6;
-  --color-background-high: #000000;
-  --color-background-inverse: #000000;
-  --color-background-overlay: #00000059;
-  --color-background-state-disabled: #f2f2f2;
+     Quien manda es `color-scheme` (se fija más abajo): por defecto sigue al
+     sistema, y se puede forzar con el atributo data-theme en <html>.
 
-  /* --- Color · bordes --------------------------------------------------- */
-  --color-border-low: #e6e6e6;
-  --color-border-mid: #a6a6a6;
-  --color-border-high: #000000;
-  --color-border-inverse: #ffffff;
-  --color-border-state-disabled: #f2f2f2;
+     Los tokens SIN light-dark() son los que el Figma define iguales en los dos
+     modos (highlight, extended, los `high` de feedback y algún otro). No es un
+     olvido: es que no cambian.
+     -------------------------------------------------------------------- */
 
-  /* --- Color · highlight (el amarillo de marca y su familia) ------------ */
+  /* Contenido (texto e iconos) */
+  --color-content-high: light-dark(#000000, #ffffff);
+  --color-content-mid: light-dark(#4d4d4d, #a6a6a6);
+  --color-content-low: light-dark(#737373, #8c8c8c);
+  --color-content-inverse: light-dark(#ffffff, #000000);
+  --color-content-always-light: #ffffff; /* igual en ambos modos, a propósito */
+  --color-content-always-dark: #000000; /* igual en ambos modos, a propósito */
+  --color-content-state-disabled: light-dark(#a6a6a6, #4d4d4d);
+
+  /* Fondos */
+  --color-background-base: light-dark(#ffffff, #0d0d0d);
+  --color-background-low: light-dark(#f2f2f2, #1a1a1a);
+  --color-background-mid: light-dark(#e6e6e6, #333333);
+  --color-background-high: #000000; /* igual en ambos modos */
+  --color-background-inverse: light-dark(#000000, #ffffff);
+  --color-background-overlay: #00000059; /* igual en ambos modos */
+  --color-background-state-disabled: light-dark(#f2f2f2, #1a1a1a);
+
+  /* Bordes */
+  --color-border-low: light-dark(#e6e6e6, #333333);
+  --color-border-mid: light-dark(#a6a6a6, #737373);
+  --color-border-high: light-dark(#000000, #ffffff);
+  --color-border-inverse: light-dark(#ffffff, #000000);
+  --color-border-state-disabled: light-dark(#f2f2f2, #1a1a1a);
+
+  /* Highlight (el amarillo de marca y su familia) — no cambia entre modos */
   --color-highlight-vivid: #f6fe01;
   --color-highlight-soft: #f4fbae;
   --color-highlight-muted: #767214;
   --color-highlight-neutral: #d5d3b4;
   --color-highlight-deep: #20270f;
 
-  /* --- Color · feedback ------------------------------------------------- */
+  /* Feedback — el color fuerte no cambia; el fondo suave sí */
   --color-success-high: #157d3b;
-  --color-success-low: #e1fcd4;
+  --color-success-low: light-dark(#e1fcd4, #153904);
   --color-danger-high: #c61818;
-  --color-danger-low: #fed9d9;
+  --color-danger-low: light-dark(#fed9d9, #4b0202);
   --color-info-high: #1863c6;
-  --color-info-low: #dceefe;
+  --color-info-low: light-dark(#dceefe, #022645);
   --color-warning-high: #a45c14;
-  --color-warning-low: #fff2e6;
+  --color-warning-low: light-dark(#fff2e6, #422b00);
 
-  /* --- Color · extended (paleta ampliada, p. ej. para gráficas) --------- */
+  /* Extended (paleta ampliada, p. ej. gráficas) — no cambia entre modos.
+     Ojo: `light`/`mid`/`dark` aquí son nombres de intensidad del color, NO
+     tienen nada que ver con el modo claro/oscuro. */
   --color-extended-one-light: #f4fbae;
   --color-extended-one-mid: #f6fe01;
   --color-extended-one-dark: #767214;
@@ -175,6 +190,29 @@
    TOKENS QUE NO ENCAJAN EN @theme
    Se exponen como variables CSS para usarlas a mano cuando haga falta.
    ========================================================================== */
+
+/* ----------------------------------------------------------------------------
+   MODO CLARO / OSCURO
+   ----------------------------------------------------------------------------
+   `color-scheme` es lo que decide qué rama de light-dark() se aplica:
+
+   - Por defecto (`light dark`) manda el ajuste del sistema de la persona.
+   - `data-theme="light"` o `data-theme="dark"` en <html> lo fuerza.
+
+   El interruptor de la página /estilos solo cambia ese atributo.
+   -------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
 
 :root {
   /* Style · grosor de borde y opacidades de estado */

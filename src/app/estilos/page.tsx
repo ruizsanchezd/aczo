@@ -1,4 +1,5 @@
 import { Text } from "@/components/ui/Text";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { MotionDemo } from "./MotionDemo";
 
 /**
@@ -103,9 +104,25 @@ export default function EstilosPage() {
           Figma. Abre esta página al lado de la librería para comprobar que todo
           coincide.
         </Text>
+        <div className="mt-06 flex flex-wrap items-center gap-03">
+          <Text variant="label-s" color="low" as="span">
+            Modo de color
+          </Text>
+          <ThemeToggle />
+        </div>
       </header>
 
       <Section title="Color">
+        <div className="mb-07 rounded-md bg-background-low p-04">
+          <Text variant="body-s" color="mid">
+            Cambia el modo de color ahí arriba para ver los dos. Lo que{" "}
+            <strong>sí cambia</strong>: contenido, fondos, bordes y los fondos
+            suaves de feedback. Lo que <strong>no cambia</strong> (así está en el
+            Figma, no es un olvido): la familia highlight, la paleta extended,
+            los colores fuertes de feedback y los{" "}
+            <code>content-always-light</code> / <code>always-dark</code>.
+          </Text>
+        </div>
         <SwatchGrid
           label="Contenido — texto e iconos"
           swatches={[

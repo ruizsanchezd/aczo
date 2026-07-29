@@ -150,12 +150,30 @@ propiedad a animar (`transition-colors`, `transition-transform`…). Los seis to
 son `micro-states`, `micro-leave`, `micro-appear`, `macro-levelup`, `macro-leveldown` y
 `macro-structure`. `prefers-reduced-motion` ya está respetado globalmente.
 
+### Modo claro y oscuro
+
+Los dos modos del Figma están implementados. **No hay que hacer nada especial para
+soportarlos:** si usas los tokens de color, el cambio de modo ya funciona solo. No escribas
+variantes `dark:` a mano.
+
+Los tokens que cambian se declaran en `globals.css` como `light-dark(claro, oscuro)`, así que
+los dos valores viven juntos. Los que aparecen con un solo valor es porque el Figma los define
+iguales en ambos modos (la familia `highlight`, la paleta `extended`, los `high` de feedback,
+`content-always-*`, `background-high` y `background-overlay`).
+
+Qué modo se aplica lo decide `color-scheme`:
+
+- Por defecto manda el **ajuste del sistema** de cada persona.
+- Se puede forzar con `data-theme="light"` o `data-theme="dark"` en `<html>`.
+
+En `/estilos` hay un interruptor (`ThemeToggle`) para ver los dos modos. No guarda la elección:
+al recargar vuelve a "Sistema".
+
 **Pendientes conocidos:**
 
 - La fuente de marca `Bradford LL TT` (los `heading`) es de pago y no está en el repo. De momento
   se usa una serif parecida como sustituto, así que **los titulares no son fieles al Figma**.
-- Los tokens implementados son los del **modo claro**. La librería de Figma también tiene modo
-  oscuro (el fondo base es `#0d0d0d`); si se necesita, hay que extraerlo y añadirlo.
+  El archivo va en `src/fonts/` (ver `src/fonts/README.md`).
 - **Datos mock:** cuando existan, en `src/mocks/` o `src/lib/`, fáciles de encontrar y editar.
 - **Cómo arrancar en local:** `npm install` y luego `npm run dev` (servidor en
   `http://localhost:3000`).
