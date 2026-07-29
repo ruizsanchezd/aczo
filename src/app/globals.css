@@ -365,6 +365,20 @@
   }
 }
 
+/* Un panel entra deslizándose desde el borde derecho.
+   El 100% es su PROPIO ancho, no el de la pantalla: así arranca justo fuera de
+   la vista sea cual sea el ancho del panel, sin tener que saberlo. */
+@keyframes aczo-entra-lateral {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* El giro de las cruces de la pantalla de carga.
    La cruz tiene 4 puntas simétricas: al llegar a 90° vuelve a estar igual que
    al empezar. Por eso el ciclo es de 90° y no de 360°: así el "tic" nunca se
@@ -396,6 +410,12 @@
 /* Algo aparece sin moverse. Para velos y fondos. */
 @utility anim-aparece-simple {
   animation: aczo-aparece-simple var(--motion-timing-3) var(--ease-2) both;
+}
+
+/* El panel lateral entra desde la derecha. Es "entrar en un detalle", así que
+   usa el mismo token que los desplegables: macro-levelup (350 ms, ease out). */
+@utility anim-entra-lateral {
+  animation: aczo-entra-lateral var(--motion-timing-3) var(--ease-3) both;
 }
 
 /* Algo aparece creciendo desde el centro. Para la ventana modal. */

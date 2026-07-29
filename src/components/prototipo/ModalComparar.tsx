@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { Text } from "@/components/ui/Text";
 import { euros, OFERTAS, type Oferta } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
@@ -143,13 +142,14 @@ function TarjetaOferta({
   oferta: Oferta;
   style?: React.CSSProperties;
 }) {
-  const [elegida, setElegida] = useState(oferta.actual);
-
   return (
     <article
       className="anim-aparece flex flex-col gap-05 rounded-lg bg-background-base p-06"
       style={style}
     >
+      {/* Sin casilla de selección: la información se lee y se decide con el
+          botón de abajo. Una casilla ADEMÁS del botón obliga a dos gestos para
+          una sola decisión, y deja dudando cuál de los dos es el que vale. */}
       <header className="flex items-start justify-between gap-03 border-b border-border-low pb-05">
         <span className="flex min-w-0 flex-col">
           <Text variant="title-m" as="h3" className="truncate">
@@ -159,11 +159,6 @@ function TarjetaOferta({
             {oferta.tarifa}
           </Text>
         </span>
-        <Checkbox
-          checked={elegida}
-          onChange={setElegida}
-          className="shrink-0"
-        />
       </header>
 
       <div className="flex flex-col gap-01">

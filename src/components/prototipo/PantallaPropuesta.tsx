@@ -11,11 +11,13 @@ import {
   FILTROS_SOCIEDAD,
   FILTROS_TARIFA,
   FILTROS_TIPO,
+  MANTENIMIENTO_MENSUAL_POR_PUNTO,
   PLANES,
   type Comercializadora,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
 import { ModalComparar } from "./ModalComparar";
+import { PanelPermanencias } from "./PanelPermanencias";
 import { TablaAhorro } from "./TablaAhorro";
 import { TarjetaPlan } from "./TarjetaPlan";
 
@@ -29,8 +31,12 @@ import { TarjetaPlan } from "./TarjetaPlan";
  *   - El selector anual/mensual desliza su fondo negro de un lado al otro
  *     (motion-macro-structure) mientras las cifras cuentan hasta su nuevo valor.
  *     Las dos cosas a la vez: el movimiento explica que es el mismo dato.
- *   - Los cuatro niveles de despliegue de la tabla y la ventana de comparación
- *     están documentados en TablaAhorro.tsx y ModalComparar.tsx.
+ *   - "Añadir mantenimiento" no es decorativo: el mantenimiento cuesta una cuota
+ *     por punto de suministro, así que al activarlo TODAS las cifras de ahorro
+ *     bajan un poco, contando (ver conMantenimiento en mocks/aczo.ts).
+ *   - Los cuatro niveles de despliegue de la tabla, la ventana de comparación y
+ *     el panel de permanencias están documentados en TablaAhorro.tsx,
+ *     ModalComparar.tsx y PanelPermanencias.tsx.
  *
  * El buscador y los filtros funcionan de verdad sobre los datos de mentira.
  */
@@ -46,6 +52,7 @@ export function PantallaPropuesta({
   const [tarifa, setTarifa] = useState("todas");
   const [sociedad, setSociedad] = useState("todas");
   const [comparando, setComparando] = useState<Comercializadora | null>(null);
+  const [permanencias, setPermanencias] = useState(false);
 
   // Filtrado: se quitan los suministros que no encajan y, si una dirección o una
   // comercializadora se queda vacía, desaparece también.
@@ -88,7 +95,8 @@ export function PantallaPropuesta({
             datos de estimación.{" "}
             <button
               type="button"
-              className="cursor-pointer underline transition-opacity motion-micro-states hover:opacity-60"
+              onClick={() => setPermanencias(true)}
+              className="cursor-pointer underline transition-opacity motion-micro-states hover:opacity-60 active:opacity-30"
             >
               Revisar permanencias
             </button>
@@ -112,7 +120,12 @@ export function PantallaPropuesta({
             onChange={setMantenimiento}
             label="Añadir mantenimiento a todos los puntos"
           />
-          <span className="text-content-mid">
+          {/* El "por qué" del cambio de cifras: el mantenimiento tiene un
+              precio, y por eso el ahorro baja al activarlo. */}
+          <span
+            className="text-content-mid"
+            title={`El mantenimiento cuesta ${MANTENIMIENTO_MENSUAL_POR_PUNTO} €/mes por punto de suministro y se descuenta del ahorro estimado.`}
+          >
             <Icon name="info" />
           </span>
         </div>
@@ -122,7 +135,12 @@ export function PantallaPropuesta({
       <div className="grid gap-04 lg:grid-cols-3">
         {PLANES.map((plan, i) => (
           <div key={plan.id} className="anim-aparece" style={retardo(i + 3)}>
-            <TarjetaPlan plan={plan} mensual={mensual} onElegir={onContinuar} />
+            <TarjetaPlan
+              plan={plan}
+              mensual={mensual}
+              mantenimiento={mantenimiento}
+              onElegir={onContinuar}
+            />
           </div>
         ))}
       </div>
@@ -167,6 +185,7 @@ export function PantallaPropuesta({
           <TablaAhorro
             comercializadoras={filtradas}
             mensual={mensual}
+            mantenimiento={mantenimiento}
             onComparar={setComparando}
           />
         ) : (
@@ -185,6 +204,11 @@ export function PantallaPropuesta({
         abierto={comparando !== null}
         nombreComercializadora={comparando?.nombre}
         onCerrar={() => setComparando(null)}
+      />
+
+      <PanelPermanencias
+        abierto={permanencias}
+        onCerrar={() => setPermanencias(false)}
       />
     </div>
   );

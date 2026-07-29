@@ -8,14 +8,21 @@ import { Icon, type IconName } from "./Icon";
  * recomendación (variante `plain`, sobre fondo claro) y el aviso oculto de la
  * pantalla de firma.
  *
- * Variantes: plain (fondo base + borde) · info · warning · danger · success.
+ * Variantes: plain (fondo base + borde) · subtle · info · warning · danger ·
+ * success.
  */
 
-type AlertTone = "plain" | "info" | "warning" | "danger" | "success";
+type AlertTone = "plain" | "subtle" | "info" | "warning" | "danger" | "success";
 
 const tonos: Record<AlertTone, { caja: string; icono: string }> = {
   plain: {
     caja: "border border-border-low bg-background-base text-content-mid",
+    icono: "text-content-mid",
+  },
+  // Sin borde, sobre el gris más suave del sistema. Es la caja de información
+  // del panel de alertas: acompaña, no avisa.
+  subtle: {
+    caja: "bg-background-low text-content-mid",
     icono: "text-content-mid",
   },
   info: { caja: "bg-info-low text-content-high", icono: "text-info-high" },
