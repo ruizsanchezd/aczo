@@ -88,8 +88,19 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
 
 ## Stack
 
-Aún no fijado. Cuando se empiece a escribir código, decidir el stack y **documentarlo aquí
-mismo** (framework, librería de animación, cómo arrancar en local). Mantén esta sección al día.
+- **Framework:** Next.js 16 (App Router) + React 19 + TypeScript.
+- **Estilos:** Tailwind CSS v4.
+- **Componentes:** sin librería de componentes por ahora (nada de shadcn/ui). Si se decide
+  añadir una, documentarlo aquí.
+- **Animación:** aún sin librería. Empezar con CSS/Tailwind; si una interacción necesita algo
+  más elaborado (gestos, física, timelines), valorar añadir `motion` y documentarlo aquí.
+- **Datos mock:** cuando existan, en `src/mocks/` o `src/lib/`, fáciles de encontrar y editar.
+- **Cómo arrancar en local:** `npm install` y luego `npm run dev` (servidor en
+  `http://localhost:3000`).
+- **Dependencias:** al añadir una nueva, instalar siempre la **última versión** publicada
+  (`npm install <paquete>@latest`), nunca una versión recordada o copiada de otro proyecto.
+
+Mantén esta sección al día según evolucione el prototipo.
 
 ## Flujo de trabajo (gitflow simplificado)
 

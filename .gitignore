@@ -32,3 +32,9 @@ Thumbs.db
 # Caché
 .cache/
 *.tsbuildinfo
+
+# Next.js / varios
+next-env.d.ts
+coverage/
+*.pem
+.vercel
