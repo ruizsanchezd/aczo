@@ -37,7 +37,7 @@ Estas reglas valen para cualquier acción de git/GitHub, la pidan por comando o 
 
 ## Qué es este repositorio
 
-Este es un **repositorio de prototipo** del proyecto **Aczo (Tavira Cápital)**. Su única
+Este es un **repositorio de prototipo** del proyecto **Aczo**. Su única
 finalidad es **animar y prototipar diseños de Figma** para poder ver cómo quedarían ya en
 movimiento: transiciones, microinteracciones, gestos, estados hover/pressed, entradas y salidas
 de elementos, etc.
@@ -55,11 +55,11 @@ de elementos, etc.
 Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se consulta aquí:
 
 - **Librería (componentes):**
-  https://www.figma.com/design/eNrvz49FS5eoTgNh8afYVV/Tavira-C%C3%A1pital--Aczo--%7C-Library?node-id=115572-774&p=f&t=lUMi7l4rti9dY9os-11
+  https://www.figma.com/design/eNrvz49FS5eoTgNh8afYVV/?node-id=115572-774&p=f&t=lUMi7l4rti9dY9os-11
 - **Branding (identidad visual):**
-  https://www.figma.com/design/iNHB9TlL3cgsr3h3G83Ro2/Tavira-C%C3%A1pital--Aczo----Visual-Identity?node-id=162-10521&t=0YH21nlVGJ8BM6E5-11
+  https://www.figma.com/design/iNHB9TlL3cgsr3h3G83Ro2/?node-id=162-10521&t=0YH21nlVGJ8BM6E5-11
 - **UI Design (pantallas):**
-  https://www.figma.com/design/KLiU1HQMw09KWwpvOW7IYk/Tavira-C%C3%A1pital--Aczo--%7C-UI-Design?node-id=2080-2414&t=SAtkLzPGktKsCSD4-11
+  https://www.figma.com/design/KLiU1HQMw09KWwpvOW7IYk/?node-id=2080-2414&t=SAtkLzPGktKsCSD4-11
 
 ## Qué NO es
 
@@ -112,8 +112,17 @@ Hay **comandos slash** para automatizarlo (pensados para que nadie tenga que pel
 - `/commit [nota]` — guarda tu trabajo en un commit con un mensaje claro (stage + commit).
 - `/push` — sube tu rama al remoto (configura el upstream si hace falta).
 - `/pr-create [título]` — abre un Pull Request contra `main` con una plantilla útil.
+- `/pr-merge` — mergea el PR de la rama actual a `main` (merge normal), resuelve conflictos si
+  los hay, borra la rama y deja `main` local actualizado. No hace falta saber el número del PR;
+  solo se mergea el PR propio, nunca "todo lo abierto".
 
-Flujo típico: `/branch` → trabajar → `/commit` → `/push` → `/pr-create`.
+Flujo típico: `/branch` → trabajar → `/commit` → `/push` → `/pr-create` → `/pr-merge`.
+
+**Quién mergea:** las propias personas del equipo de diseño, con `/pr-merge`, sin esperar
+aprobación de nadie. El PR no existe para "pedir permiso": existe para dejar registro legible
+del prototipo, para que cada persona vea en qué trabaja la otra, y para detectar conflictos
+antes de tocar `main` (aquí trabajan 2 personas en paralelo). Si al mergear hay conflicto con
+lo que unió la otra persona, lo resuelves tú (Claude) explicándolo en lenguaje sencillo.
 
 ## Convenciones
 

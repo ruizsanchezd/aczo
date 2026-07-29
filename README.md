@@ -1,7 +1,7 @@
 # aczo
 
-Repositorio **prototipo** del proyecto **Aczo (Tavira Cápital)**, para animar y prototipar los
-diseños de Figma del equipo de diseño.
+Repositorio **prototipo** del proyecto **Aczo**, para animar y prototipar los diseños de Figma
+del equipo de diseño.
 
 Sirve para ver cómo se sienten los diseños **en movimiento** (transiciones, microinteracciones,
 gestos, estados) usando **datos de mentira (mock)** y **sin conectar con nada real**. Después
@@ -17,11 +17,11 @@ tomando **Figma como fuente de la verdad** del diseño.
 Todo lo que se prototipa aquí sale de estos tres archivos de Figma:
 
 - **Librería (componentes):**
-  [Tavira Cápital (Aczo) | Library](https://www.figma.com/design/eNrvz49FS5eoTgNh8afYVV/Tavira-C%C3%A1pital--Aczo--%7C-Library?node-id=115572-774&p=f&t=lUMi7l4rti9dY9os-11)
+  [Aczo | Library](https://www.figma.com/design/eNrvz49FS5eoTgNh8afYVV/?node-id=115572-774&p=f&t=lUMi7l4rti9dY9os-11)
 - **Branding (identidad visual):**
-  [Tavira Cápital (Aczo) — Visual Identity](https://www.figma.com/design/iNHB9TlL3cgsr3h3G83Ro2/Tavira-C%C3%A1pital--Aczo----Visual-Identity?node-id=162-10521&t=0YH21nlVGJ8BM6E5-11)
+  [Aczo | Visual Identity](https://www.figma.com/design/iNHB9TlL3cgsr3h3G83Ro2/?node-id=162-10521&t=0YH21nlVGJ8BM6E5-11)
 - **UI Design (pantallas):**
-  [Tavira Cápital (Aczo) | UI Design](https://www.figma.com/design/KLiU1HQMw09KWwpvOW7IYk/Tavira-C%C3%A1pital--Aczo--%7C-UI-Design?node-id=2080-2414&t=SAtkLzPGktKsCSD4-11)
+  [Aczo | UI Design](https://www.figma.com/design/KLiU1HQMw09KWwpvOW7IYk/?node-id=2080-2414&t=SAtkLzPGktKsCSD4-11)
 
 ---
 
@@ -80,17 +80,16 @@ No hace falta que te las aprendas, pero ayuda entenderlas:
 
 ## 🚦 El flujo, paso a paso
 
-Cada vez que vayas a prototipar algo nuevo, sigue estos 4 pasos **en orden**:
+Cada vez que vayas a prototipar algo nuevo, sigue estos 5 pasos **en orden**:
 
 ```
-  1. /branch          2. (trabajas)        3. /commit          4. /pr-create
-  ┌───────────┐      ┌───────────┐        ┌───────────┐       ┌───────────┐
-  │  Abro una │      │  Diseño y │        │  Guardo   │       │  Comparto │
-  │ hoja nueva│ ───▶ │  animo mi │  ───▶  │ mi trabajo│ ───▶  │  para que │
-  │  🌿       │      │ prototipo │        │  💾       │       │ lo revisen│
-  └───────────┘      └───────────┘        └───────────┘       │  📤       │
-                                                              └───────────┘
-      Antes de empezar          Cuando tengas algo         Cuando esté listo
+ 1. /branch        2. (trabajas)      3. /commit        4. /pr-create      5. /pr-merge
+ ┌───────────┐    ┌───────────┐      ┌───────────┐     ┌───────────┐      ┌───────────┐
+ │  Abro una │    │  Diseño y │      │  Guardo   │     │  Comparto │      │  Lo uno   │
+ │ hoja nueva│ ─▶ │  animo mi │  ─▶  │ mi trabajo│ ─▶  │ mi trabajo│  ─▶  │al proyecto│
+ │  🌿       │    │ prototipo │      │  💾       │     │  📤       │      │  ✅       │
+ └───────────┘    └───────────┘      └───────────┘     └───────────┘      └───────────┘
+   Antes de empezar        Cuando tengas algo          Cuando esté listo
 ```
 
 > 💡 `/commit` guarda **en tu ordenador**. `/pr-create` lo **sube a internet** y crea la
@@ -146,9 +145,27 @@ Qué hace por ti:
 
 👉 **Cuándo:** cuando quieras que alguien lo revise o quede registrado.
 
+### Paso 5 — `/pr-merge` · Unir tu trabajo al proyecto principal
+
+Cuando la propuesta esté lista (no hace falta esperar la aprobación de nadie), escribe:
+
+```
+/pr-merge
+```
+
+Qué hace por ti:
+- Une tu propuesta al proyecto principal (`main`), que es la versión "oficial" que ven todos.
+- Si mientras trabajabas tu compañera unió algo que choca con lo tuyo, Claude lo combina por
+  ti y te lo explica con calma. No se pierde el trabajo de nadie.
+- Recoge la hoja de trabajo ya usada y te deja lista la última versión para empezar lo
+  siguiente con `/branch`.
+
+👉 **Cuándo:** justo después de `/pr-create`, cuando quieras que tu prototipo pase a formar
+parte del proyecto. Sois vosotras quienes unís vuestras propias propuestas.
+
 ---
 
-## 🧰 Los 4 comandos, de un vistazo
+## 🧰 Los 5 comandos, de un vistazo
 
 | Comando | En cristiano | ¿Cuándo lo uso? |
 | --- | --- | --- |
@@ -156,6 +173,7 @@ Qué hace por ti:
 | `/commit [nota]` | Guardo mi trabajo (punto de guardado) | Cada vez que avanzo |
 | `/push` | Subo mi trabajo a internet | Si quiero respaldarlo sin abrir PR aún |
 | `/pr-create [título]` | Comparto mi trabajo para que lo revisen | Cuando está listo |
+| `/pr-merge` | Uno mi trabajo al proyecto principal | Después de `/pr-create` |
 
 ---
 
