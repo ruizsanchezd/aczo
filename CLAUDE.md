@@ -108,6 +108,14 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
    no aportan a la animación/prototipo.
 7. **Documenta lo que el dev de frontend necesita replicar.** En cada pantalla/interacción no
    trivial, deja claro: qué dispara la animación, duración, easing/curva, y estados.
+8. **Todo se componentiza y se documenta en Storybook.** Cualquier elemento visual reutilizable
+   de la interfaz (botones, campos, tarjetas, etiquetas, alertas...) va como componente propio en
+   `src/components/ui/` (o en `src/components/prototipo/` si es específico de una pantalla), y
+   **siempre acompañado de su Story** (`NombreComponente.stories.tsx`, junto al componente) con
+   `tags: ["autodocs"]` para que Storybook genere su página de documentación sola. Cuando se crea
+   o se cambia un componente, la Story se crea o se actualiza en el mismo cambio — no después.
+   Cada Story debe cubrir las variantes y estados reales del componente (tamaños, tonos,
+   desactivado, error...), no solo el caso por defecto.
 
 ## Stack
 
@@ -121,6 +129,11 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
 - **Animación:** sin librería. Todo con CSS/Tailwind usando las utilidades de motion y unas
   pocas animaciones de una pasada definidas en `globals.css` (`anim-*`). Si alguna interacción
   llega a necesitar gestos o timelines de verdad, valorar añadir `motion` y documentarlo aquí.
+- **Storybook:** documentación viva de los componentes, para desarrollo. Cada componente de
+  `src/components/ui/` tiene su `NombreComponente.stories.tsx` al lado, con `tags: ["autodocs"]`.
+  Addons instalados: `@storybook/addon-a11y` (comprobaciones de accesibilidad) y
+  `@storybook/addon-docs` (genera la página de documentación de cada componente). Arranca con
+  `npm run storybook` (servidor en `http://localhost:6006`). Ver el **principio 8**.
 
 ### Tokens del sistema de diseño
 
