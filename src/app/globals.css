@@ -142,19 +142,26 @@
   --text-title-xl--line-height: 40px;
   --text-title-xl--font-weight: 400;
 
-  /* heading — Bradford LL TT 500 · titulares de marca (usar con font-heading) */
+  /* heading — Bradford LL TT · titulares de marca (usar con font-heading).
+     Solo heading-s mantiene el peso 500 (Medium); m/l/xl pasan a 400
+     (Regular) y llevan tracking negativo, según la actualización de la
+     librería de Figma del 2026-08-04. */
   --text-heading-s: 24px;
   --text-heading-s--line-height: 32px;
   --text-heading-s--font-weight: 500;
+  --text-heading-s--letter-spacing: 0px;
   --text-heading-m: 32px;
-  --text-heading-m--line-height: 40px;
-  --text-heading-m--font-weight: 500;
+  --text-heading-m--line-height: 32px;
+  --text-heading-m--font-weight: 400;
+  --text-heading-m--letter-spacing: -1px;
   --text-heading-l: 40px;
-  --text-heading-l--line-height: 48px;
-  --text-heading-l--font-weight: 500;
+  --text-heading-l--line-height: 40px;
+  --text-heading-l--font-weight: 400;
+  --text-heading-l--letter-spacing: -2px;
   --text-heading-xl: 56px;
   --text-heading-xl--line-height: 64px;
-  --text-heading-xl--font-weight: 500;
+  --text-heading-xl--font-weight: 400;
+  --text-heading-xl--letter-spacing: -2px;
 
   /* --- Layout · escala de espaciado ------------------------------------- */
   /* Se usa en p-*, m-*, gap-*, size-*, etc. Ej.: gap-04 = 16px */
