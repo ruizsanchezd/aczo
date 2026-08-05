@@ -22,6 +22,25 @@ export default function Home() {
           Prototipos
         </Text>
         <Link
+          href="/landing"
+          className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
+        >
+          <span>
+            <Text variant="label-l" as="span">
+              Landing
+            </Text>
+            <Text variant="body-s" color="mid">
+              La página de entrada (captación), antes de empezar el recorrido
+            </Text>
+          </span>
+          <span
+            aria-hidden
+            className="shrink-0 text-content-low transition-transform motion-micro-states group-hover:translate-x-01"
+          >
+            →
+          </span>
+        </Link>
+        <Link
           href="/recorrido"
           className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
         >
