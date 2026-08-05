@@ -59,7 +59,7 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
 - **Branding (identidad visual):**
   https://www.figma.com/design/iNHB9TlL3cgsr3h3G83Ro2/?node-id=162-10521&t=0YH21nlVGJ8BM6E5-11
 - **UI Design (pantallas):**
-  https://www.figma.com/design/KLiU1HQMw09KWwpvOW7IYk/?node-id=2080-2414&t=SAtkLzPGktKsCSD4-11
+  https://www.figma.com/design/VcYbjrFgIE3U8QMwY24m9a/Tavira-C%C3%A1pital--Aczo--%7C-Master?node-id=0-1&t=406E4zLLpMyU3cof-1
 
 ## Qué NO es
 
