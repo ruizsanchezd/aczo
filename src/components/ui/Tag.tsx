@@ -9,7 +9,7 @@ import { Icon, type IconName } from "./Icon";
  * "1/3 Completados".
  *
  * Variantes de color:
- *   outline   borde gris claro, texto normal — la de por defecto
+ *   outline   fondo blanco, sin borde, texto gris — la de por defecto
  *   success   fondo verde suave, texto verde — para el ahorro
  *   inverse   contorno claro sobre superficie oscura (tarjeta "Ahorro Aczo")
  */
@@ -17,7 +17,7 @@ import { Icon, type IconName } from "./Icon";
 type TagTone = "outline" | "success" | "inverse" | "solid" | "always-light";
 
 const tonos: Record<TagTone, string> = {
-  outline: "border border-border-low bg-background-base text-content-high",
+  outline: "bg-background-base text-content-mid",
   success: "bg-success-low text-success-high",
   // Sobre superficies oscuras que NO cambian entre modos (highlight-deep): el
   // borde va en un token que tampoco cambia, o en modo oscuro se volvería negro
