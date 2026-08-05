@@ -89,6 +89,7 @@ const typeScale = [
   "label-l",
   "label-m",
   "label-s",
+  "label-s-uppercase",
   "body-l",
   "body-m",
   "body-s",
