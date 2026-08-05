@@ -5,19 +5,19 @@ import { Icon, type IconName } from "./Icon";
  * Alert — aviso con icono (DS Alert).
  *
  * En el prototipo aparece dos veces: el aviso de permanencias de la pantalla de
- * recomendación (variante `plain`, sobre fondo claro) y el aviso oculto de la
+ * recomendación (variante `neutral`, sobre fondo gris) y el aviso oculto de la
  * pantalla de firma.
  *
- * Variantes: plain (fondo base + borde) · subtle · info · warning · danger ·
- * success.
+ * Variantes: neutral (fondo gris, sin borde) · subtle · info · warning ·
+ * danger · success. Ninguna lleva borde — se quitó de la librería de Figma.
  */
 
-type AlertTone = "plain" | "subtle" | "info" | "warning" | "danger" | "success";
+type AlertTone = "neutral" | "subtle" | "info" | "warning" | "danger" | "success";
 
 const tonos: Record<AlertTone, { caja: string; icono: string }> = {
-  plain: {
-    caja: "border border-border-low bg-background-base text-content-mid",
-    icono: "text-content-mid",
+  neutral: {
+    caja: "bg-background-mid text-content-high",
+    icono: "text-content-high",
   },
   // Sin borde, sobre el gris más suave del sistema. Es la caja de información
   // del panel de alertas: acompaña, no avisa.
@@ -38,7 +38,7 @@ const tonos: Record<AlertTone, { caja: string; icono: string }> = {
 };
 
 export function Alert({
-  tone = "plain",
+  tone = "neutral",
   icon = "info",
   className = "",
   children,
