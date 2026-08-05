@@ -82,6 +82,7 @@ const typeScale = [
   "heading-l",
   "heading-m",
   "heading-s",
+  "heading-xs",
   "title-xl",
   "title-l",
   "title-m",
