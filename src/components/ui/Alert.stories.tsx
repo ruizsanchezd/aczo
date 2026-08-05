@@ -6,13 +6,13 @@ const meta = {
   component: Alert,
   tags: ["autodocs"],
   args: {
-    tone: "plain",
+    tone: "neutral",
     children: "Este suministro tiene una permanencia hasta el 12/2026.",
   },
   argTypes: {
     tone: {
       control: "select",
-      options: ["plain", "subtle", "info", "warning", "danger", "success"],
+      options: ["neutral", "subtle", "info", "warning", "danger", "success"],
     },
   },
 } satisfies Meta<typeof Alert>;
@@ -20,7 +20,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Plain: Story = {};
+export const Neutral: Story = {};
 export const Subtle: Story = { args: { tone: "subtle" } };
 export const Info: Story = { args: { tone: "info", icon: "info" } };
 export const Warning: Story = { args: { tone: "warning" } };

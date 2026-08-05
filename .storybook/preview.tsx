@@ -3,14 +3,21 @@ import React from 'react'
 import '../src/app/globals.css'
 
 // El prototipo va siempre en modo claro (ver CLAUDE.md), así que Storybook
-// fuerza data-theme="light" igual que src/app/layout.tsx.
+// fuerza data-theme="light" igual que src/app/layout.tsx. Tiene que ir en
+// <html> (document.documentElement): la regla `:root[data-theme="light"]`
+// de globals.css no mira un <div> normal, solo la raíz real del documento.
 const preview: Preview = {
   decorators: [
-    (Story) => (
-      <div data-theme="light" className="antialiased">
-        <Story />
-      </div>
-    ),
+    (Story) => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+      return (
+        <div className="antialiased">
+          <Story />
+        </div>
+      );
+    },
   ],
   parameters: {
     controls: {
