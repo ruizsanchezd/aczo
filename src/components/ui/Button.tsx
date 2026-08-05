@@ -40,7 +40,7 @@ const estilos: Record<ButtonStyle, Record<ButtonFeedback, string>> = {
     danger: "bg-danger-high text-content-always-light",
   },
   secondary: {
-    neutral: "border border-border-high text-content-high",
+    neutral: "border border-border-mid text-content-high",
     highlight: "border border-highlight-vivid text-highlight-vivid",
     danger: "border border-danger-high text-danger-high",
   },
