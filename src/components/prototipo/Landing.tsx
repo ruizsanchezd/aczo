@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/brand/Logo";
@@ -134,19 +133,6 @@ function LandingHero() {
   );
 }
 
-// Botón pequeño de dentro de una tarjeta (no es el DS Button: aquí hace
-// falta un tamaño más compacto, solo para estas dos tarjetas).
-function BotonTarjeta({ children }: { children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      className="w-full rounded-md border border-border-low bg-background-base px-03 py-02 text-label-s text-content-high transition-colors motion-micro-states hover:bg-background-low"
-    >
-      {children}
-    </button>
-  );
-}
-
 // El cuadradito amarillo con el icono, encima de cada tarjeta destacada.
 function InsigniaTarjeta({
   icono,
@@ -184,26 +170,23 @@ function LandingWhyAczo() {
         <div className="flex w-full max-w-[1112px] flex-wrap justify-center gap-04">
           {/* Tarjeta 1 — con la notificación de ahorro extra */}
           <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-md bg-background-base p-07">
-            <div className="flex flex-col gap-02">
+            <div className="flex flex-col gap-04">
               <Text variant="heading-s">Tu factura, vigilada</Text>
               <Text variant="body-l" color="mid">
                 Analizamos el mercado cada día y detectamos el momento exacto
                 para actuar. Tú no tienes que acordarte de nada.
               </Text>
             </div>
-            <div className="relative rounded-md border border-border-low bg-background-low p-06">
-              <InsigniaTarjeta icono="zap" className="absolute -top-04 left-06 -rotate-[16deg]" />
-              <div className="flex flex-col gap-03">
-                <div className="flex flex-col gap-02">
-                  <Text variant="heading-xs">
-                    Hemos detectado una oportunidad de ahorro extra
-                  </Text>
-                  <Text variant="body-s" color="mid">
-                    Podrías ahorrar <span className="text-success-high">4.590 €</span> extra
-                    al año cambiando de comercializadora.
-                  </Text>
-                </div>
-                <BotonTarjeta>Cambiar de comercializadora</BotonTarjeta>
+            <div className="flex flex-col gap-03 rounded-md border border-border-low bg-background-low p-06">
+              <InsigniaTarjeta icono="zap" />
+              <div className="flex flex-col gap-02">
+                <Text variant="heading-xs">
+                  Hemos detectado una oportunidad de ahorro extra
+                </Text>
+                <Text variant="body-s" color="mid">
+                  Podrías ahorrar <span className="text-success-high">4.590 €</span> extra
+                  al año cambiando de comercializadora.
+                </Text>
               </div>
             </div>
           </div>
@@ -255,14 +238,18 @@ function LandingWhyAczo() {
                 en tu vida.
               </Text>
             </div>
-            <div className="flex flex-col items-center gap-04 rounded-md border border-border-low bg-background-low p-06">
-              <InsigniaTarjeta icono="lightbulb" />
-              <div className="flex flex-col items-center">
-                <Text variant="heading-xs">Contrato actual</Text>
-                <Icon name="compare" size={20} className="my-01 text-content-mid" />
-                <Text variant="heading-xs">Contrato con Aczo</Text>
+            <div className="flex items-center justify-between rounded-md border border-border-low bg-background-low p-06">
+              <div className="flex items-center gap-02">
+                <InsigniaTarjeta icono="lightbulb" />
+                <Text variant="heading-xs">Cambiar compañía</Text>
               </div>
-              <BotonTarjeta>Empezar a ahorrar</BotonTarjeta>
+              {/* Interruptor decorativo: es la maqueta de un interruptor dentro
+                  de la tarjeta, no un control real de la landing — por eso no
+                  usa el componente Switch (que necesita estado y "use client"),
+                  solo su mismo aspecto en encendido. */}
+              <div className="flex h-06 w-08 shrink-0 items-center rounded-full bg-background-inverse p-[2px]">
+                <div className="size-05 translate-x-04 rounded-full bg-content-inverse" />
+              </div>
             </div>
           </div>
         </div>
