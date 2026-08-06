@@ -102,7 +102,7 @@ function LandingHero() {
                 className="size-10 shrink-0 rounded-sm object-cover"
               />
               <div className="flex flex-col gap-01">
-                <Text variant="heading-xxs">{calculadora.titulo}</Text>
+                <Text variant="heading-xs">{calculadora.titulo}</Text>
                 <Text variant="body-s" color="low">
                   {calculadora.descripcion}
                 </Text>
