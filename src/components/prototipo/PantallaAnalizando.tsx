@@ -76,7 +76,7 @@ export function PantallaAnalizando({ onTerminar }: { onTerminar: () => void }) {
 
       <div className="anim-escala-entrada relative z-10 mx-04 flex w-full max-w-[560px] flex-col gap-07 rounded-lg bg-background-low p-08 shadow-md">
         <div className="flex flex-col gap-03">
-          <Text variant="heading-s">Analizando documentación...</Text>
+          <Text variant="heading-xs">Analizando documentación...</Text>
           <Text variant="body-m" color="mid">
             Esto puede tardar unos segundos. No cierres esta ventana.
           </Text>

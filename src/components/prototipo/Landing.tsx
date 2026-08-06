@@ -54,7 +54,7 @@ function LandingNavbar() {
     <header className="flex h-[80px] items-center justify-between bg-background-base px-06">
       <div className="flex items-center gap-03 text-content-high">
         <Logo />
-        <span className="font-heading text-heading-s">Aczo</span>
+        <span className="font-heading text-heading-xs">Aczo</span>
       </div>
       <div className="flex items-center gap-02">
         <Button variant="secondary" feedback="neutral">
@@ -80,9 +80,9 @@ function LandingHero() {
           cuanto el contenido más los márgenes no cabían en el 95% de la
           pantalla, el hueco desaparecía entero en vez de solo encogerse
           (80px = alto del Navbar). */}
-      <div className="mx-auto flex h-[calc(95vh-80px)] max-w-[1000px] flex-col items-center">
+      <div className="mx-auto flex h-[calc(95vh-80px)] max-w-[1100px] flex-col items-center">
         <div aria-hidden style={{ flexGrow: 179 }} />
-        <Text variant="heading-l" className="max-w-[1000px] shrink-0">
+        <Text variant="heading-m" className="max-w-[1100px] shrink-0">
           Gestionamos tu energía de forma 100% gratuita y automática.
           <br />
           La plataforma que realmente puedes activar y olvidar.
@@ -103,7 +103,7 @@ function LandingHero() {
                 className="size-10 shrink-0 rounded-sm object-cover"
               />
               <div className="flex flex-col gap-01">
-                <Text variant="heading-xs">{calculadora.titulo}</Text>
+                <Text variant="heading-xxs">{calculadora.titulo}</Text>
                 <Text variant="body-s" color="low">
                   {calculadora.descripcion}
                 </Text>
@@ -157,7 +157,7 @@ function InsigniaTarjeta({
 }) {
   return (
     <div
-      className={`flex size-08 shrink-0 items-center justify-center rounded-md bg-highlight-vivid ${className}`}
+      className={`flex size-07 shrink-0 items-center justify-center rounded-md bg-highlight-vivid ${className}`}
     >
       <Icon name={icono} size={16} className="text-content-high" />
     </div>
@@ -170,12 +170,12 @@ function LandingWhyAczo() {
       {/* highlight-deep es de la familia "siempre oscura" (como la tarjeta
           "Ahorro Aczo"): el texto va con los tokens always-*, no con los
           normales, o se volvería invisible el día que se active el oscuro. */}
-      <div className="mx-auto flex max-w-[1392px] flex-col items-center gap-[140px] rounded-lg bg-highlight-deep px-06 py-[80px] md:p-[140px]">
+      <div className="mx-auto flex max-w-[1392px] flex-col items-center gap-[140px] rounded-md bg-highlight-deep px-06 py-[80px] md:p-[140px]">
         <div className="flex max-w-[1000px] flex-col items-center gap-04 text-center">
           <Text variant="label-s-uppercase" color="always-light" className="opacity-60">
             por qué Aczo
           </Text>
-          <Text variant="heading-l" color="always-light">
+          <Text variant="heading-m" color="always-light">
             Cambiar de compañía es fácil. Que alguien te vigile después, no.
             Con Aczo delegas de verdad.
           </Text>
@@ -183,9 +183,9 @@ function LandingWhyAczo() {
 
         <div className="flex w-full max-w-[1112px] flex-wrap justify-center gap-04">
           {/* Tarjeta 1 — con la notificación de ahorro extra */}
-          <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-lg bg-background-base p-07">
+          <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-md bg-background-base p-07">
             <div className="flex flex-col gap-02">
-              <Text variant="heading-m">Tu factura, vigilada</Text>
+              <Text variant="heading-s">Tu factura, vigilada</Text>
               <Text variant="body-l" color="mid">
                 Analizamos el mercado cada día y detectamos el momento exacto
                 para actuar. Tú no tienes que acordarte de nada.
@@ -195,7 +195,7 @@ function LandingWhyAczo() {
               <InsigniaTarjeta icono="zap" className="absolute -top-04 left-06 -rotate-[16deg]" />
               <div className="flex flex-col gap-03">
                 <div className="flex flex-col gap-02">
-                  <Text variant="heading-s">
+                  <Text variant="heading-xs">
                     Hemos detectado una oportunidad de ahorro extra
                   </Text>
                   <Text variant="body-s" color="mid">
@@ -209,7 +209,7 @@ function LandingWhyAczo() {
           </div>
 
           {/* Tarjeta 2 — foto, sin recuadro de fondo propio */}
-          <div className="relative h-[552px] w-[441px] overflow-hidden rounded-lg">
+          <div className="relative h-[552px] w-[441px] overflow-hidden rounded-md">
             <img
               src="/landing/tarjeta-negociacion.png"
               alt=""
@@ -220,7 +220,7 @@ function LandingWhyAczo() {
               className="absolute inset-0 bg-gradient-to-b from-black/80 to-transparent"
             />
             <div className="relative flex flex-col gap-02 px-07 pt-07">
-              <Text variant="heading-m" color="always-light">
+              <Text variant="heading-s" color="always-light">
                 Más poder de negociación
               </Text>
               <Text variant="body-l" color="always-light" className="opacity-80">
@@ -231,9 +231,9 @@ function LandingWhyAczo() {
           </div>
 
           {/* Tarjeta 3 — con la captura del móvil */}
-          <div className="flex h-[552px] w-[441px] flex-col items-center overflow-hidden rounded-lg bg-background-base pt-07">
+          <div className="flex h-[552px] w-[441px] flex-col items-center overflow-hidden rounded-md bg-background-base pt-07">
             <div className="flex w-full flex-col gap-02 px-07 text-left">
-              <Text variant="heading-m">Sin letra pequeña</Text>
+              <Text variant="heading-s">Sin letra pequeña</Text>
               <Text variant="body-l" color="mid">
                 Ves cada alternativa, cada euro de ahorro y cada decisión que
                 tomamos por ti. Nada oculto.
@@ -247,9 +247,9 @@ function LandingWhyAczo() {
           </div>
 
           {/* Tarjeta 4 — con el comparador de contratos */}
-          <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-lg bg-background-base p-07">
+          <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-md bg-background-base p-07">
             <div className="flex flex-col gap-02">
-              <Text variant="heading-m">Cero fricciones.</Text>
+              <Text variant="heading-s">Cero fricciones.</Text>
               <Text variant="body-l" color="mid">
                 Sin formularios, sin llamadas, sin volver a comparar tarifas
                 en tu vida.
@@ -258,9 +258,9 @@ function LandingWhyAczo() {
             <div className="flex flex-col items-center gap-04 rounded-md border border-border-low bg-background-low p-06">
               <InsigniaTarjeta icono="lightbulb" />
               <div className="flex flex-col items-center">
-                <Text variant="heading-s">Contrato actual</Text>
+                <Text variant="heading-xs">Contrato actual</Text>
                 <Icon name="compare" size={20} className="my-01 text-content-mid" />
-                <Text variant="heading-s">Contrato con Aczo</Text>
+                <Text variant="heading-xs">Contrato con Aczo</Text>
               </div>
               <BotonTarjeta>Empezar a ahorrar</BotonTarjeta>
             </div>

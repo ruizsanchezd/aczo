@@ -390,7 +390,7 @@ function FilaComercializadora({
                 activar el mantenimiento, igual que en las tarjetas de plan. Los
                 importes pequeños de dentro cambian de golpe a propósito: son
                 docenas y animarlos todos a la vez sería ruido. */}
-            <span className="font-heading text-heading-s whitespace-nowrap text-content-high">
+            <span className="font-heading text-heading-xs whitespace-nowrap text-content-high">
               +<NumeroAnimado value={cifra} /> €/{mensual ? "mes" : "año"}
             </span>
           </span>
