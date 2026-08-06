@@ -143,35 +143,31 @@
   --text-title-xl--font-weight: 400;
 
   /* heading — Bradford LL TT · titulares de marca (usar con font-heading).
-     xxs/xs/s mantienen el peso 500 (Medium); m/l/xl pasan a 400 (Regular) y
-     llevan más tracking negativo. Valores para móvil (por debajo de 1024px);
-     s/m/l/xl cambian de tamaño en escritorio — ver el @media más abajo, junto
-     a --layout-section-padding. Según la reestructuración de la escala de la
-     librería de Figma del 2026-08-06: se añade el escalón heading-xxs y cada
-     nombre se desplaza uno (el heading-xs y heading-s antiguos pasan a ser
-     heading-xxs y heading-xs). */
-  --text-heading-xxs: 16px;
-  --text-heading-xxs--line-height: 24px;
-  --text-heading-xxs--font-weight: 500;
-  --text-heading-xxs--letter-spacing: -0.75px;
-  --text-heading-xs: 24px;
-  --text-heading-xs--line-height: 32px;
+     xs/s mantienen el peso 500 (Medium); m/l/xl pasan a 400 (Regular) y llevan
+     más tracking negativo. Valores para móvil (por debajo de 1024px); xs se
+     queda igual en todos los anchos, s/m/l/xl crecen en escritorio — ver el
+     @media más abajo, junto a --layout-section-padding. Según la
+     reestructuración de la escala de la librería de Figma del 2026-08-06:
+     se quita el escalón heading-xxs (se funde con heading-xs) y se recalibran
+     los tamaños de los cinco escalones restantes. */
+  --text-heading-xs: 16px;
+  --text-heading-xs--line-height: 16px;
   --text-heading-xs--font-weight: 500;
-  --text-heading-xs--letter-spacing: -1px;
-  --text-heading-s: 24px;
-  --text-heading-s--line-height: 28px;
+  --text-heading-xs--letter-spacing: -0.75px;
+  --text-heading-s: 20px;
+  --text-heading-s--line-height: 24px;
   --text-heading-s--font-weight: 500;
   --text-heading-s--letter-spacing: -1px;
-  --text-heading-m: 32px;
+  --text-heading-m: 24px;
   --text-heading-m--line-height: 32px;
   --text-heading-m--font-weight: 400;
-  --text-heading-m--letter-spacing: -1px;
-  --text-heading-l: 40px;
+  --text-heading-m--letter-spacing: -2px;
+  --text-heading-l: 32px;
   --text-heading-l--line-height: 40px;
   --text-heading-l--font-weight: 400;
   --text-heading-l--letter-spacing: -2px;
-  --text-heading-xl: 56px;
-  --text-heading-xl--line-height: 64px;
+  --text-heading-xl: 40px;
+  --text-heading-xl--line-height: 44px;
   --text-heading-xl--font-weight: 400;
   --text-heading-xl--letter-spacing: -2px;
 
@@ -265,17 +261,17 @@
 
 /* Tipografía · heading-s/m/l/xl crecen en escritorio (+1024px = 64rem), tal
    y como documenta la tabla "Mobile / Desktop" de la librería de Figma.
-   heading-xxs y heading-xs no cambian entre tamaños de pantalla. */
+   heading-xs no cambia entre tamaños de pantalla. */
 @media (width >= 64rem) {
   :root {
-    --text-heading-s: 32px;
-    --text-heading-s--line-height: 24px;
-    --text-heading-m: 40px;
-    --text-heading-m--line-height: 40px;
-    --text-heading-l: 48px;
+    --text-heading-s: 24px;
+    --text-heading-s--line-height: 28px;
+    --text-heading-m: 32px;
+    --text-heading-m--line-height: 32px;
+    --text-heading-l: 40px;
     --text-heading-l--line-height: 48px;
-    --text-heading-xl: 64px;
-    --text-heading-xl--line-height: 72px;
+    --text-heading-xl: 48px;
+    --text-heading-xl--line-height: 54px;
   }
 }
 
