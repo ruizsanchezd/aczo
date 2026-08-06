@@ -70,17 +70,26 @@ function LandingNavbar() {
 
 function LandingHero() {
   return (
-    <section className="bg-background-base px-06 pt-[179px] pb-[80px] text-center md:pb-[140px]">
-      {/* Huecos del Figma (179 / 40 / 163px): son las medidas exactas de la
-          maqueta a 1440px, no forman parte de la escala de espaciado. */}
-      <div className="mx-auto flex max-w-[1000px] flex-col items-center">
-        <Text variant="heading-l" className="max-w-[1000px]">
+    <section className="bg-background-base px-06 text-center">
+      {/* Los huecos del Figma (179 / 40 / 163px, más un cierre de 100 antes
+          de "Por qué Aczo") son relativos entre sí, no iguales — se reparten
+          como flex-grow, no como márgenes fijos, para que se encojan juntos
+          y en proporción en pantallas más bajas. Así se garantiza que, al
+          cargar, siempre asome un 5% de la sección siguiente abajo del todo
+          (como pista de que hay más contenido) — con márgenes fijos, en
+          cuanto el contenido más los márgenes no cabían en el 95% de la
+          pantalla, el hueco desaparecía entero en vez de solo encogerse
+          (80px = alto del Navbar). */}
+      <div className="mx-auto flex h-[calc(95vh-80px)] max-w-[1000px] flex-col items-center">
+        <div aria-hidden style={{ flexGrow: 179 }} />
+        <Text variant="heading-l" className="max-w-[1000px] shrink-0">
           Gestionamos tu energía de forma 100% gratuita y automática.
           <br />
           La plataforma que realmente puedes activar y olvidar.
         </Text>
 
-        <div className="mt-[40px] flex flex-wrap items-center justify-center gap-04">
+        <div aria-hidden style={{ flexGrow: 40 }} />
+        <div className="flex shrink-0 flex-wrap items-center justify-center gap-04">
           {calculadoras.map((calculadora) => (
             <div
               key={calculadora.titulo}
@@ -103,7 +112,8 @@ function LandingHero() {
           ))}
         </div>
 
-        <div className="mt-[163px] flex flex-wrap items-center justify-center border-t border-b border-border-mid opacity-60">
+        <div aria-hidden style={{ flexGrow: 163 }} />
+        <div className="flex shrink-0 flex-wrap items-center justify-center border-t border-b border-border-mid opacity-60">
           {caracteristicas.map((caracteristica, index) => (
             <div
               key={caracteristica}
@@ -118,6 +128,7 @@ function LandingHero() {
             </div>
           ))}
         </div>
+        <div aria-hidden style={{ flexGrow: 100 }} />
       </div>
     </section>
   );
