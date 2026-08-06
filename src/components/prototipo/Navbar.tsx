@@ -37,7 +37,7 @@ export function Navbar({
         <div className="flex shrink-0 items-center gap-03 text-content-high">
           <Logo />
           {/* El logotipo va en la fuente de marca, como en el Figma. */}
-          <span className="font-heading text-heading-s">Aczo</span>
+          <span className="font-heading text-heading-xs">Aczo</span>
         </div>
 
         {pasoActual !== null && (
