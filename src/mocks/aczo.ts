@@ -29,6 +29,22 @@ export const PASOS_ANALISIS = [
   "Comparando proveedores",
 ] as const;
 
+/** Los mensajes de la pantalla de carga del flujo de empresas (/empresas). */
+export const PASOS_CARGA_EMPRESAS = [
+  "Cargando tus facturas...",
+  "Analizando los datos...",
+  "Comparando comercializadoras...",
+] as const;
+
+/** Los pasos del flujo de empresas (/empresas). Rótulos propios del Figma de
+ * ese flujo: no son los mismos que PASOS, aunque el orden se parezca. */
+export const PASOS_EMPRESA = [
+  { numero: "01", nombre: "Sube tu factura" },
+  { numero: "02", nombre: "Ahorro y recomendación" },
+  { numero: "03", nombre: "Cambio de compañía" },
+  { numero: "04", nombre: "Monitoreo constante" },
+] as const;
+
 /* -------------------------------------------------------------------------- */
 /* Los tres planes de la pantalla de recomendación                            */
 /* -------------------------------------------------------------------------- */
@@ -535,6 +551,30 @@ export const FACTURAS_VENCIDAS: ContratoAlerta[] = [
     importe: null,
   },
 ];
+
+/**
+ * Archivos que fallaron al leerse en la subida de empresas (/empresas). No
+ * bloquean el proceso: se pueden sustituir o descartar sin problema.
+ */
+export type ArchivoConError = { id: string; nombre: string; motivo: string };
+
+export const ARCHIVOS_CON_ERROR: ArchivoConError[] = [
+  { id: "err-1", nombre: "scan_oficina.jpg", motivo: "Lectura del CUPS incorrecta" },
+  { id: "err-2", nombre: "foto_factura_repsol.png", motivo: "Imagen borrosa o cortada" },
+];
+
+/** Total de archivos leídos en la subida de empresas (dato de la maqueta). */
+export const TOTAL_ARCHIVOS_LEIDOS_EMPRESAS = 46;
+
+/** Muestra de los archivos que se leyeron sin problema (el resto, hasta el
+ * total, se resume en un texto en vez de listarse uno a uno). */
+export const ARCHIVOS_CORRECTOS_MUESTRA = [
+  { nombre: "factura_iberdrola_2024_04.pdf", tamano: "1.8 MB" },
+  { nombre: "factura_naturgy_2024_04.pdf", tamano: "2.1 MB" },
+  { nombre: "factura_endesa_2024_03.pdf", tamano: "1.4 MB" },
+  { nombre: "factura_repsol_2024_02.pdf", tamano: "980 KB" },
+  { nombre: "factura_octopus_2024_01.pdf", tamano: "1.1 MB" },
+] as const;
 
 /* -------------------------------------------------------------------------- */
 /* Filtros de la tabla                                                        */

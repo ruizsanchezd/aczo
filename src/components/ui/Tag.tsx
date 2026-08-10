@@ -12,13 +12,24 @@ import { Icon, type IconName } from "./Icon";
  *   outline   fondo blanco, sin borde, texto gris — la de por defecto
  *   success   fondo verde suave, texto verde — para el ahorro
  *   inverse   contorno claro sobre superficie oscura (tarjeta "Ahorro Aczo")
+ *   danger    fondo rojo suave, texto rojo — avisos que no bloquean (errores)
+ *   warning   fondo naranja suave, texto naranja — avisos a revisar más tarde
  */
 
-type TagTone = "outline" | "success" | "inverse" | "solid" | "always-light";
+type TagTone =
+  | "outline"
+  | "success"
+  | "inverse"
+  | "solid"
+  | "always-light"
+  | "danger"
+  | "warning";
 
 const tonos: Record<TagTone, string> = {
   outline: "bg-background-base text-content-mid",
   success: "bg-success-low text-success-high",
+  danger: "bg-danger-low text-danger-high",
+  warning: "bg-warning-low text-warning-high",
   // Sobre superficies oscuras que NO cambian entre modos (highlight-deep): el
   // borde va en un token que tampoco cambia, o en modo oscuro se volvería negro
   // sobre negro.

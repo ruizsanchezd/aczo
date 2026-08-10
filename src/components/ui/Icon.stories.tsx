@@ -39,6 +39,9 @@ const nombres: IconName[] = [
   "document",
   "trophy",
   "check",
+  "warning",
+  "folder",
+  "trash",
 ];
 
 /** Todo el set de iconos del prototipo, en `currentColor` (text-content-high). */
