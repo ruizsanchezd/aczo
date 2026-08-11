@@ -12,7 +12,15 @@ const meta = {
   argTypes: {
     tone: {
       control: "select",
-      options: ["outline", "success", "inverse", "solid", "always-light"],
+      options: [
+        "outline",
+        "success",
+        "inverse",
+        "solid",
+        "always-light",
+        "danger",
+        "warning",
+      ],
     },
   },
 } satisfies Meta<typeof Tag>;
@@ -28,6 +36,16 @@ export const Success: Story = {
 
 export const ConIcono: Story = {
   args: { icon: "shield", children: "Recomendado" },
+};
+
+/** Para avisos que no bloquean: errores de lectura de archivo. */
+export const Danger: Story = {
+  args: { tone: "danger", icon: "warning", children: "2 errores" },
+};
+
+/** Para avisos que se pueden revisar más tarde: permanencias, facturas vencidas. */
+export const Warning: Story = {
+  args: { tone: "warning", icon: "info", children: "8 alertas" },
 };
 
 /** `inverse` solo se usa sobre superficies oscuras (ver highlight-deep en CLAUDE.md). */

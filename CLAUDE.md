@@ -217,6 +217,13 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
 - **`/recorrido`** — el recorrido completo del prototipo, las seis pantallas del Figma de UI
   Design: subida de facturas → datos → análisis → recomendación → firma → alta en tramitación.
   Cada pantalla es un archivo en `src/components/prototipo/`, y `Recorrido.tsx` las une.
+- **`/empresas`** — el flujo de empresas, en construcción paso a paso desde el Figma máster
+  (frame "Aczo / Landing / Desktop", sección "Subida de documentos"). `RecorridoEmpresas.tsx` une
+  las vistas, igual que `Recorrido.tsx` en el particular. De momento están: subir las facturas de
+  varias sociedades (`PantallaSubidaEmpresas`), la pantalla de carga (`PantallaCargaEmpresas`) y
+  el resultado con errores y alertas (`PantallaResultadoEmpresas` + el panel `PanelAlertasEmpresas`,
+  con pestañas "Permanencia"/"Vencidas"). Falta el resultado final agrupado por sociedad
+  ("Tu ahorro potencial"). Componentes en `src/components/prototipo/empresas/`.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/brand/Logo";
@@ -25,6 +26,8 @@ const calculadoras = [
     titulo: "Calcula el ahorro de tu empresa",
     descripcion:
       "De un local a una cartera de suministros. Ahorra de manera automática y eficiente.",
+    // Única de las dos tarjetas que ya lleva a un flujo real (/empresas).
+    enlace: "/empresas",
   },
 ];
 
@@ -89,26 +92,44 @@ function LandingHero() {
 
         <div aria-hidden style={{ flexGrow: 40 }} />
         <div className="flex shrink-0 flex-wrap items-center justify-center gap-04">
-          {calculadoras.map((calculadora) => (
-            <div
-              key={calculadora.titulo}
-              className="flex w-[370px] items-center gap-04 rounded-md bg-background-low p-04 text-left"
-            >
-              <img
-                src={calculadora.imagen}
-                alt=""
-                width={64}
-                height={64}
-                className="size-10 shrink-0 rounded-sm object-cover"
-              />
-              <div className="flex flex-col gap-01">
-                <Text variant="heading-xs">{calculadora.titulo}</Text>
-                <Text variant="body-s" color="low">
-                  {calculadora.descripcion}
-                </Text>
+          {calculadoras.map((calculadora) => {
+            const contenido = (
+              <>
+                <img
+                  src={calculadora.imagen}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="size-10 shrink-0 rounded-sm object-cover"
+                />
+                <div className="flex flex-col gap-01">
+                  <Text variant="heading-xs">{calculadora.titulo}</Text>
+                  <Text variant="body-s" color="low">
+                    {calculadora.descripcion}
+                  </Text>
+                </div>
+              </>
+            );
+
+            // Solo la tarjeta con `enlace` lleva a un flujo real: es la única
+            // que se comporta (y se ve) como pulsable.
+            return calculadora.enlace ? (
+              <Link
+                key={calculadora.titulo}
+                href={calculadora.enlace}
+                className="flex w-[370px] items-center gap-04 rounded-md bg-background-low p-04 text-left transition-colors motion-micro-states hover:bg-background-mid"
+              >
+                {contenido}
+              </Link>
+            ) : (
+              <div
+                key={calculadora.titulo}
+                className="flex w-[370px] items-center gap-04 rounded-md bg-background-low p-04 text-left"
+              >
+                {contenido}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div aria-hidden style={{ flexGrow: 163 }} />

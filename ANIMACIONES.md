@@ -164,6 +164,65 @@ Aquí lo interesante son los **estados que aparecen y desaparecen**:
   "esto es un gráfico".
 - El resto entra en cascada.
 
+## Flujo de empresas (/empresas)
+
+Flujo aparte del recorrido particular, en construcción paso a paso. El indicador de arriba
+(`NavbarEmpresas`) es distinto al del recorrido: es una píldora que se ajusta al texto, sin
+botones de "Ver demo" / "Iniciar sesión" (ya se ha entrado al flujo).
+
+### Pantalla 1 · Sube las facturas de tus sociedades
+
+Los tres estados de la maqueta del Figma (zona vacía → subiendo → subido) **no son tres
+pantallas**: es el mismo componente (`PantallaSubidaEmpresas`) reaccionando a la lista de
+archivos.
+
+1. **Zona de arrastre:** igual que en la subida particular — borde y fondo pasan a oliva y el
+   icono crece un 5 % al pasar un archivo por encima (`micro-states`).
+2. **Subida simulada:** no hay backend, así que cada archivo "sube" solo: el progreso avanza a
+   saltos aleatorios cada 180 ms hasta el 100 %, momento en el que la barra y el "Subiendo… X%"
+   se sustituyen por el tamaño del archivo. Varios archivos pueden estar en progresos distintos
+   a la vez (como en el Figma: 75 %, 45 %, 15 %).
+3. **Quitar un archivo:** no se borra de golpe — se encoge y se desvanece (`micro-leave`, 250 ms)
+   antes de salir de la lista de verdad.
+4. **Botón "Analizar facturas":** desactivado hasta que hay al menos un archivo ya subido, nombre,
+   email y las dos casillas de consentimiento marcadas. El cambio de desactivado a activo lleva
+   una transición de color (`micro-states`): es el momento en que "ya se puede seguir".
+
+### Pantalla 2 · Cargando tus facturas...
+
+Pantalla completa, sin barra superior (`PantallaCargaEmpresas`). Es la versión sencilla del Figma
+de empresas: logo, una barra de progreso y el aviso de conexión segura — no confundir con
+"Analizando documentación..." del recorrido particular, que tiene su lista de pasos y las cruces
+girando (esta no la tiene). La barra avanza sola de 0 a 100% en ~2,4 s y, al llegar, hay un
+respiro de 500 ms antes de pasar a la pantalla siguiente (mismo motivo que en la pantalla de
+"Analizando": si se salta de golpe, no se llega a leer el 100%).
+
+### Pantalla 3 · Resultado: errores y alertas
+
+Es la MISMA pantalla que el paso 1 (`PantallaResultadoEmpresas`), después del análisis: el mismo
+titular y ayuda de arriba, la zona de arrastre reducida a una barra de "añadir más", y debajo la
+tarjeta de revisión con errores y alertas. Nada de esto bloquea el avance — se puede pulsar
+"Calcular ahorro" con errores y alertas sin resolver.
+
+1. **Sustituir / descartar un error:** misma técnica que quitar un archivo en el paso 1 (se
+   desvanece con `micro-leave` antes de salir). Al sustituir, el archivo pasa a contar como
+   correcto — el número de "archivos correctos" sube solo, sin recalcular nada a mano.
+2. **Acordeón "N archivos correctos":** rejilla `0fr → 1fr` (`macro-levelup`), igual que los
+   desplegables de la pantalla de recomendación — no se anima `height`.
+3. **"Revisar" abre el panel de alertas** (`PanelAlertasEmpresas`): mismo patrón que "Revisar
+   permanencias" del recorrido particular (`PanelPermanencias.tsx`) — portal colgado del
+   `<body>`, velo + panel que entra deslizándose desde la derecha (`macro-levelup`), fichas en
+   cascada que se repite al cambiar de pestaña. Se abre ya en la pestaña desde la que se pulsó
+   "Revisar".
+   - La ficha SÍ cambia de forma entre pestañas, no solo de dato: en "Permanencia" hay una caja
+     gris con la fecha de fin y el coste de cancelación estimado, más el interruptor "Incluir de
+     todos modos"; en "Vencidas" solo hay una etiqueta "Vencida" y el enlace "Subir factura
+     reciente" — no hay nada que estimar, así que no hay caja ni interruptor.
+   - Se cierra con la X, con Escape y pulsando fuera, igual que el panel particular.
+
+Pendiente de construir (mismo Figma, siguiente tramo): "Tu ahorro potencial" agrupado por
+sociedad, al pulsar "Calcular ahorro".
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -186,10 +245,12 @@ transición de pantalla.
 src/
   app/
     globals.css                tokens + utilidades de motion y de animación
-    recorrido/page.tsx          la ruta del prototipo
+    recorrido/page.tsx          la ruta del recorrido particular
+    empresas/page.tsx           la ruta del flujo de empresas
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
+      empresas/                 pantallas y navbar propios del flujo de empresas
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript
