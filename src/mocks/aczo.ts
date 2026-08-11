@@ -305,6 +305,10 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
     id: "repsol",
     nombre: "Repsol",
     etiquetas: ["Gas 3.1"],
+    // Menos contenido que TotalEnergies a propósito (una sola dirección, dos
+    // suministros): Repsol es la comercializadora pequeña de la propuesta, y
+    // así se nota en la pantalla de empresas sin dejar de seguir la misma
+    // lógica de agrupar por ubicación.
     direcciones: [
       {
         id: "gran-via",
@@ -324,28 +328,6 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 0,
             perfil: { punta: 28, llano: 40, valle: 32 },
             companiaActual: "Iberdrola",
-          }),
-        ],
-      },
-      {
-        id: "diagonal",
-        sociedadId: "norte",
-        direccion: "Avinguda Diagonal 220, 08018, Barcelona",
-        suministros: [
-          suministro("rd-1", "Obrador", "Gas", "3.2", 3_800, 380, {
-            ciudad: "Barcelona",
-            consumoAnual: 183_200,
-            potencia: 0,
-            perfil: { punta: 31, llano: 39, valle: 30 },
-            companiaActual: "Endesa",
-            mantenimiento: true,
-          }),
-          suministro("rd-2", "Punto de venta", "Gas", "3.1", 980, 95, {
-            ciudad: "Barcelona",
-            consumoAnual: 58_400,
-            potencia: 0,
-            perfil: { punta: 20, llano: 45, valle: 35 },
-            companiaActual: "Naturgy",
           }),
         ],
       },
@@ -630,27 +612,9 @@ export function numSuministros(c: Comercializadora): number {
   return suministrosDe(c).length;
 }
 
-/** Un grupo de suministros de una comercializadora que caen en la misma sociedad. */
-export type GrupoSociedad = { sociedad: Sociedad; suministros: Suministro[] };
-
-/**
- * Agrupa los suministros de una comercializadora por sociedad, para la tabla
- * de desglose de "Tu ahorro potencial" (pantalla de empresas). Una misma
- * comercializadora puede tener direcciones en varias sociedades a la vez.
- */
-export function gruposPorSociedad(c: Comercializadora): GrupoSociedad[] {
-  const suministrosPorSociedad = new Map<string, Suministro[]>();
-  for (const d of c.direcciones) {
-    const lista = suministrosPorSociedad.get(d.sociedadId) ?? [];
-    lista.push(...d.suministros);
-    suministrosPorSociedad.set(d.sociedadId, lista);
-  }
-  return SOCIEDADES.filter((s) => suministrosPorSociedad.has(s.id)).map(
-    (sociedad) => ({
-      sociedad,
-      suministros: suministrosPorSociedad.get(sociedad.id)!,
-    }),
-  );
+/** La sociedad (con su CIF) a la que pertenece una dirección. */
+export function sociedadDe(direccion: DireccionSuministros): Sociedad {
+  return SOCIEDADES.find((s) => s.id === direccion.sociedadId)!;
 }
 
 /** Puntos de suministro de un tipo (Luz o Gas), en todas las comercializadoras. */
@@ -702,22 +666,16 @@ export function conMantenimiento(
 
 /**
  * Igual que conMantenimiento, pero para la pantalla de empresas: ahí el
- * mantenimiento se activa por separado para Luz y para Gas, así que la cuota
- * a descontar depende de cuántos puntos de cada tipo hay (no de cuántos
- * puntos en total). `puntosLuz`/`puntosGas` son los puntos de ese tipo dentro
- * de lo que se está calculando (una comercializadora, o la propuesta entera).
+ * mantenimiento se activa punto por punto (un interruptor por fila), no con
+ * un único interruptor global. `puntosConMantenimiento` es cuántos de esos
+ * puntos lo tienen activado ahora mismo, dentro de lo que se esté calculando
+ * (un punto, una comercializadora o la propuesta entera).
  */
 export function conMantenimientoMixto(
   ahorroAnual: number,
-  puntosLuz: number,
-  puntosGas: number,
-  mantenimientoLuz: boolean,
-  mantenimientoGas: boolean,
+  puntosConMantenimiento: number,
 ): number {
-  const deduccion =
-    (mantenimientoLuz ? puntosLuz : 0) * MANTENIMIENTO_ANUAL_POR_PUNTO +
-    (mantenimientoGas ? puntosGas : 0) * MANTENIMIENTO_ANUAL_POR_PUNTO;
-  return ahorroAnual - deduccion;
+  return ahorroAnual - puntosConMantenimiento * MANTENIMIENTO_ANUAL_POR_PUNTO;
 }
 
 /** Total de puntos de suministro de la propuesta. */

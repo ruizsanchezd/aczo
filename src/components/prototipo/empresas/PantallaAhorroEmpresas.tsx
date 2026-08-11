@@ -2,25 +2,24 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
 import {
-  ahorroComercializadora,
   conMantenimiento,
   conMantenimientoMixto,
   COMERCIALIZADORAS,
   euros,
-  gruposPorSociedad,
-  PLANES,
-  puntosPorTipo,
-  SOCIEDADES_ACTIVAS,
+  sociedadDe,
   suministrosDe,
+  PLANES,
+  SOCIEDADES_ACTIVAS,
   TOTAL_DIRECCIONES,
   TOTAL_PUNTOS,
   type Comercializadora,
-  type GrupoSociedad,
+  type DireccionSuministros,
   type Plan,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
@@ -35,15 +34,21 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
  * Mismo espíritu que PantallaPropuesta (recorrido particular), pero con dos
  * diferencias de fondo, porque aquí se gestionan varias sociedades a la vez:
  *
- *   - El mantenimiento se activa por separado para Luz y para Gas (dos
- *     interruptores, no uno): una empresa puede querer mantenimiento en sus
- *     puntos de luz y no en los de gas, o al revés.
- *   - La tabla de detalle se agrupa por SOCIEDAD dentro de cada
- *     comercializadora (no por dirección): así se lee el ahorro repartido
- *     entre las sociedades que hay que domiciliar y firmar más adelante.
+ *   - El mantenimiento se activa PUNTO POR PUNTO (un interruptor por fila),
+ *     no con un único interruptor por tipo. Los interruptores "Mantenimiento
+ *     Luz/Gas" de arriba son de bulto: encienden o apagan a la vez todos los
+ *     puntos de ese tipo, y su contador (n/m) refleja cuántos están activos.
+ *   - Cada fila tiene además una casilla: al desmarcarla, ese punto sale del
+ *     cálculo de ahorro (de su ubicación, de su comercializadora y de las
+ *     tres tarjetas de plan) como si no existiera. Los puntos por
+ *     suministro que se enseñan en las cabeceras no cambian: son un dato de
+ *     inventario, no del cálculo.
+ *   - La tabla de detalle se agrupa por UBICACIÓN (cada dirección de
+ *     `mocks/aczo.ts` ya es una ubicación) en vez de por sociedad; el CIF de
+ *     la sociedad a la que pertenece se enseña en la cabecera de su grupo.
  *
  * ANIMACIONES: la misma cascada de entrada del resto del recorrido (60 ms
- * entre piezas). El desglose por sociedad se despliega con la técnica de
+ * entre piezas). El desglose por ubicación se despliega con la técnica de
  * rejilla 0fr → 1fr documentada en TablaAhorro.tsx (mismo motivo: no se puede
  * animar "height" hasta un alto que no se conoce).
  */
@@ -55,12 +60,50 @@ export function PantallaAhorroEmpresas({
   onContinuar: () => void;
 }) {
   const [mensual, setMensual] = useState(false);
-  const [mantenimientoLuz, setMantenimientoLuz] = useState(false);
-  const [mantenimientoGas, setMantenimientoGas] = useState(false);
+  // Ids de los puntos de suministro con mantenimiento activado.
+  const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
+    new Set(),
+  );
+  // Ids de los puntos que se han desmarcado: no cuentan en el ahorro.
+  const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
   const [comparando, setComparando] = useState<Comercializadora | null>(null);
 
-  const puntosLuz = puntosPorTipo("Luz");
-  const puntosGas = puntosPorTipo("Gas");
+  const todosLosSuministros = COMERCIALIZADORAS.flatMap(suministrosDe);
+  const idsLuz = todosLosSuministros
+    .filter((s) => s.tipo === "Luz")
+    .map((s) => s.id);
+  const idsGas = todosLosSuministros
+    .filter((s) => s.tipo === "Gas")
+    .map((s) => s.id);
+  const puntosConMantenimiento = todosLosSuministros.filter(
+    (s) => mantenimientoIds.has(s.id) && !excluidos.has(s.id),
+  ).length;
+
+  function alCambiarMantenimiento(id: string, activo: boolean) {
+    setMantenimientoIds((prev) => {
+      const next = new Set(prev);
+      if (activo) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function alCambiarMantenimientoEnBloque(ids: string[], activo: boolean) {
+    setMantenimientoIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (activo ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  }
+
+  function alCambiarIncluido(id: string, incluido: boolean) {
+    setExcluidos((prev) => {
+      const next = new Set(prev);
+      if (incluido) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -86,8 +129,7 @@ export function PantallaAhorroEmpresas({
                   <TarjetaPlanEmpresa
                     plan={plan}
                     mensual={mensual}
-                    mantenimientoLuz={mantenimientoLuz}
-                    mantenimientoGas={mantenimientoGas}
+                    puntosConMantenimiento={puntosConMantenimiento}
                   />
                 </div>
               ))}
@@ -110,9 +152,11 @@ export function PantallaAhorroEmpresas({
                   <InterruptorMantenimiento
                     etiqueta="Luz"
                     icono="lightbulb"
-                    puntos={puntosLuz}
-                    activo={mantenimientoLuz}
-                    onChange={setMantenimientoLuz}
+                    ids={idsLuz}
+                    mantenimientoIds={mantenimientoIds}
+                    onCambiarTodos={(activo) =>
+                      alCambiarMantenimientoEnBloque(idsLuz, activo)
+                    }
                   />
                   <Text variant="label-m" color="mid" as="span">
                     ·
@@ -120,9 +164,11 @@ export function PantallaAhorroEmpresas({
                   <InterruptorMantenimiento
                     etiqueta="Gas"
                     icono="fire"
-                    puntos={puntosGas}
-                    activo={mantenimientoGas}
-                    onChange={setMantenimientoGas}
+                    ids={idsGas}
+                    mantenimientoIds={mantenimientoIds}
+                    onCambiarTodos={(activo) =>
+                      alCambiarMantenimientoEnBloque(idsGas, activo)
+                    }
                   />
                 </div>
               </div>
@@ -136,8 +182,10 @@ export function PantallaAhorroEmpresas({
                     key={c.id}
                     comercializadora={c}
                     mensual={mensual}
-                    mantenimientoLuz={mantenimientoLuz}
-                    mantenimientoGas={mantenimientoGas}
+                    mantenimientoIds={mantenimientoIds}
+                    excluidos={excluidos}
+                    onCambiarMantenimiento={alCambiarMantenimiento}
+                    onCambiarIncluido={alCambiarIncluido}
                     onComparar={() => setComparando(c)}
                   />
                 ))}
@@ -218,22 +266,33 @@ function SelectorPeriodo({
   );
 }
 
-/** Cada interruptor lleva DOS iconos delante de la etiqueta: la llave
- * (mantenimiento, genérico) y el tipo de suministro (Luz/Gas) — igual que en
- * el Figma, con 2 px de hueco entre los dos. */
+/**
+ * Interruptor de bulto: enciende o apaga a la vez el mantenimiento de TODOS
+ * los puntos de un tipo (Luz o Gas). El contador (n/m) cuenta cuántos de esos
+ * puntos lo tienen activo ahora mismo — cada fila de la tabla puede llevar la
+ * cuenta a un valor intermedio, y por eso el interruptor no siempre está del
+ * todo encendido o del todo apagado.
+ *
+ * Lleva DOS iconos delante de la etiqueta: la llave (mantenimiento, genérico)
+ * y el tipo de suministro (Luz/Gas) — igual que en el Figma, con 2 px de
+ * hueco entre los dos.
+ */
 function InterruptorMantenimiento({
   icono,
   etiqueta,
-  puntos,
-  activo,
-  onChange,
+  ids,
+  mantenimientoIds,
+  onCambiarTodos,
 }: {
   icono: IconName;
   etiqueta: string;
-  puntos: number;
-  activo: boolean;
-  onChange: (activo: boolean) => void;
+  ids: string[];
+  mantenimientoIds: Set<string>;
+  onCambiarTodos: (activo: boolean) => void;
 }) {
+  const total = ids.length;
+  const activos = ids.filter((id) => mantenimientoIds.has(id)).length;
+
   return (
     <span className="flex items-center gap-03">
       <span className="flex items-center gap-[2px] text-content-mid">
@@ -241,40 +300,30 @@ function InterruptorMantenimiento({
         <Icon name={icono} size={20} />
       </span>
       <Text variant="label-m" color="mid" as="span">
-        Mantenimiento {etiqueta} ({activo ? puntos : 0}/{puntos})
+        Mantenimiento {etiqueta} ({activos}/{total})
       </Text>
       <Switch
-        checked={activo}
-        onChange={onChange}
-        label={`Añadir mantenimiento a los puntos de ${etiqueta}`}
+        checked={total > 0 && activos === total}
+        onChange={onCambiarTodos}
+        label={`Añadir mantenimiento a todos los puntos de ${etiqueta}`}
       />
     </span>
   );
 }
 
 /** Una de las tres tarjetas de plan. Mismo diseño que TarjetaPlan.tsx (recorrido
- * particular), pero sin botón: aquí no se elige plan, solo se compara, y el
- * mantenimiento se calcula por tipo (Luz/Gas) en vez de con un único
- * interruptor — por eso no se reutiliza el componente tal cual. */
+ * particular), pero sin botón: aquí no se elige plan, solo se compara. */
 function TarjetaPlanEmpresa({
   plan,
   mensual,
-  mantenimientoLuz,
-  mantenimientoGas,
+  puntosConMantenimiento,
 }: {
   plan: Plan;
   mensual: boolean;
-  mantenimientoLuz: boolean;
-  mantenimientoGas: boolean;
+  puntosConMantenimiento: number;
 }) {
   const destacada = plan.recomendado;
-  const ahorro = conMantenimientoMixto(
-    plan.ahorroAnual,
-    puntosPorTipo("Luz"),
-    puntosPorTipo("Gas"),
-    mantenimientoLuz,
-    mantenimientoGas,
-  );
+  const ahorro = conMantenimientoMixto(plan.ahorroAnual, puntosConMantenimiento);
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
@@ -390,32 +439,32 @@ function FlechaPlegar({ abierto }: { abierto: boolean }) {
 function FilaComercializadoraEmpresa({
   comercializadora,
   mensual,
-  mantenimientoLuz,
-  mantenimientoGas,
+  mantenimientoIds,
+  excluidos,
+  onCambiarMantenimiento,
+  onCambiarIncluido,
   onComparar,
 }: {
   comercializadora: Comercializadora;
   mensual: boolean;
-  mantenimientoLuz: boolean;
-  mantenimientoGas: boolean;
+  mantenimientoIds: Set<string>;
+  excluidos: Set<string>;
+  onCambiarMantenimiento: (id: string, activo: boolean) => void;
+  onCambiarIncluido: (id: string, incluido: boolean) => void;
   onComparar: () => void;
 }) {
   const [abierto, setAbierto] = useState(false);
 
   const todosSuministros = suministrosDe(comercializadora);
-  const puntosLuz = todosSuministros.filter((s) => s.tipo === "Luz").length;
-  const puntosGas = todosSuministros.filter((s) => s.tipo === "Gas").length;
   const tiposPresentes = Array.from(new Set(todosSuministros.map((s) => s.tipo)));
 
-  const ahorro = conMantenimientoMixto(
-    ahorroComercializadora(comercializadora),
-    puntosLuz,
-    puntosGas,
-    mantenimientoLuz,
-    mantenimientoGas,
-  );
+  const ahorro = todosSuministros
+    .filter((s) => !excluidos.has(s.id))
+    .reduce(
+      (total, s) => total + conMantenimiento(s.ahorro, 1, mantenimientoIds.has(s.id)),
+      0,
+    );
   const cifra = mensual ? ahorro / 12 : ahorro;
-  const grupos = gruposPorSociedad(comercializadora);
 
   return (
     <article className="overflow-hidden rounded-md border border-border-low bg-background-low">
@@ -483,13 +532,15 @@ function FilaComercializadoraEmpresa({
       </div>
 
       <Plegable abierto={abierto}>
-        <div className="flex flex-col gap-03 px-04 pb-04">
-          {grupos.map((grupo) => (
-            <GrupoSociedadTabla
-              key={grupo.sociedad.id}
-              grupo={grupo}
-              mantenimientoLuz={mantenimientoLuz}
-              mantenimientoGas={mantenimientoGas}
+        <div className="flex flex-col gap-04 px-04 pb-04">
+          {comercializadora.direcciones.map((direccion) => (
+            <GrupoDireccionTabla
+              key={direccion.id}
+              direccion={direccion}
+              mantenimientoIds={mantenimientoIds}
+              excluidos={excluidos}
+              onCambiarMantenimiento={onCambiarMantenimiento}
+              onCambiarIncluido={onCambiarIncluido}
             />
           ))}
         </div>
@@ -498,91 +549,128 @@ function FilaComercializadoraEmpresa({
   );
 }
 
-/** El desglose por sociedad dentro de una comercializadora: columnas
- * SUMINISTRO/TARIFA/TIPO/COSTE ACTUAL/MEJOR ALTERNATIVA/AHORRO ESTIMADO,
- * como en el wireframe del Figma, con los tokens del sistema en vez de sus
- * valores sueltos. */
-function GrupoSociedadTabla({
-  grupo,
-  mantenimientoLuz,
-  mantenimientoGas,
+/**
+ * El desglose por UBICACIÓN dentro de una comercializadora: columnas Punto de
+ * suministro (con su casilla), Tipo de suministro, Coste actual, Ahorro
+ * potencial y Mantenimiento (con su interruptor por fila) — como en el
+ * Figma. El CIF que se enseña en la cabecera es el de la sociedad a la que
+ * pertenece esta dirección (`sociedadDe`, en mocks/aczo.ts).
+ *
+ * Se pliega igual que la comercializadora que la contiene (misma técnica de
+ * rejilla 0fr → 1fr), pero empieza ABIERTA: en el Figma las ubicaciones ya
+ * se ven desplegadas en cuanto se abre la comercializadora.
+ */
+function GrupoDireccionTabla({
+  direccion,
+  mantenimientoIds,
+  excluidos,
+  onCambiarMantenimiento,
+  onCambiarIncluido,
 }: {
-  grupo: GrupoSociedad;
-  mantenimientoLuz: boolean;
-  mantenimientoGas: boolean;
+  direccion: DireccionSuministros;
+  mantenimientoIds: Set<string>;
+  excluidos: Set<string>;
+  onCambiarMantenimiento: (id: string, activo: boolean) => void;
+  onCambiarIncluido: (id: string, incluido: boolean) => void;
 }) {
-  const puntos = grupo.suministros.length;
-  const totalAhorro = grupo.suministros.reduce((total, s) => {
-    const activo = s.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas;
-    return total + conMantenimiento(s.ahorro, 1, activo);
-  }, 0);
+  const [abierto, setAbierto] = useState(true);
+  const sociedad = sociedadDe(direccion);
+  const puntos = direccion.suministros.length;
 
   return (
-    <div className="overflow-hidden rounded-md">
-      <div className="flex items-center justify-between gap-04 bg-highlight-neutral px-04 py-03 text-content-always-dark">
-        <Text variant="label-m" color="always-dark" as="span" className="min-w-0 truncate">
-          {grupo.sociedad.nombre}
-        </Text>
-        <Text variant="body-m" color="always-dark" as="span" className="shrink-0">
-          {puntos} {puntos === 1 ? "punto" : "puntos"} de suministro
-        </Text>
-      </div>
-
-      <div className="bg-background-base">
-        <div className="hidden items-center gap-03 border-b border-border-low px-04 py-02 md:flex">
-          <span className="size-05 shrink-0" />
-          <span className="grid flex-1 grid-cols-[1.4fr_0.7fr_0.8fr_0.9fr_0.9fr_0.9fr] gap-04 text-label-s tracking-wide text-content-low uppercase">
-            <span>Suministro</span>
-            <span>Tarifa</span>
-            <span>Tipo</span>
-            <span>Coste actual</span>
-            <span>Mejor alternativa</span>
-            <span>Ahorro estimado</span>
+    <div className="overflow-hidden rounded-md border border-border-low">
+      <button
+        type="button"
+        onClick={() => setAbierto((a) => !a)}
+        aria-expanded={abierto}
+        className="flex w-full items-center gap-04 bg-highlight-soft p-03 text-left text-content-high outline-none transition-opacity motion-micro-states hover:opacity-80 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-info-high"
+      >
+        <span className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-04">
+          <span className="flex min-w-0 flex-wrap items-center gap-02">
+            <Text variant="label-m" as="span" className="truncate">
+              {direccion.direccion}
+            </Text>
           </span>
-        </div>
-
-        <ul>
-          {grupo.suministros.map((s) => {
-            const activo = s.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas;
-            const ahorro = conMantenimiento(s.ahorro, 1, activo);
-            const mejorAlternativa = s.costeActual - ahorro;
-
-            return (
-              <li key={s.id} className="flex items-center gap-03 border-b border-border-low px-04 py-03 last:border-b-00">
-                <span className="shrink-0 text-content-mid">
-                  <Icon name="check-circle-outline" />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[1.4fr_0.7fr_0.8fr_0.9fr_0.9fr_0.9fr] md:items-center md:gap-04">
-                  <Text variant="body-m" as="span" className="truncate">
-                    {s.nombre}
-                  </Text>
-                  <Text variant="body-m" color="mid" as="span">
-                    {s.tarifa}
-                  </Text>
-                  <span>
-                    <Tag icon={s.tipo === "Luz" ? "lightbulb" : "fire"}>{s.tipo}</Tag>
-                  </span>
-                  <Text variant="body-m" color="mid" as="span">
-                    €{euros(s.costeActual)}/año
-                  </Text>
-                  <Text variant="body-m" color="mid" as="span">
-                    €{euros(mejorAlternativa)}/año
-                  </Text>
-                  <span>
-                    <Tag tone="success">€{euros(ahorro)}/año</Tag>
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="flex justify-end px-04 py-03">
-          <Text variant="label-m" as="span">
-            Total €{euros(totalAhorro)}/año
+          <Text variant="body-m" color="mid" as="span" className="shrink-0 whitespace-nowrap">
+            CIF {sociedad.cif} · {puntos} {puntos === 1 ? "punto" : "puntos"} de suministro
           </Text>
+        </span>
+        <FlechaPlegar abierto={abierto} />
+      </button>
+
+      <Plegable abierto={abierto}>
+        <div className="bg-background-base">
+          <div className="hidden items-center gap-03 border-b border-border-low px-03 py-02 md:flex">
+            <span className="size-04 shrink-0" />
+            <span className="grid flex-1 grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] gap-04 text-label-s text-content-mid">
+              <span>Punto de suministro</span>
+              <span>Tipo de suministro</span>
+              <span>Coste actual</span>
+              <span>Ahorro potencial</span>
+              <span className="flex items-center gap-01">
+                Mantenimiento
+                <span
+                  className="text-content-mid"
+                  title="El mantenimiento cuesta una cuota fija por punto y se descuenta del ahorro estimado."
+                >
+                  <Icon name="info" size={14} />
+                </span>
+              </span>
+            </span>
+          </div>
+
+          <ul>
+            {direccion.suministros.map((s) => {
+              const incluido = !excluidos.has(s.id);
+              const activo = mantenimientoIds.has(s.id);
+              const ahorro = incluido ? conMantenimiento(s.ahorro, 1, activo) : 0;
+
+              return (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-03 border-b border-border-low px-03 py-04 last:border-b-00"
+                >
+                  <Checkbox
+                    checked={incluido}
+                    onChange={(checked) => onCambiarIncluido(s.id, checked)}
+                    className="shrink-0"
+                  />
+                  <span
+                    className={[
+                      "flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] md:items-center md:gap-04",
+                      incluido ? "" : "opacity-40",
+                    ].join(" ")}
+                  >
+                    <Text variant="label-m" as="span" className="truncate">
+                      {s.nombre}
+                    </Text>
+                    <span>
+                      <Tag icon={s.tipo === "Luz" ? "lightbulb" : "fire"}>{s.tipo}</Tag>
+                    </span>
+                    <Text variant="body-m" color="mid" as="span">
+                      €{euros(s.costeActual)}/año
+                    </Text>
+                    <span>
+                      <Tag tone="success">€{euros(ahorro)}/año</Tag>
+                    </span>
+                    <span className="flex items-center gap-02">
+                      <span className="text-content-mid">
+                        <Icon name="wrench" size={20} />
+                      </span>
+                      <Switch
+                        checked={activo}
+                        disabled={!incluido}
+                        onChange={(checked) => onCambiarMantenimiento(s.id, checked)}
+                        label={`Añadir mantenimiento en ${s.nombre}`}
+                      />
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-      </div>
+      </Plegable>
     </div>
   );
 }

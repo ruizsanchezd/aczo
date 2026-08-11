@@ -224,23 +224,29 @@ tarjeta de revisión con errores y alertas. Nada de esto bloquea el avance — s
 
 Al pulsar "Calcular ahorro" en la pantalla 3 (`PantallaAhorroEmpresas`). Mismo espíritu que la
 pantalla 4 del recorrido particular (título + selector, tres tarjetas de plan, tabla de detalle),
-con dos diferencias porque aquí hay varias sociedades a la vez:
+con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la vez:
 
-1. **Mantenimiento por tipo:** dos interruptores independientes, "Mantenimiento Luz" y
-   "Mantenimiento Gas" — no uno solo. Cada uno descuenta su cuota (2 €/mes por punto, en
-   `mocks/aczo.ts`) solo de los puntos de su tipo, en las tres tarjetas de plan y en el ahorro de
-   cada comercializadora y cada suministro. Las tarjetas de plan **no llevan botón** aquí: no se
-   elige plan en esta pantalla, solo se compara.
-2. **Tabla agrupada por sociedad, no por dirección:** al desplegar una comercializadora
-   (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el resto de desplegables), el
-   desglose se organiza por sociedad — así se lee el ahorro repartido igual que se domiciliará y
-   firmará más adelante. Cada fila de suministro lleva coste actual, mejor alternativa (coste
-   actual menos ahorro) y el ahorro estimado en verde.
-3. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
+1. **Mantenimiento punto por punto:** cada fila de la tabla lleva su propio interruptor — no hay
+   un único interruptor por tipo. Los interruptores "Mantenimiento Luz/Gas" de la barra de resumen
+   son de bulto: encienden o apagan a la vez todos los puntos de ese tipo, y su contador (n/m)
+   cuenta cuántos están activos en cada momento (puede quedar a medias si se han tocado filas
+   sueltas). Cada punto activo descuenta su cuota (2 €/mes, en `mocks/aczo.ts`) del ahorro de su
+   fila, de su comercializadora y de las tres tarjetas de plan. Las tarjetas de plan **no llevan
+   botón** aquí: no se elige plan en esta pantalla, solo se compara.
+2. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
+   ahorro de su comercializadora y de las tres tarjetas de plan — la fila se queda atenuada
+   (`opacity-40`) y su interruptor de mantenimiento se desactiva. Los "puntos de suministro" que
+   se cuentan en las cabeceras NO cambian: son un dato de inventario, no del cálculo.
+3. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
+   por sociedad: el CIF de la sociedad a la que pertenece se enseña en la cabecera de su grupo.
+   Al desplegar una comercializadora (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el
+   resto de desplegables), sus ubicaciones ya se ven abiertas — cada una con su propio desplegable
+   independiente, por si se quiere cerrar alguna suelta.
+4. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
    (`ModalComparar`) que el recorrido particular.
-4. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
+5. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
    (siguiente tramo, pendiente de construir), igual patrón que la barra de la pantalla de firma
-   del recorrido particular (`sticky`, `border-t`, botones alineados a los extremos).
+   del recorrido particular (`sticky`, botones alineados a los extremos).
 
 ## Transición entre pantallas
 
