@@ -359,6 +359,68 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
   },
 ];
 
+/**
+ * Naturgy y Octopus no forman parte de la propuesta actual (`COMERCIALIZADORAS`
+ * arriba, TotalEnergies + Repsol): solo aparecen si en la pantalla de empresas
+ * se elige el plan "Ahorro máximo", que las recomienda además de TotalEnergies.
+ * Llevan muy poco contenido a propósito, igual que Repsol.
+ */
+const NATURGY: Comercializadora = {
+  id: "naturgy",
+  nombre: "Naturgy",
+  etiquetas: ["Gas 3.2"],
+  direcciones: [
+    {
+      id: "castellana",
+      sociedadId: "norte",
+      direccion: "Paseo de la Castellana 200, Madrid",
+      suministros: [
+        suministro("ng-1", "Cocina principal", "Gas", "3.2", 2_900, 290, {
+          ciudad: "Madrid",
+          consumoAnual: 132_400,
+          potencia: 0,
+          perfil: { punta: 25, llano: 43, valle: 32 },
+          companiaActual: "Iberdrola",
+        }),
+      ],
+    },
+  ],
+};
+
+const OCTOPUS: Comercializadora = {
+  id: "octopus",
+  nombre: "Octopus",
+  etiquetas: ["2.0TD"],
+  direcciones: [
+    {
+      id: "alcala",
+      sociedadId: "central",
+      direccion: "Calle Alcalá 90, Madrid",
+      suministros: [
+        suministro("oc-1", "Oficina", "Luz", "2.0TD", 3_450, 340, {
+          ciudad: "Madrid",
+          consumoAnual: 39_600,
+          potencia: 14,
+          perfil: { punta: 30, llano: 42, valle: 28 },
+          companiaActual: "Endesa",
+        }),
+      ],
+    },
+  ],
+};
+
+/**
+ * Todas las comercializadoras que puede recomendar algún plan, por nombre:
+ * las de la propuesta actual (`COMERCIALIZADORAS`) más las que solo aparecen
+ * al elegir otro plan en la pantalla de empresas. Así, sea el plan que sea,
+ * `plan.comercializadoras` siempre se puede resolver a datos completos.
+ */
+export const COMERCIALIZADORAS_POR_NOMBRE: Record<string, Comercializadora> = {
+  ...Object.fromEntries(COMERCIALIZADORAS.map((c) => [c.nombre, c])),
+  Naturgy: NATURGY,
+  Octopus: OCTOPUS,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Ofertas de la ventana "otras compañías"                                    */
 /* -------------------------------------------------------------------------- */

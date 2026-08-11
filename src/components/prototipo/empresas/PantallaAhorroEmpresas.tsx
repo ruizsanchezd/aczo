@@ -10,15 +10,12 @@ import { Text } from "@/components/ui/Text";
 import {
   conMantenimiento,
   conMantenimientoMixto,
-  COMERCIALIZADORAS,
+  COMERCIALIZADORAS_POR_NOMBRE,
   euros,
   kwh,
   sociedadDe,
   suministrosDe,
   PLANES,
-  SOCIEDADES_ACTIVAS,
-  TOTAL_DIRECCIONES,
-  TOTAL_PUNTOS,
   type Comercializadora,
   type DireccionSuministros,
   type Plan,
@@ -33,9 +30,18 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
  * PantallaAhorroEmpresas — pantalla "Tu ahorro potencial" del flujo de
  * empresas: aparece al pulsar "Calcular ahorro" en PantallaResultadoEmpresas.
  *
- * Mismo espíritu que PantallaPropuesta (recorrido particular), pero con dos
+ * Mismo espíritu que PantallaPropuesta (recorrido particular), pero con
  * diferencias de fondo, porque aquí se gestionan varias sociedades a la vez:
  *
+ *   - Las tres tarjetas de plan son ELEGIBLES (un `radiogroup`): por defecto
+ *     está elegida la recomendada, pero se puede tocar cualquiera. Al
+ *     hacerlo, el resumen, los interruptores de bulto y las filas de
+ *     comercializadora de más abajo cambian para mostrar las comercializadoras
+ *     que recomienda el plan elegido (`plan.comercializadoras`, resuelto a
+ *     datos completos con `COMERCIALIZADORAS_POR_NOMBRE` en mocks/aczo.ts).
+ *     "Recomendado" es una propiedad fija del plan; "Seleccionado" es de la
+ *     elección — por defecto caen en la misma tarjeta, así que solo se
+ *     enseña una etiqueta a la vez para no repetir la misma idea dos veces.
  *   - El mantenimiento se activa PUNTO POR PUNTO (un interruptor por fila),
  *     no con un único interruptor por tipo. Los interruptores "Mantenimiento
  *     Luz/Gas" de arriba son de bulto: encienden o apagan a la vez todos los
@@ -69,17 +75,34 @@ export function PantallaAhorroEmpresas({
   // Ids de los puntos que se han desmarcado: no cuentan en el ahorro.
   const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
   const [comparando, setComparando] = useState<Comercializadora | null>(null);
+  // Por defecto, el plan que la propuesta recomienda.
+  const [planSeleccionadoId, setPlanSeleccionadoId] = useState(
+    () => PLANES.find((p) => p.recomendado)?.id ?? PLANES[0].id,
+  );
 
-  const todosLosSuministros = COMERCIALIZADORAS.flatMap(suministrosDe);
+  const planSeleccionado =
+    PLANES.find((p) => p.id === planSeleccionadoId) ?? PLANES[0];
+  // El resumen, los interruptores de bulto y las filas de comercializadora de
+  // abajo reflejan las comercializadoras que RECOMIENDA el plan elegido — no
+  // siempre son las mismas dos (TotalEnergies, Repsol) de la propuesta actual.
+  const comercializadorasDelPlan = resolverComercializadoras(
+    planSeleccionado.comercializadoras,
+  );
+  const todosLosSuministros = comercializadorasDelPlan.flatMap(suministrosDe);
   const idsLuz = todosLosSuministros
     .filter((s) => s.tipo === "Luz")
     .map((s) => s.id);
   const idsGas = todosLosSuministros
     .filter((s) => s.tipo === "Gas")
     .map((s) => s.id);
-  const puntosConMantenimiento = todosLosSuministros.filter(
-    (s) => mantenimientoIds.has(s.id) && !excluidos.has(s.id),
-  ).length;
+  const sociedadesActivas = new Set(
+    comercializadorasDelPlan.flatMap((c) => c.direcciones.map((d) => d.sociedadId)),
+  ).size;
+  const totalDirecciones = comercializadorasDelPlan.reduce(
+    (total, c) => total + c.direcciones.length,
+    0,
+  );
+  const totalPuntos = todosLosSuministros.length;
 
   function alCambiarMantenimiento(id: string, activo: boolean) {
     setMantenimientoIds((prev) => {
@@ -125,17 +148,33 @@ export function PantallaAhorroEmpresas({
             </div>
 
             {/* Los tres planes: el recomendado siempre en el centro, sin
-                importar el orden en que estén en mocks/aczo.ts. */}
-            <div className="grid gap-04 lg:grid-cols-3">
-              {planesCentrados(PLANES).map((plan, i) => (
-                <div key={plan.id} className="anim-aparece" style={retardo(i + 1)}>
-                  <TarjetaPlanEmpresa
-                    plan={plan}
-                    mensual={mensual}
-                    puntosConMantenimiento={puntosConMantenimiento}
-                  />
-                </div>
-              ))}
+                importar el orden en que estén en mocks/aczo.ts. Se puede
+                elegir cualquiera — el módulo de abajo pasa a mostrar las
+                comercializadoras que recomiende el plan elegido. */}
+            <div role="radiogroup" aria-label="Elige un plan" className="grid gap-04 lg:grid-cols-3">
+              {planesCentrados(PLANES).map((plan, i) => {
+                // El descuento de mantenimiento de cada tarjeta es el suyo:
+                // depende de los puntos de SUS propias comercializadoras, no
+                // de las del plan elegido para el módulo de abajo.
+                const suministrosDelPlan = resolverComercializadoras(
+                  plan.comercializadoras,
+                ).flatMap(suministrosDe);
+                const puntosConMantenimientoDelPlan = suministrosDelPlan.filter(
+                  (s) => mantenimientoIds.has(s.id) && !excluidos.has(s.id),
+                ).length;
+
+                return (
+                  <div key={plan.id} className="anim-aparece" style={retardo(i + 1)}>
+                    <TarjetaPlanEmpresa
+                      plan={plan}
+                      mensual={mensual}
+                      puntosConMantenimiento={puntosConMantenimientoDelPlan}
+                      seleccionado={plan.id === planSeleccionadoId}
+                      onSeleccionar={() => setPlanSeleccionadoId(plan.id)}
+                    />
+                  </div>
+                );
+              })}
             </div>
 
             {/* Resumen, mantenimiento y comercializadoras: una sola tarjeta
@@ -146,9 +185,9 @@ export function PantallaAhorroEmpresas({
             >
               <div className="flex flex-wrap items-center justify-between gap-04">
                 <Text variant="label-m" color="mid" as="span">
-                  {SOCIEDADES_ACTIVAS} {SOCIEDADES_ACTIVAS === 1 ? "Sociedad" : "Sociedades"} ·{" "}
-                  {TOTAL_DIRECCIONES} {TOTAL_DIRECCIONES === 1 ? "activo" : "activos"} ·{" "}
-                  {TOTAL_PUNTOS} puntos de suministro
+                  {sociedadesActivas} {sociedadesActivas === 1 ? "Sociedad" : "Sociedades"} ·{" "}
+                  {totalDirecciones} {totalDirecciones === 1 ? "activo" : "activos"} ·{" "}
+                  {totalPuntos} puntos de suministro
                 </Text>
 
                 <div className="flex flex-wrap items-center gap-04">
@@ -180,7 +219,7 @@ export function PantallaAhorroEmpresas({
                   separado del siguiente por espacio, no por una línea
                   divisoria compartida. */}
               <div className="flex flex-col gap-04">
-                {COMERCIALIZADORAS.map((c) => (
+                {comercializadorasDelPlan.map((c) => (
                   <FilaComercializadoraEmpresa
                     key={c.id}
                     comercializadora={c}
@@ -222,6 +261,15 @@ export function PantallaAhorroEmpresas({
 /* -------------------------------------------------------------------------- */
 /* Piezas de esta pantalla                                                    */
 /* -------------------------------------------------------------------------- */
+
+/** Resuelve los nombres de `plan.comercializadoras` a sus datos completos
+ * (`COMERCIALIZADORAS_POR_NOMBRE`, en mocks/aczo.ts). Si algún nombre no
+ * tuviera todavía datos, se descarta en vez de romper la pantalla. */
+function resolverComercializadoras(nombres: string[]): Comercializadora[] {
+  return nombres
+    .map((nombre) => COMERCIALIZADORAS_POR_NOMBRE[nombre])
+    .filter((c): c is Comercializadora => Boolean(c));
+}
 
 /** Reordena los planes para que el recomendado quede siempre en el centro,
  * sin importar en qué posición esté en `PLANES` (mocks/aczo.ts). Los otros
@@ -326,26 +374,44 @@ function InterruptorMantenimiento({
   );
 }
 
-/** Una de las tres tarjetas de plan. Mismo diseño que TarjetaPlan.tsx (recorrido
- * particular), pero sin botón: aquí no se elige plan, solo se compara. */
+/**
+ * Una de las tres tarjetas de plan. Se puede elegir cualquiera (forman un
+ * `radiogroup`): al hacerlo, el módulo de abajo pasa a mostrar las
+ * comercializadoras que recomienda ESE plan. "Recomendado" es del plan (fijo,
+ * no cambia); "Seleccionado" es de la elección actual — por defecto coinciden
+ * en la misma tarjeta, y por eso solo se enseña una etiqueta a la vez.
+ */
 function TarjetaPlanEmpresa({
   plan,
   mensual,
   puntosConMantenimiento,
+  seleccionado,
+  onSeleccionar,
 }: {
   plan: Plan;
   mensual: boolean;
   puntosConMantenimiento: number;
+  seleccionado: boolean;
+  onSeleccionar: () => void;
 }) {
   const destacada = plan.recomendado;
   const ahorro = conMantenimientoMixto(plan.ahorroAnual, puntosConMantenimiento);
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
-    <article
+    <button
+      type="button"
+      role="radio"
+      aria-checked={seleccionado}
+      aria-label={`Elegir ${plan.nombre}`}
+      onClick={onSeleccionar}
       className={[
-        "flex h-full flex-col justify-between gap-07 rounded-md p-07",
-        destacada ? "bg-highlight-deep" : "bg-background-base",
+        "flex h-full w-full flex-col justify-between gap-07 rounded-md p-07 text-left",
+        "cursor-pointer outline-none transition-colors motion-micro-states",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
+        seleccionado
+          ? "bg-highlight-deep"
+          : "bg-background-base hover:bg-background-low",
       ].join(" ")}
     >
       {/* Cabecera + checklist van juntas; "Comercializadoras recomendadas"
@@ -357,8 +423,8 @@ function TarjetaPlanEmpresa({
           <div className="flex items-center justify-between gap-03">
             <Text
               variant="label-s-uppercase"
-              color={destacada ? "always-light" : "low"}
-              className={destacada ? "opacity-60" : ""}
+              color={seleccionado ? "always-light" : "low"}
+              className={seleccionado ? "opacity-60" : ""}
               as="h3"
             >
               {plan.nombre}
@@ -372,7 +438,7 @@ function TarjetaPlanEmpresa({
 
           <p
             className={`font-heading text-heading-m ${
-              destacada ? "text-content-always-light" : "text-content-high"
+              seleccionado ? "text-content-always-light" : "text-content-high"
             }`}
           >
             <NumeroAnimado value={cifra} /> €/{mensual ? "mes" : "año"}
@@ -384,7 +450,7 @@ function TarjetaPlanEmpresa({
             <li key={v.texto} className="flex items-start gap-03">
               <span
                 className={`shrink-0 ${
-                  destacada ? "text-highlight-vivid" : "text-highlight-muted"
+                  seleccionado ? "text-highlight-vivid" : "text-highlight-muted"
                 }`}
               >
                 <Icon name="check-circle" />
@@ -394,7 +460,7 @@ function TarjetaPlanEmpresa({
                   compara el ahorro, y esa cifra no aporta en ese contexto. */}
               <Text
                 variant="body-m"
-                color={destacada ? "always-light" : "high"}
+                color={seleccionado ? "always-light" : "high"}
                 as="span"
               >
                 {v.texto}
@@ -407,19 +473,19 @@ function TarjetaPlanEmpresa({
       <div className="flex flex-col gap-03">
         <Text
           variant="body-s"
-          color={destacada ? "always-light" : "mid"}
+          color={seleccionado ? "always-light" : "mid"}
           as="span"
-          className={destacada ? "opacity-60" : ""}
+          className={seleccionado ? "opacity-60" : ""}
         >
           Comercializadoras recomendadas:
         </Text>
         <div className="flex flex-wrap gap-02">
           {plan.comercializadoras.map((nombre) => (
-            <HuecoLogo key={nombre} nombre={nombre} sobreOscuro={destacada} />
+            <HuecoLogo key={nombre} nombre={nombre} sobreOscuro={seleccionado} />
           ))}
         </div>
       </div>
-    </article>
+    </button>
   );
 }
 
