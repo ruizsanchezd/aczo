@@ -12,6 +12,7 @@ import {
   conMantenimientoMixto,
   COMERCIALIZADORAS,
   euros,
+  kwh,
   sociedadDe,
   suministrosDe,
   PLANES,
@@ -21,6 +22,7 @@ import {
   type Comercializadora,
   type DireccionSuministros,
   type Plan,
+  type Suministro,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
 import { ModalComparar } from "../ModalComparar";
@@ -122,9 +124,10 @@ export function PantallaAhorroEmpresas({
               <SelectorPeriodo mensual={mensual} onChange={setMensual} />
             </div>
 
-            {/* Los tres planes -------------------------------------------- */}
+            {/* Los tres planes: el recomendado siempre en el centro, sin
+                importar el orden en que estén en mocks/aczo.ts. */}
             <div className="grid gap-04 lg:grid-cols-3">
-              {PLANES.map((plan, i) => (
+              {planesCentrados(PLANES).map((plan, i) => (
                 <div key={plan.id} className="anim-aparece" style={retardo(i + 1)}>
                   <TarjetaPlanEmpresa
                     plan={plan}
@@ -219,6 +222,18 @@ export function PantallaAhorroEmpresas({
 /* -------------------------------------------------------------------------- */
 /* Piezas de esta pantalla                                                    */
 /* -------------------------------------------------------------------------- */
+
+/** Reordena los planes para que el recomendado quede siempre en el centro,
+ * sin importar en qué posición esté en `PLANES` (mocks/aczo.ts). Los otros
+ * dos mantienen su orden relativo, uno a cada lado. */
+function planesCentrados(planes: Plan[]): Plan[] {
+  const indice = planes.findIndex((p) => p.recomendado);
+  if (indice === -1) return planes;
+
+  const resto = planes.filter((p) => !p.recomendado);
+  const mitad = Math.ceil(resto.length / 2);
+  return [...resto.slice(0, mitad), planes[indice], ...resto.slice(mitad)];
+}
 
 /**
  * El segmentado "Ver ahorro anual / Ver ahorro mensual".
@@ -599,8 +614,8 @@ function GrupoDireccionTabla({
       </button>
 
       <Plegable abierto={abierto}>
-        <div className="bg-background-base">
-          <div className="hidden items-center gap-03 border-b border-border-low px-03 py-02 md:flex">
+        <div className="bg-background-low">
+          <div className="hidden items-center gap-03 border-b border-border-low bg-background-base px-03 py-02 md:flex">
             <span className="size-04 shrink-0" />
             <span className="grid flex-1 grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] gap-04 text-label-s text-content-mid">
               <span>Punto de suministro</span>
@@ -620,57 +635,168 @@ function GrupoDireccionTabla({
           </div>
 
           <ul>
-            {direccion.suministros.map((s) => {
-              const incluido = !excluidos.has(s.id);
-              const activo = mantenimientoIds.has(s.id);
-              const ahorro = incluido ? conMantenimiento(s.ahorro, 1, activo) : 0;
-
-              return (
-                <li
-                  key={s.id}
-                  className="flex items-center gap-03 border-b border-border-low px-03 py-04 last:border-b-00"
-                >
-                  <Checkbox
-                    checked={incluido}
-                    onChange={(checked) => onCambiarIncluido(s.id, checked)}
-                    className="shrink-0"
-                  />
-                  <span
-                    className={[
-                      "flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] md:items-center md:gap-04",
-                      incluido ? "" : "opacity-40",
-                    ].join(" ")}
-                  >
-                    <Text variant="label-m" as="span" className="truncate">
-                      {s.nombre}
-                    </Text>
-                    <span>
-                      <Tag icon={s.tipo === "Luz" ? "lightbulb" : "fire"}>{s.tipo}</Tag>
-                    </span>
-                    <Text variant="body-m" color="mid" as="span">
-                      €{euros(s.costeActual)}/año
-                    </Text>
-                    <span>
-                      <Tag tone="success">€{euros(ahorro)}/año</Tag>
-                    </span>
-                    <span className="flex items-center gap-02">
-                      <span className="text-content-mid">
-                        <Icon name="wrench" size={20} />
-                      </span>
-                      <Switch
-                        checked={activo}
-                        disabled={!incluido}
-                        onChange={(checked) => onCambiarMantenimiento(s.id, checked)}
-                        label={`Añadir mantenimiento en ${s.nombre}`}
-                      />
-                    </span>
-                  </span>
-                </li>
-              );
-            })}
+            {direccion.suministros.map((s) => (
+              <FilaPuntoSuministro
+                key={s.id}
+                suministro={s}
+                incluido={!excluidos.has(s.id)}
+                activo={mantenimientoIds.has(s.id)}
+                onCambiarMantenimiento={(activo) => onCambiarMantenimiento(s.id, activo)}
+                onCambiarIncluido={(incluido) => onCambiarIncluido(s.id, incluido)}
+              />
+            ))}
           </ul>
         </div>
       </Plegable>
+    </div>
+  );
+}
+
+/**
+ * Una fila de punto de suministro, con su propio detalle desplegable (el
+ * cuarto nivel): CUPS, tarifa contratada, consumo anual, potencia,
+ * perfil de consumo y compañía actual — el mismo contenido que
+ * DetalleSuministro en TablaAhorro.tsx (recorrido particular), adaptado a
+ * las columnas de esta tabla.
+ */
+function FilaPuntoSuministro({
+  suministro,
+  incluido,
+  activo,
+  onCambiarMantenimiento,
+  onCambiarIncluido,
+}: {
+  suministro: Suministro;
+  incluido: boolean;
+  activo: boolean;
+  onCambiarMantenimiento: (activo: boolean) => void;
+  onCambiarIncluido: (incluido: boolean) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const { detalle } = suministro;
+  const ahorro = incluido ? conMantenimiento(suministro.ahorro, 1, activo) : 0;
+
+  return (
+    <li className="border-b border-border-low last:border-b-00">
+      <div className="flex items-center gap-03 px-03 py-04">
+        <Checkbox
+          checked={incluido}
+          onChange={onCambiarIncluido}
+          className="shrink-0"
+        />
+        <span
+          className={[
+            "flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] md:items-center md:gap-04",
+            incluido ? "" : "opacity-40",
+          ].join(" ")}
+        >
+          <Text variant="label-m" as="span" className="truncate">
+            {suministro.nombre}
+          </Text>
+          <span>
+            <Tag icon={suministro.tipo === "Luz" ? "lightbulb" : "fire"}>
+              {suministro.tipo}
+            </Tag>
+          </span>
+          <Text variant="body-m" color="mid" as="span">
+            €{euros(suministro.costeActual)}/año
+          </Text>
+          <span>
+            <Tag tone="success">€{euros(ahorro)}/año</Tag>
+          </span>
+          <span className="flex items-center gap-02">
+            <span className="text-content-mid">
+              <Icon name="wrench" size={20} />
+            </span>
+            <Switch
+              checked={activo}
+              disabled={!incluido}
+              onChange={onCambiarMantenimiento}
+              label={`Añadir mantenimiento en ${suministro.nombre}`}
+            />
+          </span>
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setAbierto((a) => !a)}
+          aria-expanded={abierto}
+          aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${suministro.nombre}`}
+          className="shrink-0 cursor-pointer rounded-md text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
+        >
+          <FlechaPlegar abierto={abierto} />
+        </button>
+      </div>
+
+      <Plegable abierto={abierto}>
+        <div className="flex flex-col gap-04 border-t border-border-low bg-background-base px-07 py-06">
+          <FilaDatoSuministro etiqueta="CUPS">{detalle.cups}</FilaDatoSuministro>
+          <FilaDatoSuministro etiqueta="Tarifa contratada">
+            {suministro.tarifa} ({suministro.tipo})
+          </FilaDatoSuministro>
+          <FilaDatoSuministro etiqueta="Consumo anual">
+            {kwh(detalle.consumoAnual)} kWh/año
+          </FilaDatoSuministro>
+          {detalle.potencia > 0 && (
+            <FilaDatoSuministro etiqueta="Nueva potencia contratada">
+              {detalle.potencia.toLocaleString("es-ES")} kW
+            </FilaDatoSuministro>
+          )}
+          <FilaDatoSuministro etiqueta="Nuevo perfil de consumo">
+            <span className="flex flex-wrap justify-end gap-02">
+              {(
+                [
+                  ["Punta", detalle.perfil.punta],
+                  ["Llano", detalle.perfil.llano],
+                  ["Valle", detalle.perfil.valle],
+                ] as const
+              ).map(([franja, porcentaje]) => (
+                <Tag key={franja} tone="outline">
+                  <span className="font-medium">{franja}</span>
+                  <span className="text-content-mid">
+                    {kwh(Math.round((detalle.consumoAnual * porcentaje) / 100))} kWh (
+                    {porcentaje}%)
+                  </span>
+                </Tag>
+              ))}
+            </span>
+          </FilaDatoSuministro>
+          <FilaDatoSuministro etiqueta="Compañía actual">
+            <span className="flex items-center gap-01">
+              {detalle.companiaActual}
+              <span
+                className="text-content-mid"
+                title={
+                  detalle.permanencia
+                    ? `Tienes permanencia con ${detalle.companiaActual} hasta ${detalle.permanencia.hasta}. Si cambias ahora, la penalización estimada sería de ${euros(detalle.permanencia.penalizacion.min)}-${euros(detalle.permanencia.penalizacion.max)} €.`
+                    : `Sin permanencia con ${detalle.companiaActual}: se puede cambiar cuando quieras, sin penalización.`
+                }
+              >
+                <Icon name="info" size={16} />
+              </span>
+            </span>
+          </FilaDatoSuministro>
+        </div>
+      </Plegable>
+    </li>
+  );
+}
+
+/** Una fila del detalle: etiqueta en mayúsculas a la izquierda, valor a la
+ * derecha — igual que FilaDato en TablaAhorro.tsx (no está exportado ahí). */
+function FilaDatoSuministro({
+  etiqueta,
+  children,
+}: {
+  etiqueta: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-04">
+      <span className="text-label-s tracking-wide text-content-mid uppercase">
+        {etiqueta}
+      </span>
+      <span className="text-body-m text-content-high">{children}</span>
     </div>
   );
 }

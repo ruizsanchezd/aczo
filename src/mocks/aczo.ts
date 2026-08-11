@@ -113,6 +113,7 @@ export type TipoSuministro = "Luz" | "Gas";
 
 /** El detalle que se abre al desplegar una fila (el cuarto nivel). */
 export type DetalleSuministro = {
+  cups: string;
   consumoAnual: number;
   /** Potencia contratada nueva, en kW. */
   potencia: number;
@@ -121,7 +122,23 @@ export type DetalleSuministro = {
   companiaActual: string;
   ciudad: string;
   mantenimiento: boolean;
+  /** Permanencia con la compañía actual: hasta cuándo y cuánto costaría
+   * salirse antes. `null` = sin permanencia — no todos los puntos la tienen. */
+  permanencia: { hasta: string; penalizacion: { min: number; max: number } } | null;
 };
+
+/** Un CUPS de mentira con la pinta real (ES + dígitos + 2 letras), calculado a
+ * partir del id del punto: así cada suministro tiene el suyo sin escribirlos
+ * a mano ni arriesgarse a repetir uno. */
+function cupsDe(id: string): string {
+  const digitos = Array.from(id)
+    .map((c) => c.codePointAt(0)! % 10)
+    .join("")
+    .padEnd(16, "0")
+    .slice(0, 16);
+  const letras = (id.toUpperCase().replace(/[^A-Z]/g, "") + "XX").slice(0, 2);
+  return `ES0${digitos}${letras}`;
+}
 
 export type Suministro = {
   id: string;
@@ -168,12 +185,14 @@ function suministro(
     costeActual,
     ahorro,
     detalle: {
+      cups: detalle.cups ?? cupsDe(id),
       consumoAnual: detalle.consumoAnual ?? 24_500,
       potencia: detalle.potencia ?? 15.5,
       perfil: detalle.perfil ?? { punta: 29, llano: 43, valle: 28 },
       companiaActual: detalle.companiaActual ?? "Iberdrola",
       ciudad: detalle.ciudad,
       mantenimiento: detalle.mantenimiento ?? false,
+      permanencia: detalle.permanencia ?? null,
     },
   };
 }
@@ -195,6 +214,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 15.5,
             perfil: { punta: 29, llano: 43, valle: 28 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Marzo 2027", penalizacion: { min: 320, max: 400 } },
           }),
           suministro("tv-2", "Planta 1 Puerta Izquierda", "Luz", "2.0TD", 4_100, 430, {
             ciudad: "Madrid",
@@ -217,6 +237,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 0,
             perfil: { punta: 22, llano: 46, valle: 32 },
             companiaActual: "Naturgy",
+            permanencia: { hasta: "Enero 2027", penalizacion: { min: 150, max: 210 } },
           }),
           suministro("tv-5", "Planta 3 Puerta Izquierda", "Luz", "2.0TD", 3_600, 380, {
             ciudad: "Madrid",
@@ -253,6 +274,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 43.1,
             perfil: { punta: 41, llano: 35, valle: 24 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Diciembre 2026", penalizacion: { min: 260, max: 340 } },
           }),
           suministro("ts-2", "Almacén planta -1", "Luz", "2.0TD", 1_450, 150, {
             ciudad: "Madrid",
@@ -289,6 +311,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 31.5,
             perfil: { punta: 38, llano: 37, valle: 25 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Septiembre 2026", penalizacion: { min: 480, max: 610 } },
           }),
           suministro("tc-2", "Trastienda", "Luz", "2.0TD", 1_750, 175, {
             ciudad: "Sevilla",
@@ -321,6 +344,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 0,
             perfil: { punta: 24, llano: 44, valle: 32 },
             companiaActual: "Naturgy",
+            permanencia: { hasta: "Junio 2026", penalizacion: { min: 150, max: 210 } },
           }),
           suministro("rg-2", "Calefacción oficinas", "Gas", "3.1", 1_480, 145, {
             ciudad: "Madrid",
