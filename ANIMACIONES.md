@@ -220,8 +220,27 @@ tarjeta de revisión con errores y alertas. Nada de esto bloquea el avance — s
      reciente" — no hay nada que estimar, así que no hay caja ni interruptor.
    - Se cierra con la X, con Escape y pulsando fuera, igual que el panel particular.
 
-Pendiente de construir (mismo Figma, siguiente tramo): "Tu ahorro potencial" agrupado por
-sociedad, al pulsar "Calcular ahorro".
+### Pantalla 4 · Tu ahorro potencial
+
+Al pulsar "Calcular ahorro" en la pantalla 3 (`PantallaAhorroEmpresas`). Mismo espíritu que la
+pantalla 4 del recorrido particular (título + selector, tres tarjetas de plan, tabla de detalle),
+con dos diferencias porque aquí hay varias sociedades a la vez:
+
+1. **Mantenimiento por tipo:** dos interruptores independientes, "Mantenimiento Luz" y
+   "Mantenimiento Gas" — no uno solo. Cada uno descuenta su cuota (2 €/mes por punto, en
+   `mocks/aczo.ts`) solo de los puntos de su tipo, en las tres tarjetas de plan y en el ahorro de
+   cada comercializadora y cada suministro. Las tarjetas de plan **no llevan botón** aquí: no se
+   elige plan en esta pantalla, solo se compara.
+2. **Tabla agrupada por sociedad, no por dirección:** al desplegar una comercializadora
+   (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el resto de desplegables), el
+   desglose se organiza por sociedad — así se lee el ahorro repartido igual que se domiciliará y
+   firmará más adelante. Cada fila de suministro lleva coste actual, mejor alternativa (coste
+   actual menos ahorro) y el ahorro estimado en verde.
+3. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
+   (`ModalComparar`) que el recorrido particular.
+4. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
+   (siguiente tramo, pendiente de construir), igual patrón que la barra de la pantalla de firma
+   del recorrido particular (`sticky`, `border-t`, botones alineados a los extremos).
 
 ## Transición entre pantallas
 

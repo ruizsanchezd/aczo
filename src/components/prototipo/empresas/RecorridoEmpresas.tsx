@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NavbarEmpresas } from "./NavbarEmpresas";
+import { PantallaAhorroEmpresas } from "./PantallaAhorroEmpresas";
 import { PantallaCargaEmpresas } from "./PantallaCargaEmpresas";
 import { PantallaResultadoEmpresas } from "./PantallaResultadoEmpresas";
 import { PantallaSubidaEmpresas } from "./PantallaSubidaEmpresas";
@@ -19,18 +20,20 @@ import { PantallaSubidaEmpresas } from "./PantallaSubidaEmpresas";
  *   subida       01          arrastrar las facturas de las sociedades
  *   carga        (ninguno)   pantalla de carga a pantalla completa
  *   resultado    01          errores y alertas del análisis (sigue en el paso 1)
+ *   ahorro       02          "Tu ahorro potencial", tras "Calcular ahorro"
  *
- * Pendiente (siguiente tramo del Figma): al pulsar "Calcular ahorro" en
- * `resultado`, ir a una vista "ahorro" en el paso 02 — "Tu ahorro potencial".
+ * Pendiente (siguiente tramo del Figma): al pulsar "Hacer el cambio" en
+ * `ahorro`, ir a la vista de firma/apoderamiento por sociedad (paso 03).
  */
 
-const VISTAS = ["subida", "carga", "resultado"] as const;
+const VISTAS = ["subida", "carga", "resultado", "ahorro"] as const;
 type Vista = (typeof VISTAS)[number];
 
 const PASO_DE_VISTA: Record<Vista, number | null> = {
   subida: 0,
   carga: null,
   resultado: 0,
+  ahorro: 1,
 };
 
 export function RecorridoEmpresas() {
@@ -49,7 +52,15 @@ export function RecorridoEmpresas() {
         {vista === "carga" && (
           <PantallaCargaEmpresas onTerminar={() => setVista("resultado")} />
         )}
-        {vista === "resultado" && <PantallaResultadoEmpresas />}
+        {vista === "resultado" && (
+          <PantallaResultadoEmpresas onContinuar={() => setVista("ahorro")} />
+        )}
+        {vista === "ahorro" && (
+          <PantallaAhorroEmpresas
+            onAtras={() => setVista("resultado")}
+            onContinuar={() => {}}
+          />
+        )}
       </main>
     </div>
   );

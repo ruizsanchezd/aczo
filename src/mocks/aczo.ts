@@ -630,6 +630,50 @@ export function numSuministros(c: Comercializadora): number {
   return suministrosDe(c).length;
 }
 
+/** Un grupo de suministros de una comercializadora que caen en la misma sociedad. */
+export type GrupoSociedad = { sociedad: Sociedad; suministros: Suministro[] };
+
+/**
+ * Agrupa los suministros de una comercializadora por sociedad, para la tabla
+ * de desglose de "Tu ahorro potencial" (pantalla de empresas). Una misma
+ * comercializadora puede tener direcciones en varias sociedades a la vez.
+ */
+export function gruposPorSociedad(c: Comercializadora): GrupoSociedad[] {
+  const suministrosPorSociedad = new Map<string, Suministro[]>();
+  for (const d of c.direcciones) {
+    const lista = suministrosPorSociedad.get(d.sociedadId) ?? [];
+    lista.push(...d.suministros);
+    suministrosPorSociedad.set(d.sociedadId, lista);
+  }
+  return SOCIEDADES.filter((s) => suministrosPorSociedad.has(s.id)).map(
+    (sociedad) => ({
+      sociedad,
+      suministros: suministrosPorSociedad.get(sociedad.id)!,
+    }),
+  );
+}
+
+/** Puntos de suministro de un tipo (Luz o Gas), en todas las comercializadoras. */
+export function puntosPorTipo(tipo: TipoSuministro): number {
+  return COMERCIALIZADORAS.flatMap(suministrosDe).filter(
+    (s) => s.tipo === tipo,
+  ).length;
+}
+
+/** Direcciones distintas de todas las comercializadoras (los "activos" del
+ * resumen de la pantalla de empresas: cada dirección es un local o una oficina). */
+export const TOTAL_DIRECCIONES = COMERCIALIZADORAS.reduce(
+  (total, c) => total + c.direcciones.length,
+  0,
+);
+
+/** Sociedades que tienen al menos un suministro en alguna comercializadora. */
+export const SOCIEDADES_ACTIVAS = SOCIEDADES.filter((s) =>
+  COMERCIALIZADORAS.some((c) =>
+    c.direcciones.some((d) => d.sociedadId === s.id),
+  ),
+).length;
+
 /* -------------------------------------------------------------------------- */
 /* Mantenimiento                                                              */
 /* -------------------------------------------------------------------------- */
@@ -654,6 +698,26 @@ export function conMantenimiento(
   return activo
     ? ahorroAnual - puntos * MANTENIMIENTO_ANUAL_POR_PUNTO
     : ahorroAnual;
+}
+
+/**
+ * Igual que conMantenimiento, pero para la pantalla de empresas: ahí el
+ * mantenimiento se activa por separado para Luz y para Gas, así que la cuota
+ * a descontar depende de cuántos puntos de cada tipo hay (no de cuántos
+ * puntos en total). `puntosLuz`/`puntosGas` son los puntos de ese tipo dentro
+ * de lo que se está calculando (una comercializadora, o la propuesta entera).
+ */
+export function conMantenimientoMixto(
+  ahorroAnual: number,
+  puntosLuz: number,
+  puntosGas: number,
+  mantenimientoLuz: boolean,
+  mantenimientoGas: boolean,
+): number {
+  const deduccion =
+    (mantenimientoLuz ? puntosLuz : 0) * MANTENIMIENTO_ANUAL_POR_PUNTO +
+    (mantenimientoGas ? puntosGas : 0) * MANTENIMIENTO_ANUAL_POR_PUNTO;
+  return ahorroAnual - deduccion;
 }
 
 /** Total de puntos de suministro de la propuesta. */

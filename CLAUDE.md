@@ -220,19 +220,21 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
 - **`/empresas`** — el flujo de empresas, en construcción paso a paso desde el Figma máster
   (frame "Aczo / Landing / Desktop", sección "Subida de documentos"). `RecorridoEmpresas.tsx` une
   las vistas, igual que `Recorrido.tsx` en el particular. De momento están: subir las facturas de
-  varias sociedades (`PantallaSubidaEmpresas`), la pantalla de carga (`PantallaCargaEmpresas`) y
-  el resultado con errores y alertas (`PantallaResultadoEmpresas` + el panel `PanelAlertasEmpresas`,
-  con pestañas "Permanencia"/"Vencidas"). Falta el resultado final agrupado por sociedad
-  ("Tu ahorro potencial"). Componentes en `src/components/prototipo/empresas/`.
+  varias sociedades (`PantallaSubidaEmpresas`), la pantalla de carga (`PantallaCargaEmpresas`), el
+  resultado con errores y alertas (`PantallaResultadoEmpresas` + el panel `PanelAlertasEmpresas`,
+  con pestañas "Permanencia"/"Vencidas") y "Tu ahorro potencial" agrupado por sociedad
+  (`PantallaAhorroEmpresas`). Falta el siguiente tramo: firma y apoderamiento por sociedad, al
+  pulsar "Hacer el cambio". Componentes en `src/components/prototipo/empresas/`.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una
   animación, hay que actualizarlo.**
 
-Pendiente: los **logos de las comercializadoras**. El hueco está reservado con el tamaño del
-Figma (80 × 40) y de momento enseña el nombre. Cuando lleguen los archivos van en
-`public/logos/` como `totalenergies.svg`, `repsol.svg`, `naturgy.svg`, `octopus.svg`,
-`iberdrola.svg`, y solo hay que cambiar el componente `HuecoLogo` de `TarjetaPlan.tsx`.
+Ya tienen logo real TotalEnergies y Repsol (`public/logos/totalenergies.png` y `repsol.png`,
+exportados del Figma) — se ven en `HuecoLogo` y `LogoComercializadora`, ambos en
+`TarjetaPlan.tsx`. Pendiente: Naturgy, Octopus, Iberdrola y Endesa, que de momento siguen
+enseñando el nombre en el hueco reservado (80 × 40). Cuando lleguen los archivos, van en
+`public/logos/` con el mismo nombre en minúsculas y solo hay que añadirlos al mapa `LOGOS`.
 
 - **Datos mock:** todos en `src/mocks/aczo.ts`, un solo archivo. Los totales no están escritos a
   mano: se calculan sumando los suministros, así que al editar una cifra todo sigue cuadrando.
