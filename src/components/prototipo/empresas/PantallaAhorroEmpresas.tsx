@@ -578,7 +578,7 @@ function GrupoDireccionTabla({
   const puntos = direccion.suministros.length;
 
   return (
-    <div className="overflow-hidden rounded-md border border-border-low">
+    <div className="overflow-hidden rounded-md">
       <button
         type="button"
         onClick={() => setAbierto((a) => !a)}
