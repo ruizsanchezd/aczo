@@ -113,6 +113,7 @@ export type TipoSuministro = "Luz" | "Gas";
 
 /** El detalle que se abre al desplegar una fila (el cuarto nivel). */
 export type DetalleSuministro = {
+  cups: string;
   consumoAnual: number;
   /** Potencia contratada nueva, en kW. */
   potencia: number;
@@ -121,7 +122,23 @@ export type DetalleSuministro = {
   companiaActual: string;
   ciudad: string;
   mantenimiento: boolean;
+  /** Permanencia con la compañía actual: hasta cuándo y cuánto costaría
+   * salirse antes. `null` = sin permanencia — no todos los puntos la tienen. */
+  permanencia: { hasta: string; penalizacion: { min: number; max: number } } | null;
 };
+
+/** Un CUPS de mentira con la pinta real (ES + dígitos + 2 letras), calculado a
+ * partir del id del punto: así cada suministro tiene el suyo sin escribirlos
+ * a mano ni arriesgarse a repetir uno. */
+function cupsDe(id: string): string {
+  const digitos = Array.from(id)
+    .map((c) => c.codePointAt(0)! % 10)
+    .join("")
+    .padEnd(16, "0")
+    .slice(0, 16);
+  const letras = (id.toUpperCase().replace(/[^A-Z]/g, "") + "XX").slice(0, 2);
+  return `ES0${digitos}${letras}`;
+}
 
 export type Suministro = {
   id: string;
@@ -168,12 +185,14 @@ function suministro(
     costeActual,
     ahorro,
     detalle: {
+      cups: detalle.cups ?? cupsDe(id),
       consumoAnual: detalle.consumoAnual ?? 24_500,
       potencia: detalle.potencia ?? 15.5,
       perfil: detalle.perfil ?? { punta: 29, llano: 43, valle: 28 },
       companiaActual: detalle.companiaActual ?? "Iberdrola",
       ciudad: detalle.ciudad,
       mantenimiento: detalle.mantenimiento ?? false,
+      permanencia: detalle.permanencia ?? null,
     },
   };
 }
@@ -195,6 +214,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 15.5,
             perfil: { punta: 29, llano: 43, valle: 28 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Marzo 2027", penalizacion: { min: 320, max: 400 } },
           }),
           suministro("tv-2", "Planta 1 Puerta Izquierda", "Luz", "2.0TD", 4_100, 430, {
             ciudad: "Madrid",
@@ -217,6 +237,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 0,
             perfil: { punta: 22, llano: 46, valle: 32 },
             companiaActual: "Naturgy",
+            permanencia: { hasta: "Enero 2027", penalizacion: { min: 150, max: 210 } },
           }),
           suministro("tv-5", "Planta 3 Puerta Izquierda", "Luz", "2.0TD", 3_600, 380, {
             ciudad: "Madrid",
@@ -253,6 +274,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 43.1,
             perfil: { punta: 41, llano: 35, valle: 24 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Diciembre 2026", penalizacion: { min: 260, max: 340 } },
           }),
           suministro("ts-2", "Almacén planta -1", "Luz", "2.0TD", 1_450, 150, {
             ciudad: "Madrid",
@@ -289,6 +311,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 31.5,
             perfil: { punta: 38, llano: 37, valle: 25 },
             companiaActual: "Iberdrola",
+            permanencia: { hasta: "Septiembre 2026", penalizacion: { min: 480, max: 610 } },
           }),
           suministro("tc-2", "Trastienda", "Luz", "2.0TD", 1_750, 175, {
             ciudad: "Sevilla",
@@ -305,6 +328,10 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
     id: "repsol",
     nombre: "Repsol",
     etiquetas: ["Gas 3.1"],
+    // Menos contenido que TotalEnergies a propósito (una sola dirección, dos
+    // suministros): Repsol es la comercializadora pequeña de la propuesta, y
+    // así se nota en la pantalla de empresas sin dejar de seguir la misma
+    // lógica de agrupar por ubicación.
     direcciones: [
       {
         id: "gran-via",
@@ -317,6 +344,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
             potencia: 0,
             perfil: { punta: 24, llano: 44, valle: 32 },
             companiaActual: "Naturgy",
+            permanencia: { hasta: "Junio 2026", penalizacion: { min: 150, max: 210 } },
           }),
           suministro("rg-2", "Calefacción oficinas", "Gas", "3.1", 1_480, 145, {
             ciudad: "Madrid",
@@ -327,31 +355,71 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
           }),
         ],
       },
-      {
-        id: "diagonal",
-        sociedadId: "norte",
-        direccion: "Avinguda Diagonal 220, 08018, Barcelona",
-        suministros: [
-          suministro("rd-1", "Obrador", "Gas", "3.2", 3_800, 380, {
-            ciudad: "Barcelona",
-            consumoAnual: 183_200,
-            potencia: 0,
-            perfil: { punta: 31, llano: 39, valle: 30 },
-            companiaActual: "Endesa",
-            mantenimiento: true,
-          }),
-          suministro("rd-2", "Punto de venta", "Gas", "3.1", 980, 95, {
-            ciudad: "Barcelona",
-            consumoAnual: 58_400,
-            potencia: 0,
-            perfil: { punta: 20, llano: 45, valle: 35 },
-            companiaActual: "Naturgy",
-          }),
-        ],
-      },
     ],
   },
 ];
+
+/**
+ * Naturgy y Octopus no forman parte de la propuesta actual (`COMERCIALIZADORAS`
+ * arriba, TotalEnergies + Repsol): solo aparecen si en la pantalla de empresas
+ * se elige el plan "Ahorro máximo", que las recomienda además de TotalEnergies.
+ * Llevan muy poco contenido a propósito, igual que Repsol.
+ */
+const NATURGY: Comercializadora = {
+  id: "naturgy",
+  nombre: "Naturgy",
+  etiquetas: ["Gas 3.2"],
+  direcciones: [
+    {
+      id: "castellana",
+      sociedadId: "norte",
+      direccion: "Paseo de la Castellana 200, Madrid",
+      suministros: [
+        suministro("ng-1", "Cocina principal", "Gas", "3.2", 2_900, 290, {
+          ciudad: "Madrid",
+          consumoAnual: 132_400,
+          potencia: 0,
+          perfil: { punta: 25, llano: 43, valle: 32 },
+          companiaActual: "Iberdrola",
+        }),
+      ],
+    },
+  ],
+};
+
+const OCTOPUS: Comercializadora = {
+  id: "octopus",
+  nombre: "Octopus",
+  etiquetas: ["2.0TD"],
+  direcciones: [
+    {
+      id: "alcala",
+      sociedadId: "central",
+      direccion: "Calle Alcalá 90, Madrid",
+      suministros: [
+        suministro("oc-1", "Oficina", "Luz", "2.0TD", 3_450, 340, {
+          ciudad: "Madrid",
+          consumoAnual: 39_600,
+          potencia: 14,
+          perfil: { punta: 30, llano: 42, valle: 28 },
+          companiaActual: "Endesa",
+        }),
+      ],
+    },
+  ],
+};
+
+/**
+ * Todas las comercializadoras que puede recomendar algún plan, por nombre:
+ * las de la propuesta actual (`COMERCIALIZADORAS`) más las que solo aparecen
+ * al elegir otro plan en la pantalla de empresas. Así, sea el plan que sea,
+ * `plan.comercializadoras` siempre se puede resolver a datos completos.
+ */
+export const COMERCIALIZADORAS_POR_NOMBRE: Record<string, Comercializadora> = {
+  ...Object.fromEntries(COMERCIALIZADORAS.map((c) => [c.nombre, c])),
+  Naturgy: NATURGY,
+  Octopus: OCTOPUS,
+};
 
 /* -------------------------------------------------------------------------- */
 /* Ofertas de la ventana "otras compañías"                                    */
@@ -630,6 +698,32 @@ export function numSuministros(c: Comercializadora): number {
   return suministrosDe(c).length;
 }
 
+/** La sociedad (con su CIF) a la que pertenece una dirección. */
+export function sociedadDe(direccion: DireccionSuministros): Sociedad {
+  return SOCIEDADES.find((s) => s.id === direccion.sociedadId)!;
+}
+
+/** Puntos de suministro de un tipo (Luz o Gas), en todas las comercializadoras. */
+export function puntosPorTipo(tipo: TipoSuministro): number {
+  return COMERCIALIZADORAS.flatMap(suministrosDe).filter(
+    (s) => s.tipo === tipo,
+  ).length;
+}
+
+/** Direcciones distintas de todas las comercializadoras (los "activos" del
+ * resumen de la pantalla de empresas: cada dirección es un local o una oficina). */
+export const TOTAL_DIRECCIONES = COMERCIALIZADORAS.reduce(
+  (total, c) => total + c.direcciones.length,
+  0,
+);
+
+/** Sociedades que tienen al menos un suministro en alguna comercializadora. */
+export const SOCIEDADES_ACTIVAS = SOCIEDADES.filter((s) =>
+  COMERCIALIZADORAS.some((c) =>
+    c.direcciones.some((d) => d.sociedadId === s.id),
+  ),
+).length;
+
 /* -------------------------------------------------------------------------- */
 /* Mantenimiento                                                              */
 /* -------------------------------------------------------------------------- */
@@ -654,6 +748,20 @@ export function conMantenimiento(
   return activo
     ? ahorroAnual - puntos * MANTENIMIENTO_ANUAL_POR_PUNTO
     : ahorroAnual;
+}
+
+/**
+ * Igual que conMantenimiento, pero para la pantalla de empresas: ahí el
+ * mantenimiento se activa punto por punto (un interruptor por fila), no con
+ * un único interruptor global. `puntosConMantenimiento` es cuántos de esos
+ * puntos lo tienen activado ahora mismo, dentro de lo que se esté calculando
+ * (un punto, una comercializadora o la propuesta entera).
+ */
+export function conMantenimientoMixto(
+  ahorroAnual: number,
+  puntosConMantenimiento: number,
+): number {
+  return ahorroAnual - puntosConMantenimiento * MANTENIMIENTO_ANUAL_POR_PUNTO;
 }
 
 /** Total de puntos de suministro de la propuesta. */

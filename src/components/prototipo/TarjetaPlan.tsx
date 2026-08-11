@@ -143,10 +143,51 @@ export function TarjetaPlan({
 }
 
 /**
- * HuecoLogo — el sitio reservado para el logo de una comercializadora.
- *
- * Mide 80 × 40, como en el Figma. Mientras no haya archivos, enseña el nombre
- * para que se lea; cuando lleguen, se cambia por la imagen aquí y ya está.
+ * Logos ya disponibles, exportados del Figma (ver LogoComercializadora). El
+ * resto de comercializadoras sigue sin archivo: HuecoLogo enseña su nombre
+ * mientras tanto.
+ */
+const LOGOS: Record<string, string> = {
+  totalenergies: "/logos/totalenergies.png",
+  repsol: "/logos/repsol.png",
+};
+
+/** true si ya hay un logo real para esta comercializadora (ver LOGOS arriba). */
+export function tieneLogoComercializadora(nombre: string): boolean {
+  return nombre.toLowerCase() in LOGOS;
+}
+
+/**
+ * LogoComercializadora — la marca de una comercializadora en una caja blanca
+ * con borde, del tamaño que le pida quien la usa (80 × 40 en las tarjetas de
+ * plan, 40 × 40 en la fila de detalle de la pantalla de empresas). Blanca
+ * siempre, también sobre la tarjeta oscura "Ahorro Aczo": así está en el
+ * Figma, con independencia de la superficie de alrededor.
+ */
+export function LogoComercializadora({
+  nombre,
+  className = "",
+}: {
+  nombre: string;
+  className?: string;
+}) {
+  const logo = LOGOS[nombre.toLowerCase()];
+  if (!logo) return null;
+
+  return (
+    <span
+      title={nombre}
+      className={`flex shrink-0 items-center justify-center rounded-md border border-border-low bg-background-base p-02 ${className}`}
+    >
+      <img src={logo} alt={nombre} className="h-full w-full object-contain" />
+    </span>
+  );
+}
+
+/**
+ * HuecoLogo — el sitio reservado para el logo de una comercializadora en las
+ * tarjetas de plan. Mide 80 × 40, como en el Figma. Si ya hay un archivo real
+ * (ver LOGOS arriba) se enseña ese; si no, se enseña el nombre mientras llega.
  */
 export function HuecoLogo({
   nombre,
@@ -155,6 +196,10 @@ export function HuecoLogo({
   nombre: string;
   sobreOscuro?: boolean;
 }) {
+  if (LOGOS[nombre.toLowerCase()]) {
+    return <LogoComercializadora nombre={nombre} className="h-08 w-[80px]" />;
+  }
+
   return (
     <span
       title={nombre}

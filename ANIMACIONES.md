@@ -220,8 +220,51 @@ tarjeta de revisión con errores y alertas. Nada de esto bloquea el avance — s
      reciente" — no hay nada que estimar, así que no hay caja ni interruptor.
    - Se cierra con la X, con Escape y pulsando fuera, igual que el panel particular.
 
-Pendiente de construir (mismo Figma, siguiente tramo): "Tu ahorro potencial" agrupado por
-sociedad, al pulsar "Calcular ahorro".
+### Pantalla 4 · Tu ahorro potencial
+
+Al pulsar "Calcular ahorro" en la pantalla 3 (`PantallaAhorroEmpresas`). Mismo espíritu que la
+pantalla 4 del recorrido particular (título + selector, tres tarjetas de plan, tabla de detalle),
+con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la vez:
+
+1. **El plan recomendado siempre en el centro** de las tres tarjetas, sin importar en qué orden
+   estén en `PLANES` (`mocks/aczo.ts`): los otros dos se reparten uno a cada lado, manteniendo su
+   orden relativo (`planesCentrados` en `PantallaAhorroEmpresas.tsx`).
+2. **Las tres tarjetas son elegibles** (`radiogroup`, por defecto la recomendada): al tocar otra,
+   se eleva con `shadow-md` y pasa a llevar una etiqueta "Seleccionado" en vez de "Recomendado"
+   (esa es fija del plan, no de la elección — por eso nunca se enseñan las dos a la vez en la
+   misma tarjeta). Elegir un plan distinto cambia TODO el módulo de abajo: el resumen, los
+   interruptores de bulto y las filas de comercializadora pasan a ser las que recomiende ese plan
+   (`plan.comercializadoras`, resuelto con `COMERCIALIZADORAS_POR_NOMBRE` en `mocks/aczo.ts`) — así
+   "Ahorro máximo" enseña TotalEnergies + Naturgy + Octopus en vez de TotalEnergies + Repsol.
+3. **Mantenimiento punto por punto:** cada fila de la tabla lleva su propio interruptor — no hay
+   un único interruptor por tipo. Los interruptores "Mantenimiento Luz/Gas" de la barra de resumen
+   son de bulto: encienden o apagan a la vez todos los puntos de ese tipo, y su contador (n/m)
+   cuenta cuántos están activos en cada momento (puede quedar a medias si se han tocado filas
+   sueltas). Cada punto activo descuenta su cuota (2 €/mes, en `mocks/aczo.ts`) del ahorro de su
+   fila, de su comercializadora y de la tarjeta de SU plan (cada tarjeta descuenta solo los puntos
+   de sus propias comercializadoras, no los de las de otro plan).
+4. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
+   ahorro de su comercializadora y de la tarjeta de su plan — la fila se queda atenuada
+   (`opacity-40`) y su interruptor de mantenimiento se desactiva. Los "puntos de suministro" que
+   se cuentan en las cabeceras NO cambian: son un dato de inventario, no del cálculo.
+5. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
+   por sociedad: el CIF de la sociedad a la que pertenece se enseña en la cabecera de su grupo.
+   Al desplegar una comercializadora (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el
+   resto de desplegables), sus ubicaciones ya se ven abiertas — cada una con su propio desplegable
+   independiente, por si se quiere cerrar alguna suelta.
+6. **Cada punto de suministro se despliega a su vez** (el cuarto nivel, misma técnica de rejilla
+   `0fr → 1fr`): CUPS, tarifa contratada, consumo anual, potencia contratada, perfil de consumo
+   (Punta/Llano/Valle) y compañía actual — el mismo contenido que `DetalleSuministro` en
+   `TablaAhorro.tsx` (recorrido particular). Su flecha es independiente de la casilla y del
+   interruptor de mantenimiento de la fila: se puede abrir el detalle sin tocar ninguno de los dos.
+   El icono junto a "Compañía actual" lleva un tooltip nativo (`title`) que avisa si hay
+   permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar ahora — el dato
+   sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la tienen).
+7. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
+   (`ModalComparar`) que el recorrido particular.
+8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
+   (siguiente tramo, pendiente de construir), igual patrón que la barra de la pantalla de firma
+   del recorrido particular (`sticky`, botones alineados a los extremos).
 
 ## Transición entre pantallas
 

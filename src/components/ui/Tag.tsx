@@ -14,6 +14,7 @@ import { Icon, type IconName } from "./Icon";
  *   inverse   contorno claro sobre superficie oscura (tarjeta "Ahorro Aczo")
  *   danger    fondo rojo suave, texto rojo — avisos que no bloquean (errores)
  *   warning   fondo naranja suave, texto naranja — avisos a revisar más tarde
+ *   vivid     fondo amarillo de marca — la insignia "Recomendado" de una tarjeta
  */
 
 type TagTone =
@@ -23,13 +24,15 @@ type TagTone =
   | "solid"
   | "always-light"
   | "danger"
-  | "warning";
+  | "warning"
+  | "vivid";
 
 const tonos: Record<TagTone, string> = {
   outline: "bg-background-base text-content-mid",
   success: "bg-success-low text-success-high",
   danger: "bg-danger-low text-danger-high",
   warning: "bg-warning-low text-warning-high",
+  vivid: "bg-highlight-vivid text-content-always-dark",
   // Sobre superficies oscuras que NO cambian entre modos (highlight-deep): el
   // borde va en un token que tampoco cambia, o en modo oscuro se volvería negro
   // sobre negro.
