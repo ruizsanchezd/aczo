@@ -369,7 +369,7 @@ export function PantallaCambioCompaniaEmpresas({
                 >
                   <div className="flex min-w-0 flex-1 flex-col items-start justify-center pt-06">
                     <div className="flex flex-col gap-01">
-                      <Text variant="heading-m" color="always-light" as="h4">
+                      <Text variant="heading-s" color="always-light" as="h4">
                         Aczo garantiza
                       </Text>
                       <Text variant="body-m" color="always-light">
