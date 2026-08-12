@@ -423,6 +423,22 @@
   }
 }
 
+/* Las cruces de la pantalla "Alta completada"/"Alta en tramitación": entran
+   a modo de chispazo, no solo apareciendo. Arrancan giradas y a tamaño cero,
+   y "aterrizan" a su sitio — es la misma cruz que gira en la pantalla de
+   carga (aczo-gira-cuarto): allí "trabaja", aquí "se posa" para celebrar
+   que el proceso ha terminado. */
+@keyframes aczo-estrella-entra {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-30deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 /* Una pantalla entra avanzando (se va hacia delante en el recorrido). */
 @utility anim-entra-adelante {
   animation: aczo-entra-adelante var(--motion-timing-3) var(--ease-3) both;
@@ -452,6 +468,11 @@
 /* Algo aparece creciendo desde el centro. Para la ventana modal. */
 @utility anim-escala-entrada {
   animation: aczo-escala-entrada var(--motion-timing-3) var(--ease-3) both;
+}
+
+/* El chispazo de las cruces al completarse el proceso (ver el keyframe). */
+@utility anim-estrella-entra {
+  animation: aczo-estrella-entra var(--motion-timing-4) var(--ease-3) both;
 }
 
 /* Giro a saltos, en cuartos de vuelta: tres tirones por cuarto de vuelta.

@@ -103,7 +103,10 @@ export function PantallaCambioCompaniaEmpresas({
   datosContratante: { nombre: string; email: string };
   resumen: ResumenCambioEmpresas;
   onAtras: () => void;
-  onContinuar: () => void;
+  /** `pendienteAprobacion`: true cuando se eligió "enviar solicitud de
+   * firma" — todavía falta que la persona representante confirme, así que
+   * "Alta registrada" (paso 04) enseña un contenido distinto. */
+  onContinuar: (datos: { pendienteAprobacion: boolean }) => void;
 }) {
   const [enNombreDeOtro, setEnNombreDeOtro] = useState(false);
 
@@ -536,7 +539,16 @@ export function PantallaCambioCompaniaEmpresas({
           <Button variant="secondary" iconStart="chevron-left" onClick={onAtras}>
             Atrás
           </Button>
-          <Button iconEnd="chevron-right" disabled={!todoCompleto} onClick={onContinuar}>
+          <Button
+            iconEnd="chevron-right"
+            disabled={!todoCompleto}
+            onClick={() =>
+              onContinuar({
+                pendienteAprobacion:
+                  enNombreDeOtro && formaAutorizar === "que-firme-otro",
+              })
+            }
+          >
             Activar cambio
           </Button>
         </div>

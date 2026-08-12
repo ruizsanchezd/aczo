@@ -226,7 +226,10 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   (`PantallaAhorroEmpresas`) y, al pulsar "Hacer el cambio", "Cambio de compañía"
   (`PantallaCambioCompaniaEmpresas`): datos de quien tramita (con nombre y email pre-rellenados
   desde la subida de facturas), IBAN por sociedad, y verificación de identidad + firma — o, si se
-  tramita en nombre de otra persona, poderes de representación o enlace de firma en su lugar.
+  tramita en nombre de otra persona, poderes de representación o enlace de firma en su lugar. Y,
+  al pulsar "Activar cambio", la pantalla final (`PantallaAltaEmpresas`): "Alta completada" o
+  "Alta en tramitación" según haya quedado pendiente la firma de la persona representante, con un
+  fondo oscuro y cruces de la marca (`Icon name="spark"`) entrando a modo de chispazo.
   Componentes en `src/components/prototipo/empresas/`.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se

@@ -10,8 +10,18 @@ import { PASOS_EMPRESA } from "@/mocks/aczo";
  *
  * El paso activo no es pulsable todavía (no hay pasos anteriores a los que
  * volver desde la subida); se deja preparado para cuando existan más pantallas.
+ *
+ * `etiquetaPasoActual` sustituye el nombre del paso 04: en el Figma no dice
+ * siempre "Monitoreo constante" — cambia a "Alta completada" o "Alta en
+ * tramitación" según cómo haya terminado el cambio de compañía.
  */
-export function NavbarEmpresas({ pasoActual }: { pasoActual: number }) {
+export function NavbarEmpresas({
+  pasoActual,
+  etiquetaPasoActual,
+}: {
+  pasoActual: number;
+  etiquetaPasoActual?: string;
+}) {
   return (
     <header className="flex h-[80px] w-full items-center justify-between bg-background-base px-10 py-05">
       <div className="flex shrink-0 items-center gap-03 text-content-high">
@@ -43,7 +53,7 @@ export function NavbarEmpresas({ pasoActual }: { pasoActual: number }) {
                   activo ? "text-content-high" : "text-content-mid",
                 ].join(" ")}
               >
-                {paso.nombre}
+                {activo && etiquetaPasoActual ? etiquetaPasoActual : paso.nombre}
               </span>
             </div>
           );
