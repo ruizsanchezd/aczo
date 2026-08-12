@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Input";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Radio } from "@/components/ui/Radio";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
@@ -38,11 +39,11 @@ import type { ResumenCambioEmpresas } from "./PantallaAhorroEmpresas";
  *       opción que NO despliegan nada por dentro: comparten un mismo hueco
  *       debajo, según cuál esté elegida.
  *         · "Tengo los poderes": una zona de subida compacta
- *           (`DropzonePoderes`). En cuanto hay al menos un archivo, se
- *           sustituye por un aviso de éxito (`ArchivosCargados`) y aparece
- *           un bloque de "Firma de autorización" — igual que en tramita
- *           standard, pero con una casilla más (confidencialidad de la
- *           documentación aportada).
+ *           (`DropzonePoderes`) que recicla el patrón de
+ *           `PantallaSubidaEmpresas.tsx` (progreso simulado por archivo). En
+ *           cuanto todos terminan de subir, aparece un bloque de "Firma de
+ *           autorización" — igual que en tramita standard, pero con una
+ *           casilla más (confidencialidad de la documentación aportada).
  *         · "No tengo el poder": un enlace ya generado con botón "Copiar"
  *           (`EnlaceFirma`) — no hace falta recoger nombre ni email, se
  *           comparte el enlace por el canal que se prefiera.
@@ -65,6 +66,33 @@ import type { ResumenCambioEmpresas } from "./PantallaAhorroEmpresas";
 
 type FormaAutorizar = "tengo-poderes" | "que-firme-otro";
 type DatosIban = { titular: string; dni: string; iban: string };
+
+// Mismo patrón que PantallaSubidaEmpresas.tsx (la subida de facturas): sin
+// backend real, cada archivo "sube" solo, a saltos, hasta el 100%. Se
+// duplica aquí porque no está exportado de allí.
+type EstadoArchivo = "subiendo" | "listo" | "saliendo";
+type ArchivoPoder = {
+  id: string;
+  nombre: string;
+  extension: string;
+  tamanoBytes: number;
+  progreso: number;
+  estado: EstadoArchivo;
+};
+
+function formatoTamano(bytes: number) {
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) return `${mb.toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function BadgeArchivo({ extension }: { extension: string }) {
+  return (
+    <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-highlight-soft text-body-s text-highlight-muted">
+      {extension}
+    </span>
+  );
+}
 
 export function PantallaCambioCompaniaEmpresas({
   datosContratante,
@@ -98,9 +126,53 @@ export function PantallaCambioCompaniaEmpresas({
   const [declaracionAceptada, setDeclaracionAceptada] = useState(false);
   const [confidencialidadAceptada, setConfidencialidadAceptada] = useState(false);
 
-  // Cómo autorizar (solo en nombre de otra persona).
+  // Cómo autorizar (solo en nombre de otra persona). Los poderes suben con
+  // el mismo patrón que las facturas de la pantalla 1: progreso simulado.
   const [formaAutorizar, setFormaAutorizar] = useState<FormaAutorizar>("tengo-poderes");
-  const [poderesArchivos, setPoderesArchivos] = useState<string[]>([]);
+  const [poderesArchivos, setPoderesArchivos] = useState<ArchivoPoder[]>([]);
+
+  useEffect(() => {
+    if (!poderesArchivos.some((a) => a.estado === "subiendo")) return;
+
+    const intervalo = setInterval(() => {
+      setPoderesArchivos((prev) =>
+        prev.map((a) => {
+          if (a.estado !== "subiendo") return a;
+          const siguiente = a.progreso + 8 + Math.random() * 20;
+          return siguiente >= 100
+            ? { ...a, progreso: 100, estado: "listo" as const }
+            : { ...a, progreso: siguiente };
+        }),
+      );
+    }, 180);
+
+    return () => clearInterval(intervalo);
+  }, [poderesArchivos]);
+
+  function anadirPoderes(lista: FileList | null) {
+    if (!lista?.length) return;
+    const nuevos: ArchivoPoder[] = [...lista].map((f, i) => ({
+      id: `${f.name}-${Date.now()}-${i}`,
+      nombre: f.name,
+      extension: (f.name.split(".").pop() || "").toUpperCase().slice(0, 4) || "DOC",
+      tamanoBytes: f.size,
+      progreso: 0,
+      estado: "subiendo" as const,
+    }));
+    setPoderesArchivos((prev) => [...prev, ...nuevos]);
+  }
+
+  function quitarPoder(id: string) {
+    setPoderesArchivos((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, estado: "saliendo" as const } : a)),
+    );
+    setTimeout(() => {
+      setPoderesArchivos((prev) => prev.filter((a) => a.id !== id));
+    }, 250);
+  }
+
+  const poderesListos =
+    poderesArchivos.length > 0 && poderesArchivos.every((a) => a.estado !== "subiendo");
 
   const sociedadesIncluidas = SOCIEDADES.filter((s) =>
     resumen.sociedadesIds.includes(s.id),
@@ -125,12 +197,12 @@ export function PantallaCambioCompaniaEmpresas({
     cargo.trim() !== "";
   const ibanCompleto = ibanCompletados === sociedadesIncluidas.length;
   const identidadCompleta = enNombreDeOtro || identidadArchivo !== null;
-  // Con poderes: hace falta subir el documento Y firmar. Enviando la
-  // solicitud a la persona representante no hay nada más que completar aquí
-  // — el enlace ya está listo para copiar en cuanto se elige esa opción.
+  // Con poderes: hace falta que todos terminen de subir Y firmar. Enviando
+  // la solicitud a la persona representante no hay nada más que completar
+  // aquí — el enlace ya está listo para copiar en cuanto se elige esa opción.
   const autorizacionCompleta = enNombreDeOtro
     ? formaAutorizar === "tengo-poderes"
-      ? poderesArchivos.length > 0 &&
+      ? poderesListos &&
         firmado &&
         declaracionAceptada &&
         confidencialidadAceptada
@@ -323,22 +395,24 @@ export function PantallaCambioCompaniaEmpresas({
                       {/* El contenido de cada opción no va DENTRO de su tarjeta:
                           las dos comparten este mismo hueco de abajo, según cuál
                           esté elegida (así lo marca el Figma — ninguna tarjeta
-                          se despliega por dentro). */}
+                          se despliega por dentro). Los poderes suben con el
+                          mismo componente que las facturas de la pantalla 1
+                          (dropzone → lista con progreso por archivo). */}
                       {formaAutorizar === "tengo-poderes" ? (
-                        poderesArchivos.length > 0 ? (
-                          <ArchivosCargados cantidad={poderesArchivos.length} />
-                        ) : (
-                          <DropzonePoderes onSubir={setPoderesArchivos} />
-                        )
+                        <DropzonePoderes
+                          archivos={poderesArchivos}
+                          onAnadir={anadirPoderes}
+                          onQuitar={quitarPoder}
+                        />
                       ) : (
                         <EnlaceFirma />
                       )}
                     </Bloque>
 
                     {/* Firma de autorización: solo aparece con "Tengo los
-                        poderes" y en cuanto se ha subido al menos un
-                        documento — antes no hay nada que firmar todavía. */}
-                    {formaAutorizar === "tengo-poderes" && poderesArchivos.length > 0 && (
+                        poderes" y en cuanto todos los documentos terminan de
+                        subir — antes no hay nada que firmar todavía. */}
+                    {formaAutorizar === "tengo-poderes" && poderesListos && (
                       <Bloque style={retardo(4)}>
                         <CabeceraBloque
                           titulo="Firma de autorización"
@@ -750,15 +824,7 @@ function TarjetaOpcion({
   descripcion: string;
 }) {
   return (
-    <div
-      className={[
-        "flex flex-col gap-03 rounded-md border p-05",
-        "transition-colors motion-micro-states",
-        elegida
-          ? "border-highlight-muted bg-background-base"
-          : "border-border-low bg-background-base hover:border-border-mid",
-      ].join(" ")}
-    >
+    <div className="flex flex-col gap-04 rounded-md border border-border-low bg-background-low p-05">
       <Radio
         name="forma-autorizar-empresas"
         checked={elegida}
@@ -778,74 +844,124 @@ function TarjetaOpcion({
 /**
  * DropzonePoderes — subir uno o varios poderes de representación.
  *
- * Compacta (a diferencia de `DropzoneIdentidad`, que es la grande de arriba):
- * este Figma la dibuja como una franja fina con borde punteado, sin la
- * casilla de icono en amarillo.
+ * Recicla el patrón de `PantallaSubidaEmpresas.tsx` (la subida de
+ * facturas): la zona de arrastre desaparece en cuanto hay al menos un
+ * archivo, sustituida por la lista con el progreso de cada uno y un botón
+ * para añadir más. La zona en sí es compacta (a diferencia de
+ * `DropzoneIdentidad`, que es la grande de arriba): este Figma la dibuja
+ * como una franja fina con borde punteado, sin la casilla de icono en
+ * amarillo.
  */
-function DropzonePoderes({ onSubir }: { onSubir: (documentos: string[]) => void }) {
+function DropzonePoderes({
+  archivos,
+  onAnadir,
+  onQuitar,
+}: {
+  archivos: ArchivoPoder[];
+  onAnadir: (archivos: FileList | null) => void;
+  onQuitar: (id: string) => void;
+}) {
   const [arrastrando, setArrastrando] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  function anadir(archivos: FileList | null) {
-    if (!archivos?.length) return;
-    onSubir([...archivos].map((f) => f.name));
-  }
+  const hayArchivos = archivos.length > 0;
 
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setArrastrando(true);
-      }}
-      onDragLeave={() => setArrastrando(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setArrastrando(false);
-        anadir(e.dataTransfer.files);
-      }}
-      className={[
-        "flex w-full cursor-pointer flex-col items-center justify-center gap-02 rounded-sm border border-dashed p-05",
-        "transition-colors motion-micro-states",
-        "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
-        arrastrando
-          ? "border-highlight-muted bg-highlight-soft"
-          : "border-content-low bg-background-low",
-      ].join(" ")}
-    >
-      <Icon name="upload" size={20} />
-      <Text variant="body-s" as="span" className="text-center">
-        Arrastra tu archivo aquí o haz clic para seleccionar
-      </Text>
-      <Text variant="body-s" color="low" as="span" className="text-center">
-        PDF, JPG, PNG — máx. 10 MB
-      </Text>
+    <div className="flex w-full flex-col gap-02">
+      {!hayArchivos && (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setArrastrando(true);
+          }}
+          onDragLeave={() => setArrastrando(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setArrastrando(false);
+            onAnadir(e.dataTransfer.files);
+          }}
+          className={[
+            "flex w-full cursor-pointer flex-col items-center justify-center gap-02 rounded-sm border border-dashed p-05",
+            "transition-colors motion-micro-states",
+            "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
+            arrastrando
+              ? "border-highlight-muted bg-highlight-soft"
+              : "border-content-low bg-background-low",
+          ].join(" ")}
+        >
+          <Icon name="upload" size={20} />
+          <Text variant="body-s" as="span" className="text-center">
+            Arrastra tu archivo aquí o haz clic para seleccionar
+          </Text>
+          <Text variant="body-s" color="low" as="span" className="text-center">
+            PDF, JPG, PNG — máx. 10 MB
+          </Text>
+        </button>
+      )}
 
       <input
         ref={inputRef}
         type="file"
         multiple
         accept=".pdf,.jpg,.jpeg,.png"
-        onChange={(e) => anadir(e.target.files)}
+        onChange={(e) => onAnadir(e.target.files)}
         className="hidden"
       />
-    </button>
-  );
-}
 
-/** Aviso de éxito tras subir el/los poder(es) — sustituye a la lista de
- * archivos de antes: este Figma solo enseña la confirmación agregada. */
-function ArchivosCargados({ cantidad }: { cantidad: number }) {
-  return (
-    <div className="anim-aparece flex w-full flex-col items-center gap-02 rounded-sm border border-success-high bg-success-low p-05">
-      <Icon name="check" size={20} className="text-success-high" />
-      <p className="text-label-s text-center text-success-high">
-        {cantidad === 1 ? "Archivo cargado correctamente" : "Archivos cargados correctamente"}
-      </p>
-      <p className="text-body-s text-center text-success-high">
-        PDF, JPG, PNG — máx. 10 MB
-      </p>
+      {hayArchivos && (
+        <div className="anim-aparece flex w-full flex-col gap-02 rounded-md border border-border-low bg-background-base p-04">
+          {archivos.map((archivo, i) => (
+            <div
+              key={archivo.id}
+              className={[
+                "flex items-center justify-between gap-03 rounded-md bg-background-low p-03",
+                "transition-all motion-micro-leave",
+                archivo.estado === "saliendo"
+                  ? "scale-95 opacity-0"
+                  : "anim-aparece scale-100 opacity-100",
+              ].join(" ")}
+              style={archivo.estado === "saliendo" ? undefined : retardo(i)}
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-03">
+                <BadgeArchivo extension={archivo.extension} />
+                <div className="flex min-w-0 flex-1 flex-col gap-01">
+                  <Text variant="body-m" className="truncate">
+                    {archivo.nombre}
+                  </Text>
+                  {archivo.estado === "subiendo" ? (
+                    <>
+                      <Text variant="body-s" as="span" className="text-highlight-muted">
+                        Subiendo… {Math.round(archivo.progreso)}%
+                      </Text>
+                      <ProgressBar value={archivo.progreso} showValue={false} />
+                    </>
+                  ) : (
+                    <Text variant="body-s" color="low">
+                      {formatoTamano(archivo.tamanoBytes)}
+                    </Text>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="tertiary"
+                size="small"
+                iconOnly="close"
+                aria-label={`Quitar ${archivo.nombre}`}
+                onClick={() => onQuitar(archivo.id)}
+              />
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="flex items-center justify-center rounded-md border border-dashed border-border-mid py-03 text-body-m text-highlight-muted transition-colors motion-micro-states hover:bg-highlight-soft"
+          >
+            + Agregar más archivos
+          </button>
+        </div>
+      )}
     </div>
   );
 }
