@@ -66,6 +66,21 @@ se comporte igual sobre cualquier superficie.
   estados. El color del carril y la posición de la bolita se animan juntos (`micro-states`).
   Desactivado: carril `background-state-disabled` y bolita `content-state-disabled`.
 
+### Tooltip
+
+- **Disparador:** un icono `info` con el atributo de teclado `tabIndex`, para que se pueda enfocar
+  igual que se puede pasar el ratón por encima.
+- **Aparecer:** `micro-appear` sobre `opacity`, al hacer hover o al enfocar con el teclado
+  (`:focus-within`, no solo `:focus`, así funciona también si el foco cae en un hijo).
+- **Desaparecer:** `micro-leave` sobre `opacity`.
+- **Por qué no es el tooltip nativo del navegador (`title`):** no se puede diseñar (tipografía,
+  color, tiempos) y en la práctica cuesta acertar sobre un icono pequeño. Se dibuja a mano:
+  fondo `background-high` (negro fijo, no cambia entre modos) y texto `content-always-light`,
+  con `shadow-md`.
+- **Posición:** ancla su borde derecho al del icono y crece hacia la izquierda (`position="top"`
+  o `"bottom"` según convenga). Centrarlo sobre el icono lo saca por fuera de la tarjeta cuando el
+  icono está pegado al lado derecho de su fila, que es el caso más habitual.
+
 ## Pantalla 1 · Subida masiva de facturas
 
 1. **Entrada:** titular, las tres ayudas, la zona de arrastre y el botón entran en cascada de 60 ms.
@@ -229,20 +244,25 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
 1. **El plan recomendado siempre en el centro** de las tres tarjetas, sin importar en qué orden
    estén en `PLANES` (`mocks/aczo.ts`): los otros dos se reparten uno a cada lado, manteniendo su
    orden relativo (`planesCentrados` en `PantallaAhorroEmpresas.tsx`).
-2. **Las tres tarjetas son elegibles** (`radiogroup`, por defecto la recomendada): al tocar otra,
-   se eleva con `shadow-md` y pasa a llevar una etiqueta "Seleccionado" en vez de "Recomendado"
-   (esa es fija del plan, no de la elección — por eso nunca se enseñan las dos a la vez en la
-   misma tarjeta). Elegir un plan distinto cambia TODO el módulo de abajo: el resumen, los
+2. **Las tres tarjetas son elegibles** (`radiogroup`, por defecto la recomendada): la tarjeta
+   elegida pasa a fondo oscuro (`highlight-deep`, la misma superficie oscura fija de la tarjeta
+   "Recomendado"; sin sombra ni borde) — esa es la única señal de "elegida", no hay una etiqueta
+   aparte. "Recomendado" es una etiqueta fija del plan y no cambia con la elección, así que puede
+   convivir con el fondo oscuro cuando ambas coinciden en la misma tarjeta. Elegir un plan distinto
+   cambia TODO el módulo de abajo: el resumen, los
    interruptores de bulto y las filas de comercializadora pasan a ser las que recomiende ese plan
    (`plan.comercializadoras`, resuelto con `COMERCIALIZADORAS_POR_NOMBRE` en `mocks/aczo.ts`) — así
    "Ahorro máximo" enseña TotalEnergies + Naturgy + Octopus en vez de TotalEnergies + Repsol.
 3. **Mantenimiento punto por punto:** cada fila de la tabla lleva su propio interruptor — no hay
-   un único interruptor por tipo. Los interruptores "Mantenimiento Luz/Gas" de la barra de resumen
-   son de bulto: encienden o apagan a la vez todos los puntos de ese tipo, y su contador (n/m)
-   cuenta cuántos están activos en cada momento (puede quedar a medias si se han tocado filas
-   sueltas). Cada punto activo descuenta su cuota (2 €/mes, en `mocks/aczo.ts`) del ahorro de su
-   fila, de su comercializadora y de la tarjeta de SU plan (cada tarjeta descuenta solo los puntos
-   de sus propias comercializadoras, no los de las de otro plan).
+   un único interruptor por tipo. **El de gas empieza encendido en todos los puntos** (se incluye
+   en la propuesta sin tocar nada); **el de luz empieza apagado** y hay que activarlo si se quiere.
+   El icono de información junto a "Mantenimiento" (columna de la tabla, un `Tooltip` — ver
+   "Componentes del sistema") explica esa diferencia. Los interruptores "Mantenimiento Luz/Gas" de
+   la barra de resumen son de bulto: encienden o apagan a la vez todos los puntos de ese tipo, y su
+   contador (n/m) cuenta cuántos están activos en cada momento (puede quedar a medias si se han
+   tocado filas sueltas). Cada punto activo descuenta su cuota (2 €/mes, en `mocks/aczo.ts`) del
+   ahorro de su fila, de su comercializadora y de la tarjeta de SU plan (cada tarjeta descuenta
+   solo los puntos de sus propias comercializadoras, no los de las de otro plan).
 4. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
    ahorro de su comercializadora y de la tarjeta de su plan — la fila se queda atenuada
    (`opacity-40`) y su interruptor de mantenimiento se desactiva. Los "puntos de suministro" que
@@ -257,9 +277,10 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    (Punta/Llano/Valle) y compañía actual — el mismo contenido que `DetalleSuministro` en
    `TablaAhorro.tsx` (recorrido particular). Su flecha es independiente de la casilla y del
    interruptor de mantenimiento de la fila: se puede abrir el detalle sin tocar ninguno de los dos.
-   El icono junto a "Compañía actual" lleva un tooltip nativo (`title`) que avisa si hay
-   permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar ahora — el dato
-   sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la tienen).
+   El icono junto a "Compañía actual" lleva un `Tooltip` (ver "Componentes del sistema") que
+   avisa si hay permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar
+   ahora — el dato sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la
+   tienen).
 7. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
    (`ModalComparar`) que el recorrido particular.
 8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"

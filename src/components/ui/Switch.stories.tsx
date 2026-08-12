@@ -9,6 +9,7 @@ const meta = {
   args: {
     label: "Recibir notificaciones",
     checked: false,
+    onChange: () => {},
   },
 } satisfies Meta<typeof Switch>;
 

@@ -6,6 +6,11 @@ const meta = {
   title: "Sistema de diseño/Radio",
   component: Radio,
   tags: ["autodocs"],
+  args: {
+    name: "radio",
+    checked: false,
+    onChange: () => {},
+  },
 } satisfies Meta<typeof Radio>;
 
 export default meta;

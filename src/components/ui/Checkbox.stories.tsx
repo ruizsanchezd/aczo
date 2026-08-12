@@ -8,6 +8,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     checked: false,
+    onChange: () => {},
     children: "Acepto las condiciones",
   },
 } satisfies Meta<typeof Checkbox>;
@@ -17,6 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Con estado propio, para poder marcarla y desmarcarla en el panel de controles. */
 export const SinMarcar: Story = {
+  args: {},
   render: (args) => {
     const [checked, setChecked] = useState(args.checked);
     return <Checkbox {...args} checked={checked} onChange={setChecked} />;
