@@ -141,7 +141,7 @@ export function PantallaCambioCompaniaEmpresas({
                 <Bloque style={retardo(1)}>
                   <CabeceraBloque
                     titulo="Datos de quien tramita"
-                    descripcion="La persona que firma en representación (representante, apoderado, administrador o gestoría autorizada)."
+                    descripcion="Datos de la persona que tiene los poderes para tramitar el cambio."
                   />
 
                   <div className="grid w-full gap-04 sm:grid-cols-2">
@@ -172,6 +172,17 @@ export function PantallaCambioCompaniaEmpresas({
                     />
                   </div>
 
+                  <div className="flex items-center gap-03">
+                    <Switch
+                      checked={enNombreDeOtro}
+                      onChange={setEnNombreDeOtro}
+                      label="Tramitas este proceso en nombre de otra persona"
+                    />
+                    <Text variant="body-m" as="span">
+                      ¿Tramitas este proceso en nombre de otra persona?
+                    </Text>
+                  </div>
+
                   {/* Verificación de identidad: solo si tramita para sí
                       misma — si tramita en nombre de otra persona, no es
                       esta persona la que necesita quedar identificada. */}
@@ -188,17 +199,6 @@ export function PantallaCambioCompaniaEmpresas({
                       />
                     </div>
                   )}
-
-                  <div className="flex items-center gap-03">
-                    <Switch
-                      checked={enNombreDeOtro}
-                      onChange={setEnNombreDeOtro}
-                      label="Tramitas este proceso en nombre de otra persona"
-                    />
-                    <Text variant="body-m" as="span">
-                      ¿Tramitas este proceso en nombre de otra persona?
-                    </Text>
-                  </div>
                 </Bloque>
 
                 {/* Bloque 2: IBAN por sociedad */}
@@ -208,7 +208,7 @@ export function PantallaCambioCompaniaEmpresas({
                       titulo="Necesitamos el IBAN para domiciliar los cobros"
                       descripcion="Es necesario que nos facilites los IBAN de las cuentas bancarias para poder gestionar la domiciliación bancaria."
                     />
-                    <Tag className="shrink-0 transition-colors motion-micro-states">
+                    <Tag tone="highlight" className="shrink-0 transition-colors motion-micro-states">
                       {ibanCompletados}/{sociedadesIncluidas.length} completados
                     </Tag>
                   </div>
@@ -501,7 +501,7 @@ function DropzoneIdentidad({
         <Text variant="body-m" as="span" className="min-w-0 flex-1 truncate">
           {archivo}
         </Text>
-        <Tag tone="success">Identidad verificada</Tag>
+        <Tag tone="success">DNI subido</Tag>
         <button
           type="button"
           onClick={() => onCambiar(null)}

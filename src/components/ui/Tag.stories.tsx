@@ -21,6 +21,7 @@ const meta = {
         "danger",
         "warning",
         "vivid",
+        "highlight",
       ],
     },
   },
@@ -52,6 +53,11 @@ export const Warning: Story = {
 /** La insignia "Recomendado" de una tarjeta de plan. */
 export const Vivid: Story = {
   args: { tone: "vivid", icon: "zap", children: "Recomendado" },
+};
+
+/** Contadores de progreso: "0/3 completados" en los formularios por sociedad. */
+export const Highlight: Story = {
+  args: { tone: "highlight", children: "0/3 completados" },
 };
 
 /** `inverse` solo se usa sobre superficies oscuras (ver highlight-deep en CLAUDE.md). */
