@@ -68,9 +68,18 @@ export function PantallaAhorroEmpresas({
   onContinuar: () => void;
 }) {
   const [mensual, setMensual] = useState(false);
-  // Ids de los puntos de suministro con mantenimiento activado.
+  // Ids de los puntos de suministro con mantenimiento activado. El de gas
+  // viene activado por defecto en todos los puntos (se incluye en la
+  // propuesta sin que haga falta tocar nada); el de luz empieza apagado y
+  // hay que activarlo punto por punto si se quiere.
   const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
-    new Set(),
+    () =>
+      new Set(
+        Object.values(COMERCIALIZADORAS_POR_NOMBRE)
+          .flatMap(suministrosDe)
+          .filter((s) => s.tipo === "Gas")
+          .map((s) => s.id),
+      ),
   );
   // Ids de los puntos que se han desmarcado: no cuentan en el ahorro.
   const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
@@ -692,7 +701,7 @@ function GrupoDireccionTabla({
                 Mantenimiento
                 <span
                   className="text-content-mid"
-                  title="El mantenimiento cuesta una cuota fija por punto y se descuenta del ahorro estimado."
+                  title="El mantenimiento de gas se incluye por defecto en la propuesta; el de luz hay que activarlo si se quiere. Cuesta una cuota fija por punto y se descuenta del ahorro estimado."
                 >
                   <Icon name="info" size={14} />
                 </span>
