@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/components/ui/Icon";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
+import { Tooltip } from "@/components/ui/Tooltip";
 import {
   conMantenimiento,
   conMantenimientoMixto,
@@ -39,9 +40,9 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
  *     comercializadora de más abajo cambian para mostrar las comercializadoras
  *     que recomienda el plan elegido (`plan.comercializadoras`, resuelto a
  *     datos completos con `COMERCIALIZADORAS_POR_NOMBRE` en mocks/aczo.ts).
- *     "Recomendado" es una propiedad fija del plan; "Seleccionado" es de la
- *     elección — por defecto caen en la misma tarjeta, así que solo se
- *     enseña una etiqueta a la vez para no repetir la misma idea dos veces.
+ *     La tarjeta elegida pasa a fondo oscuro (sin sombra ni borde); es la
+ *     única señal de "elegida". "Recomendado" es una propiedad fija del plan
+ *     y no depende de la elección, así que puede convivir con ese fondo.
  *   - El mantenimiento se activa PUNTO POR PUNTO (un interruptor por fila),
  *     no con un único interruptor por tipo. Los interruptores "Mantenimiento
  *     Luz/Gas" de arriba son de bulto: encienden o apagan a la vez todos los
@@ -68,9 +69,18 @@ export function PantallaAhorroEmpresas({
   onContinuar: () => void;
 }) {
   const [mensual, setMensual] = useState(false);
-  // Ids de los puntos de suministro con mantenimiento activado.
+  // Ids de los puntos de suministro con mantenimiento activado. El de gas
+  // viene activado por defecto en todos los puntos (se incluye en la
+  // propuesta sin que haga falta tocar nada); el de luz empieza apagado y
+  // hay que activarlo punto por punto si se quiere.
   const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
-    new Set(),
+    () =>
+      new Set(
+        Object.values(COMERCIALIZADORAS_POR_NOMBRE)
+          .flatMap(suministrosDe)
+          .filter((s) => s.tipo === "Gas")
+          .map((s) => s.id),
+      ),
   );
   // Ids de los puntos que se han desmarcado: no cuentan en el ahorro.
   const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
@@ -377,9 +387,10 @@ function InterruptorMantenimiento({
 /**
  * Una de las tres tarjetas de plan. Se puede elegir cualquiera (forman un
  * `radiogroup`): al hacerlo, el módulo de abajo pasa a mostrar las
- * comercializadoras que recomienda ESE plan. "Recomendado" es del plan (fijo,
- * no cambia); "Seleccionado" es de la elección actual — por defecto coinciden
- * en la misma tarjeta, y por eso solo se enseña una etiqueta a la vez.
+ * comercializadoras que recomienda ESE plan. La tarjeta elegida pasa a fondo
+ * oscuro (sin sombra ni borde) — es la única señal de "elegida". "Recomendado"
+ * es del plan (fijo, no cambia con la elección), así que puede convivir con
+ * ese fondo en la misma tarjeta.
  */
 function TarjetaPlanEmpresa({
   plan,
@@ -690,12 +701,14 @@ function GrupoDireccionTabla({
               <span>Ahorro potencial</span>
               <span className="flex items-center gap-01">
                 Mantenimiento
-                <span
-                  className="text-content-mid"
-                  title="El mantenimiento cuesta una cuota fija por punto y se descuenta del ahorro estimado."
+                <Tooltip
+                  position="bottom"
+                  content="El mantenimiento de gas se incluye por defecto en la propuesta; el de luz hay que activarlo si se quiere. Cuesta una cuota fija por punto y se descuenta del ahorro estimado."
                 >
-                  <Icon name="info" size={14} />
-                </span>
+                  <span className="text-content-mid">
+                    <Icon name="info" size={14} />
+                  </span>
+                </Tooltip>
               </span>
             </span>
           </div>
@@ -830,16 +843,17 @@ function FilaPuntoSuministro({
           <FilaDatoSuministro etiqueta="Compañía actual">
             <span className="flex items-center gap-01">
               {detalle.companiaActual}
-              <span
-                className="text-content-mid"
-                title={
+              <Tooltip
+                content={
                   detalle.permanencia
                     ? `Tienes permanencia con ${detalle.companiaActual} hasta ${detalle.permanencia.hasta}. Si cambias ahora, la penalización estimada sería de ${euros(detalle.permanencia.penalizacion.min)}-${euros(detalle.permanencia.penalizacion.max)} €.`
                     : `Sin permanencia con ${detalle.companiaActual}: se puede cambiar cuando quieras, sin penalización.`
                 }
               >
-                <Icon name="info" size={16} />
-              </span>
+                <span className="text-content-mid">
+                  <Icon name="info" size={16} />
+                </span>
+              </Tooltip>
             </span>
           </FilaDatoSuministro>
         </div>
