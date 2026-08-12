@@ -280,7 +280,7 @@ export function PantallaCambioCompaniaEmpresas({
                   </Bloque>
                 ) : (
                   <Bloque style={retardo(3)}>
-                    <Text variant="heading-m" as="h3">
+                    <Text variant="heading-s" as="h3">
                       ¿Cómo quieres autorizar el cambio?
                     </Text>
 
@@ -313,7 +313,7 @@ export function PantallaCambioCompaniaEmpresas({
               {/* Columna derecha ------------------------------------------- */}
               <aside className="flex w-full shrink-0 flex-col gap-04 lg:w-[360px]">
                 <Bloque style={retardo(2)}>
-                  <Text variant="heading-m" as="h3">
+                  <Text variant="heading-s" as="h3">
                     Resumen de tu cambio
                   </Text>
 
@@ -444,7 +444,7 @@ function CabeceraBloque({
 }) {
   return (
     <div className="flex w-full flex-col gap-01">
-      <Text variant="heading-m" as="h3">
+      <Text variant="heading-s" as="h3">
         {titulo}
       </Text>
       <Text variant="body-m" color="low">
