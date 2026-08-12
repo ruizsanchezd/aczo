@@ -15,6 +15,7 @@ import { Icon, type IconName } from "./Icon";
  *   danger    fondo rojo suave, texto rojo — avisos que no bloquean (errores)
  *   warning   fondo naranja suave, texto naranja — avisos a revisar más tarde
  *   vivid     fondo amarillo de marca — la insignia "Recomendado" de una tarjeta
+ *   highlight fondo amarillo suave — contadores de progreso ("0/3 completados")
  */
 
 type TagTone =
@@ -25,7 +26,8 @@ type TagTone =
   | "always-light"
   | "danger"
   | "warning"
-  | "vivid";
+  | "vivid"
+  | "highlight";
 
 const tonos: Record<TagTone, string> = {
   outline: "bg-background-base text-content-mid",
@@ -33,6 +35,7 @@ const tonos: Record<TagTone, string> = {
   danger: "bg-danger-low text-danger-high",
   warning: "bg-warning-low text-warning-high",
   vivid: "bg-highlight-vivid text-content-always-dark",
+  highlight: "bg-highlight-soft text-content-mid",
   // Sobre superficies oscuras que NO cambian entre modos (highlight-deep): el
   // borde va en un token que tampoco cambia, o en modo oscuro se volvería negro
   // sobre negro.

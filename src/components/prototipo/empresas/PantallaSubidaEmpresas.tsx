@@ -68,8 +68,9 @@ function BadgeArchivo({ extension }: { extension: string }) {
 export function PantallaSubidaEmpresas({
   onContinuar,
 }: {
-  /** Aún no hay una pantalla 2 a la que ir: por eso es opcional. */
-  onContinuar?: () => void;
+  /** Nombre y email quedan pre-rellenados en "Datos de quien tramita",
+   * en la pantalla de cambio de compañía. */
+  onContinuar?: (datos: { nombre: string; email: string }) => void;
 }) {
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [arrastrando, setArrastrando] = useState(false);
@@ -309,7 +310,7 @@ export function PantallaSubidaEmpresas({
           <Button
             iconEnd="chevron-right"
             disabled={!listoParaContinuar}
-            onClick={onContinuar}
+            onClick={() => onContinuar?.({ nombre: nombre.trim(), email: email.trim() })}
             className="transition-colors motion-micro-states"
           >
             Analizar facturas

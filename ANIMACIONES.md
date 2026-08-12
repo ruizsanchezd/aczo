@@ -284,8 +284,61 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
 7. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
    (`ModalComparar`) que el recorrido particular.
 8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
-   (siguiente tramo, pendiente de construir), igual patrón que la barra de la pantalla de firma
-   del recorrido particular (`sticky`, botones alineados a los extremos).
+   (lleva a "Cambio de compañía", pantalla 5 más abajo), igual patrón que la barra de la
+   pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos).
+
+### Pantalla 5 · Cambio de compañía
+
+Al pulsar "Hacer el cambio" en la pantalla 4 (`PantallaCambioCompaniaEmpresas.tsx`). Mismo
+espíritu que "Firma y apoderamiento" del recorrido particular (`PantallaFirma.tsx`) — tres
+bloques a la izquierda, resumen a la derecha, barra de acciones abajo — pero con dos flujos
+distintos según un interruptor, y el resumen de la derecha es dinámico (viene de
+`ResumenCambioEmpresas`, la foto del plan que estaba elegido en "Tu ahorro potencial" en el
+momento de pulsar "Hacer el cambio": sociedades, puntos, mantenimiento, ahorro y
+comercializadoras — así el resumen de aquí siempre coincide con la tarjeta que se eligió, sea
+cual sea).
+
+1. **Datos de quien tramita:** nombre y email llegan ya rellenados con lo que se escribió en
+   "Sube las facturas de tus sociedades" (pantalla 1) — viajan por `RecorridoEmpresas.tsx`
+   (`datosContratante`), no hace falta volver a escribirlos.
+2. **El interruptor "¿Tramitas este proceso en nombre de otra persona?" cambia el flujo entero**
+   (apagado por defecto — tramita standard):
+   - **Apagado (tramita standard):** aparece un bloque para verificar la identidad de quien
+     tramita (foto o escaneo del DNI/NIE/pasaporte, mismo `Dropzone` con microinteracción de
+     arrastre que la subida de facturas — borde y fondo `highlight-soft`, icono que crece un
+     poco), y más abajo un bloque de firma: un lienzo (`<canvas>`) donde se dibuja con el ratón
+     o el dedo (`FirmaCanvas`), más una casilla de declaración de poderes con los nombres de las
+     sociedades ya escritos (función `listaConY`, "A, B y C").
+   - **Encendido (en nombre de otra persona):** el bloque de identidad desaparece (no es esta
+     persona la que se identifica) y en su lugar aparece "¿Cómo quieres autorizar el cambio?":
+     dos tarjetas de opción única (`TarjetaOpcion`) que, a diferencia de `PantallaFirma.tsx`, NO
+     despliegan nada por dentro — comparten un mismo hueco justo debajo de las dos, según cuál
+     esté elegida:
+       - **"Tengo los poderes":** una zona de subida compacta (`DropzonePoderes`, borde
+         punteado, sin la casilla de icono en amarillo de la de identidad). En cuanto hay al
+         menos un archivo, se sustituye por un aviso de éxito en verde (`ArchivosCargados`) y
+         aparece, como bloque nuevo debajo, "Firma de autorización" — igual que en tramita
+         standard, pero con una casilla más: confirmar que la documentación es veraz y
+         responsabilizarse de su confidencialidad.
+       - **"No tengo el poder, enviar solicitud de firma...":** un enlace ya generado
+         (`EnlaceFirma`) con botón "Copiar" que cambia a "Copiado" 2 segundos — no hace falta
+         recoger nombre ni email de quien deba firmar; el enlace se comparte por el canal que se
+         prefiera, fuera de la app.
+3. **IBAN por sociedad:** una tarjeta por cada sociedad incluida en el plan elegido, con nombre
+   del titular, DNI e IBAN — un campo más que en el recorrido particular (aquí hace falta el DNI
+   de quien firma cada domiciliación). El contador "n/3 completados" reacciona al instante
+   (`motion-micro-states`), igual que en `PantallaFirma.tsx`.
+4. **Todo es obligatorio:** "Activar cambio" está desactivado (`disabled`) hasta completar los
+   datos de quien tramita, el IBAN de cada sociedad, y — según el interruptor y la forma de
+   autorizar — la identidad más la firma, los poderes subidos más la firma, o (con "enviar
+   solicitud de firma") nada más: en cuanto se elige esa opción no queda nada pendiente aquí.
+5. **Firma con lienzo (`FirmaCanvas`):** el recuadro cambia de borde al pasar el ratón por
+   encima y el cursor pasa a cruz; en cuanto hay un trazo aparece "Borrar firma". El lienzo mide
+   su tamaño en píxeles una sola vez al montar (para que el trazo no salga borroso), así que
+   redimensionar la ventana borra la firma — aceptable en un prototipo; en el repo real conviene
+   un `ResizeObserver` que reescale sin perder el trazo. El color del trazo es negro fijo (no un
+   token: un lienzo pinta píxeles, no puede leer variables CSS) — coincide con `content-high` en
+   modo claro, el único modo del producto.
 
 ## Transición entre pantallas
 

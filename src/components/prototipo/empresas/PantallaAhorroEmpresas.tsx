@@ -27,6 +27,19 @@ import { ModalComparar } from "../ModalComparar";
 import { NumeroAnimado } from "../NumeroAnimado";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
 
+/** Lo que esta pantalla le pasa a "Cambio de compañía" al pulsar "Hacer el
+ * cambio": la foto del plan elegido en el momento de continuar, para que el
+ * resumen de la siguiente pantalla no tenga que recalcular nada. */
+export type ResumenCambioEmpresas = {
+  plan: Plan;
+  sociedadesIds: string[];
+  totalDirecciones: number;
+  totalPuntos: number;
+  puntosConMantenimiento: number;
+  ahorroAnual: number;
+  comercializadoras: Comercializadora[];
+};
+
 /**
  * PantallaAhorroEmpresas — pantalla "Tu ahorro potencial" del flujo de
  * empresas: aparece al pulsar "Calcular ahorro" en PantallaResultadoEmpresas.
@@ -66,7 +79,7 @@ export function PantallaAhorroEmpresas({
   onContinuar,
 }: {
   onAtras: () => void;
-  onContinuar: () => void;
+  onContinuar: (resumen: ResumenCambioEmpresas) => void;
 }) {
   const [mensual, setMensual] = useState(false);
   // Ids de los puntos de suministro con mantenimiento activado. El de gas
@@ -105,14 +118,25 @@ export function PantallaAhorroEmpresas({
   const idsGas = todosLosSuministros
     .filter((s) => s.tipo === "Gas")
     .map((s) => s.id);
-  const sociedadesActivas = new Set(
-    comercializadorasDelPlan.flatMap((c) => c.direcciones.map((d) => d.sociedadId)),
-  ).size;
+  const sociedadesIds = Array.from(
+    new Set(comercializadorasDelPlan.flatMap((c) => c.direcciones.map((d) => d.sociedadId))),
+  );
+  const sociedadesActivas = sociedadesIds.length;
   const totalDirecciones = comercializadorasDelPlan.reduce(
     (total, c) => total + c.direcciones.length,
     0,
   );
   const totalPuntos = todosLosSuministros.length;
+  // Mismo cálculo que hace cada tarjeta con SU propio plan (puntosConMantenimientoDelPlan
+  // más abajo), pero para el plan actualmente elegido: es lo que se le pasa a
+  // "Cambio de compañía" al continuar, para que su resumen no recalcule nada.
+  const puntosConMantenimientoSeleccionado = todosLosSuministros.filter(
+    (s) => mantenimientoIds.has(s.id) && !excluidos.has(s.id),
+  ).length;
+  const ahorroSeleccionado = conMantenimientoMixto(
+    planSeleccionado.ahorroAnual,
+    puntosConMantenimientoSeleccionado,
+  );
 
   function alCambiarMantenimiento(id: string, activo: boolean) {
     setMantenimientoIds((prev) => {
@@ -253,7 +277,20 @@ export function PantallaAhorroEmpresas({
           <Button variant="secondary" iconStart="chevron-left" onClick={onAtras}>
             Atrás
           </Button>
-          <Button iconEnd="chevron-right" onClick={onContinuar}>
+          <Button
+            iconEnd="chevron-right"
+            onClick={() =>
+              onContinuar({
+                plan: planSeleccionado,
+                sociedadesIds,
+                totalDirecciones,
+                totalPuntos,
+                puntosConMantenimiento: puntosConMantenimientoSeleccionado,
+                ahorroAnual: ahorroSeleccionado,
+                comercializadoras: comercializadorasDelPlan,
+              })
+            }
+          >
             Hacer el cambio
           </Button>
         </div>
