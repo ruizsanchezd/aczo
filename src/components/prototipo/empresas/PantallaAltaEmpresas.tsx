@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandPattern } from "@/components/brand/BrandPattern";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { SegmentedProgress } from "@/components/ui/ProgressBar";
@@ -23,21 +24,33 @@ import { retardo } from "@/lib/prototipo";
  *   no perderlo de vista.
  *
  * ANIMACIÓN DE ENTRADA — el "chispazo" que anuncia que el proceso terminó:
- *   - Las cruces de las esquinas (la misma cruz que gira en la pantalla de
- *     carga, `Icon name="spark"`) entran a modo de chispazo
+ *   - **El fondo se construye poco a poco.** `BrandPattern` (el mismo patrón
+ *     denso de la pantalla de carga) entra con `animado`: cada cruz pequeña
+ *     aparece por separado (solo opacidad), en cascada — el fondo entero
+ *     tarda algo más de dos segundos en "nacer". No es solo decoración: es
+ *     la pantalla que CIERRA el recorrido, así que tiene sentido que el
+ *     fondo se construya en vez de aparecer ya hecho, al revés que en la
+ *     pantalla de carga (que necesita el fondo listo desde el primer
+ *     fotograma, porque ahí lo urgente es transmitir "ya está trabajando").
+ *   - **Las cruces grandes de las esquinas** (mismo icono, `Icon
+ *     name="spark"`) entran por encima, a modo de chispazo
  *     (`anim-estrella-entra`: arrancan giradas y a tamaño cero, "aterrizan"
  *     a su sitio), una tras otra con un escalonado rápido (50 ms, más rápido
  *     que la cascada normal de 60 ms del resto del contenido — así se leen
  *     como una salva, no como una lista).
- *   - El color de las cruces cuenta el estado: `highlight-neutral` (el
- *     mismo tono apagado de siempre) cuando ya no hace falta nada más,
- *     `highlight-vivid` (el amarillo de marca) cuando todavía hay una
- *     acción pendiente — mismo lenguaje que el resto del sistema (el
- *     "Recomendado" de las tarjetas de plan también es vivid).
- *   - La barra de cuatro tramos se llena al entrar en vez de aparecer ya
+ *   - **El color de las cruces cuenta el estado** (las grandes Y las del
+ *     fondo): `highlight-neutral` (el mismo tono apagado de siempre) cuando
+ *     ya no hace falta nada más, `highlight-vivid` (el amarillo de marca)
+ *     cuando todavía hay una acción pendiente — mismo lenguaje que el resto
+ *     del sistema (el "Recomendado" de las tarjetas de plan también es
+ *     vivid).
+ *   - **La barra de cuatro tramos se llena al entrar** en vez de aparecer ya
  *     llena (arranca en -1 y pasa a 1 un instante después): se lee "vas por
  *     aquí" en vez de "esto es un gráfico" — mismo truco que
- *     `PantallaTramitacion.tsx` (recorrido particular).
+ *     `PantallaTramitacion.tsx` (recorrido particular). El tramo "En
+ *     tramitación" además se queda en movimiento continuo (ver
+ *     `SegmentedProgress` en `ProgressBar.tsx`): indica que ese paso sigue
+ *     trabajando, no que se ha quedado a medias.
  */
 
 const TRAMOS = ["Solicitado", "En tramitación", "Aceptado", "Activado"] as const;
@@ -80,6 +93,11 @@ export function PantallaAltaEmpresas({
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col items-center bg-background-base px-06 pb-06">
         <div className="relative flex w-full flex-1 flex-col items-center overflow-hidden rounded-md bg-highlight-deep">
+          <BrandPattern
+            tono={tono}
+            animado
+            className="pointer-events-none absolute inset-0 flex items-start justify-start"
+          />
           <EstrellasEsquina posicion="superior-izquierda" tono={tono} />
           <EstrellasEsquina posicion="inferior-derecha" tono={tono} />
 
@@ -106,18 +124,18 @@ export function PantallaAltaEmpresas({
 
             <div className="flex w-full max-w-[800px] flex-col items-start gap-06">
               <div
-                className="anim-aparece flex w-full flex-col gap-05 rounded-md bg-background-base p-05 text-left"
+                className="anim-aparece flex w-full flex-col gap-05 rounded-md border border-border-low bg-background-base p-05 text-left"
                 style={retardo(7)}
               >
                 <Text variant="label-s-uppercase" color="low">
                   Activación estimada: 1-3 semanas
                 </Text>
-                <SegmentedProgress steps={TRAMOS} current={tramo} />
+                <SegmentedProgress steps={TRAMOS} current={tramo} tono="success" animado />
                 {pendienteAprobacion && <EnlaceFirma />}
               </div>
 
               <div
-                className="anim-aparece flex w-full flex-col gap-04 rounded-md bg-background-base p-06 text-left"
+                className="anim-aparece flex w-full flex-col gap-04 rounded-md border border-border-low bg-background-base p-06 text-left"
                 style={retardo(8)}
               >
                 <span className="flex size-09 items-center justify-center rounded-md bg-highlight-soft text-content-high">

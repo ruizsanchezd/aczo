@@ -354,35 +354,47 @@ paso anterior — lo decide `pendienteAprobacion`, que viaja desde `RecorridoEmp
   enlace de firma (`EnlaceFirma`, con su botón "Copiar") se repite dentro de la tarjeta de
   seguimiento, para no perderlo de vista mientras la persona representante no haya confirmado.
 
-**La animación de entrada — el "chispazo" que anuncia que el proceso ha terminado:**
+**La animación de entrada — el fondo "nace" para anunciar que el proceso ha terminado:**
 
-1. **Las cruces de las esquinas** (`EstrellasEsquina`, dentro de `PantallaAltaEmpresas.tsx`) son
-   la misma cruz de 4 puntas que gira en la pantalla de carga (`Icon name="spark"`, la reutiliza
-   directamente en vez de dibujar un SVG nuevo). Entran con `anim-estrella-entra`: arrancan
-   giradas -30° y a tamaño cero, y "aterrizan" a su sitio — la cruz que **giraba** mientras se
-   analizaba la documentación ahora **se posa**, como cierre del mismo gesto.
+1. **El fondo se construye poco a poco.** `BrandPattern` (el mismo patrón denso de cruces
+   pequeñas de la pantalla "Analizando documentación") entra con su prop nueva `animado`: cada
+   cruz aparece por separado, solo con opacidad (sin moverse), en cascada de **15 ms** por cruz —
+   con las 138 cruces del mapa, el fondo entero tarda **algo más de dos segundos** en completarse.
+   Es la pantalla que CIERRA el recorrido, así que el fondo se "construye" en vez de aparecer ya
+   hecho — al revés que en la pantalla de carga, que necesita el fondo listo desde el primer
+   fotograma porque ahí lo urgente es "ya está trabajando", no "algo ha terminado".
+2. **Las cruces grandes de las esquinas** (`EstrellasEsquina`, dentro de
+   `PantallaAltaEmpresas.tsx`) entran por encima del fondo, a modo de chispazo. Son la misma cruz
+   de 4 puntas que gira en la pantalla de carga (`Icon name="spark"`, la reutiliza directamente en
+   vez de dibujar un SVG nuevo). Entran con `anim-estrella-entra`: arrancan giradas -30° y a
+   tamaño cero, y "aterrizan" a su sitio — la cruz que **giraba** mientras se analizaba la
+   documentación ahora **se posa**, como cierre del mismo gesto.
    - Cada cruz tiene su propio retardo, en pasos de **50 ms** (`retardo(i, 50)`) — más rápido que
      la cascada normal de 60 ms del resto del contenido, para que se lea como una salva de
      chispas y no como una lista que va apareciendo.
    - Dos grupos, transcritos del Figma (no aleatorios): un tresillo apretado arriba a la
      izquierda, y una "pirámide" de 6 abajo a la derecha (más ancha por abajo).
-2. **El color de las cruces cuenta el estado**, mismo lenguaje que el resto del sistema (el
-   "Recomendado" de las tarjetas de plan también es `vivid`):
+3. **El color de las cruces cuenta el estado** (las grandes de las esquinas Y las del fondo),
+   mismo lenguaje que el resto del sistema (el "Recomendado" de las tarjetas de plan también es
+   `vivid`):
    - `highlight-neutral` (el tono apagado de siempre) — Alta completada, no hace falta nada más.
    - `highlight-vivid` (el amarillo de marca) — Alta en tramitación, todavía hay una acción
      pendiente (que la persona representante firme).
-3. **La barra de cuatro tramos se llena al entrar**, no aparece ya llena: se monta en cero y pasa
+4. **La barra de cuatro tramos se llena al entrar**, no aparece ya llena: se monta en cero y pasa
    al tramo real 200 ms después (`macro-structure`) — mismo truco que la pantalla 6 del recorrido
-   particular.
-4. El resto (tarjeta de seguimiento, tarjeta de acceso, enlace de descarga) entra en cascada
+   particular. El relleno es `success-high` (verde), tal cual el Figma de esta pantalla — es un
+   tono nuevo (`tono="success"`) en el componente compartido `SegmentedProgress`
+   (`src/components/ui/ProgressBar.tsx`); por defecto sigue en `highlight-muted` (oliva), así que
+   la pantalla 6 del recorrido particular no cambia. Con ese tono, los tramos ya completados
+   pintan su nombre en gris (`content-low`) en vez de negro — así también lo marca el Figma.
+5. **El tramo "En tramitación" queda en movimiento continuo** (prop `animado` de
+   `SegmentedProgress`): en cuanto se rellena hasta su marca (35 %), sigue solo, en un lazo suave
+   de ida y vuelta hasta el 100 % y de nuevo a su marca (`anim-tramitacion-en-curso`, 2.4 s,
+   ease-in-out) — es la microinteracción que dice "esto sigue trabajando", no "esto se ha quedado
+   a medias". Es un lazo sin fin, como el giro de la pantalla de carga: no sale de los seis
+   tokens de motion porque esos son para transiciones de un estado a otro, y esto es ambiental.
+6. El resto (tarjeta de seguimiento, tarjeta de acceso, enlace de descarga) entra en cascada
    normal (60 ms).
-
-> **Nota de fidelidad:** el Figma de esta pantalla pinta el relleno de la barra de tramos en
-> `success/high` (verde), mientras que el componente compartido `SegmentedProgress` (en
-> `src/components/ui/ProgressBar.tsx`) usa `highlight-muted` (oliva) — el mismo que ya lleva la
-> pantalla 6 del recorrido particular. Se ha mantenido el componente tal cual para no cambiar el
-> aspecto de esa otra pantalla sin que se pida; si se quiere el verde exacto del Figma, hay que
-> decidir si se cambia el componente compartido (afecta a las dos pantallas) o se le añade un tono.
 
 ## Transición entre pantallas
 
