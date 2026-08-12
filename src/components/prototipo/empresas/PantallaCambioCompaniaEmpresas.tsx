@@ -34,20 +34,31 @@ import type { ResumenCambioEmpresas } from "./PantallaAhorroEmpresas";
  *   ENCENDIDO (tramita en nombre de otra persona) — quien rellena el
  *   formulario NO es quien puede autorizar, así que cambian los pasos 2 y 4:
  *     - Ya no hace falta verificar identidad (no es esa persona la que firma).
- *     - En vez de firmar aquí, se elige CÓMO se autoriza: subiendo los
- *       poderes de representación, o enviando un enlace de firma a quien
- *       deba firmar (mismo patrón de `PantallaFirma.tsx`, recorrido
- *       particular — aquí se duplica adaptado a la copia de este Figma).
+ *     - En vez de firmar aquí, se elige CÓMO se autoriza, con dos tarjetas de
+ *       opción que NO despliegan nada por dentro: comparten un mismo hueco
+ *       debajo, según cuál esté elegida.
+ *         · "Tengo los poderes": una zona de subida compacta
+ *           (`DropzonePoderes`). En cuanto hay al menos un archivo, se
+ *           sustituye por un aviso de éxito (`ArchivosCargados`) y aparece
+ *           un bloque de "Firma de autorización" — igual que en tramita
+ *           standard, pero con una casilla más (confidencialidad de la
+ *           documentación aportada).
+ *         · "No tengo el poder": un enlace ya generado con botón "Copiar"
+ *           (`EnlaceFirma`) — no hace falta recoger nombre ni email, se
+ *           comparte el enlace por el canal que se prefiera.
  *
  * TODOS LOS CAMPOS SON OBLIGATORIOS: "Activar cambio" está desactivado
- * (`disabled`) hasta que se completan todos los pasos del flujo activo.
+ * (`disabled`) hasta que se completan todos los pasos del flujo activo (con
+ * "No tengo el poder" no hay nada más que completar: el enlace ya está listo
+ * en cuanto se elige esa opción).
  *
  * MICROINTERACCIONES:
- *   - Arrastrar el DNI sobre la zona de subida: mismo patrón que la subida
- *     de facturas (borde + fondo `highlight-soft`, icono que crece un poco).
+ *   - Arrastrar el DNI o los poderes sobre su zona de subida: borde y fondo
+ *     `highlight-soft`.
  *   - Firma: el recuadro cambia de borde al pasar el ratón por encima y el
  *     cursor pasa a cruz mientras se puede dibujar; "Borrar firma" aparece
  *     en cuanto hay un trazo.
+ *   - "Copiar" el enlace de firma cambia a "Copiado" durante 2 segundos.
  *   - El contador "n/3 completados" del IBAN reacciona al instante
  *     (`motion-micro-states`), igual que en `PantallaFirma.tsx`.
  */
@@ -80,14 +91,16 @@ export function PantallaCambioCompaniaEmpresas({
   // IBAN por sociedad.
   const [datosIban, setDatosIban] = useState<Record<string, DatosIban>>({});
 
-  // Firma de autorización (solo tramita standard).
+  // Firma de autorización: en tramita standard se ve siempre; en nombre de
+  // otra persona solo si se suben los poderes (por eso comparte estado con
+  // ese caso — nunca se ven los dos a la vez).
   const [firmado, setFirmado] = useState(false);
   const [declaracionAceptada, setDeclaracionAceptada] = useState(false);
+  const [confidencialidadAceptada, setConfidencialidadAceptada] = useState(false);
 
   // Cómo autorizar (solo en nombre de otra persona).
   const [formaAutorizar, setFormaAutorizar] = useState<FormaAutorizar>("tengo-poderes");
   const [poderesArchivos, setPoderesArchivos] = useState<string[]>([]);
-  const [enviadoA, setEnviadoA] = useState<string | null>(null);
 
   const sociedadesIncluidas = SOCIEDADES.filter((s) =>
     resumen.sociedadesIds.includes(s.id),
@@ -112,10 +125,16 @@ export function PantallaCambioCompaniaEmpresas({
     cargo.trim() !== "";
   const ibanCompleto = ibanCompletados === sociedadesIncluidas.length;
   const identidadCompleta = enNombreDeOtro || identidadArchivo !== null;
+  // Con poderes: hace falta subir el documento Y firmar. Enviando la
+  // solicitud a la persona representante no hay nada más que completar aquí
+  // — el enlace ya está listo para copiar en cuanto se elige esa opción.
   const autorizacionCompleta = enNombreDeOtro
     ? formaAutorizar === "tengo-poderes"
-      ? poderesArchivos.length > 0
-      : enviadoA !== null
+      ? poderesArchivos.length > 0 &&
+        firmado &&
+        declaracionAceptada &&
+        confidencialidadAceptada
+      : true
     : firmado && declaracionAceptada;
 
   const todoCompleto =
@@ -279,34 +298,72 @@ export function PantallaCambioCompaniaEmpresas({
                     </Checkbox>
                   </Bloque>
                 ) : (
-                  <Bloque style={retardo(3)}>
-                    <Text variant="heading-s" as="h3">
-                      ¿Cómo quieres autorizar el cambio?
-                    </Text>
+                  <>
+                    <Bloque style={retardo(3)}>
+                      <Text variant="heading-s" as="h3">
+                        ¿Cómo quieres autorizar el cambio?
+                      </Text>
 
-                    <div className="grid w-full gap-04 sm:grid-cols-2">
-                      <TarjetaOpcion
-                        elegida={formaAutorizar === "tengo-poderes"}
-                        onElegir={() => setFormaAutorizar("tengo-poderes")}
-                        titulo="Tengo los poderes"
-                        descripcion="Sube uno o varios poderes de representación, los emparejaremos automáticamente con cada sociedad según el CIF que detectemos en el documento."
-                      >
-                        <SubidaPoderes
-                          documentos={poderesArchivos}
-                          onCambiar={setPoderesArchivos}
+                      <div className="grid w-full gap-04 sm:grid-cols-2">
+                        <TarjetaOpcion
+                          elegida={formaAutorizar === "tengo-poderes"}
+                          onElegir={() => setFormaAutorizar("tengo-poderes")}
+                          titulo="Tengo los poderes"
+                          descripcion="Sube uno o varios poderes de representación, los emparejaremos automáticamente con cada sociedad según el CIF que detectemos en el documento."
                         />
-                      </TarjetaOpcion>
 
-                      <TarjetaOpcion
-                        elegida={formaAutorizar === "que-firme-otro"}
-                        onElegir={() => setFormaAutorizar("que-firme-otro")}
-                        titulo="No tengo el poder, enviar solicitud de firma a la persona representante"
-                        descripcion="Enviaremos un enlace de firma al administrador o apoderado de cada sociedad para que autorice el cambio directamente."
-                      >
-                        <EnvioEnlaceFirma enviadoA={enviadoA} onEnviar={setEnviadoA} />
-                      </TarjetaOpcion>
-                    </div>
-                  </Bloque>
+                        <TarjetaOpcion
+                          elegida={formaAutorizar === "que-firme-otro"}
+                          onElegir={() => setFormaAutorizar("que-firme-otro")}
+                          titulo="No tengo el poder, enviar solicitud de firma a la persona representante"
+                          descripcion="Enviaremos un enlace de firma al administrador o apoderado de cada sociedad para que autorice el cambio directamente."
+                        />
+                      </div>
+
+                      {/* El contenido de cada opción no va DENTRO de su tarjeta:
+                          las dos comparten este mismo hueco de abajo, según cuál
+                          esté elegida (así lo marca el Figma — ninguna tarjeta
+                          se despliega por dentro). */}
+                      {formaAutorizar === "tengo-poderes" ? (
+                        poderesArchivos.length > 0 ? (
+                          <ArchivosCargados cantidad={poderesArchivos.length} />
+                        ) : (
+                          <DropzonePoderes onSubir={setPoderesArchivos} />
+                        )
+                      ) : (
+                        <EnlaceFirma />
+                      )}
+                    </Bloque>
+
+                    {/* Firma de autorización: solo aparece con "Tengo los
+                        poderes" y en cuanto se ha subido al menos un
+                        documento — antes no hay nada que firmar todavía. */}
+                    {formaAutorizar === "tengo-poderes" && poderesArchivos.length > 0 && (
+                      <Bloque style={retardo(4)}>
+                        <CabeceraBloque
+                          titulo="Firma de autorización"
+                          descripcion="Dibuja tu firma en el recuadro para validar la autorización de todas las sociedades."
+                        />
+                        <FirmaCanvas firmado={firmado} onCambiarFirmado={setFirmado} />
+                        <Checkbox
+                          checked={declaracionAceptada}
+                          onChange={setDeclaracionAceptada}
+                        >
+                          Declaro que ostento poderes suficientes para representar a{" "}
+                          {listaConY(sociedadesIncluidas.map((s) => s.nombre))}, y
+                          autorizo el cambio de comercializadora y la domiciliación
+                          en los IBAN facilitados.
+                        </Checkbox>
+                        <Checkbox
+                          checked={confidencialidadAceptada}
+                          onChange={setConfidencialidadAceptada}
+                        >
+                          Confirmo que la documentación aportada es veraz y me
+                          responsabilizo de su confidencialidad.
+                        </Checkbox>
+                      </Bloque>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -677,22 +734,20 @@ function FirmaCanvas({
   );
 }
 
-/** Tarjeta de opción única, con contenido que se despliega al elegirla —
- * mismo patrón que `PantallaFirma.tsx` (recorrido particular), duplicado
- * aquí porque no está exportado de allí y la copia de este Figma es algo
- * distinta ("enviar solicitud de firma a la persona representante"). */
+/** Tarjeta de opción única. A diferencia de `PantallaFirma.tsx` (recorrido
+ * particular), aquí ninguna tarjeta despliega contenido por dentro: las dos
+ * comparten un mismo hueco debajo de la rejilla, según cuál esté elegida —
+ * así lo marca este Figma. */
 function TarjetaOpcion({
   elegida,
   onElegir,
   titulo,
   descripcion,
-  children,
 }: {
   elegida: boolean;
   onElegir: () => void;
   titulo: string;
   descripcion: string;
-  children: React.ReactNode;
 }) {
   return (
     <div
@@ -716,153 +771,127 @@ function TarjetaOpcion({
       <Text variant="body-m" color="mid">
         {descripcion}
       </Text>
-
-      {/* Misma técnica de despliegue que el resto del recorrido: 0fr → 1fr. */}
-      <div
-        className="grid transition-[grid-template-rows] motion-macro-levelup"
-        style={{ gridTemplateRows: elegida ? "1fr" : "0fr" }}
-        aria-hidden={!elegida}
-      >
-        <div className="overflow-hidden">
-          <div className="pt-02">{children}</div>
-        </div>
-      </div>
     </div>
   );
 }
 
-/** Subir uno o varios poderes de representación. */
-function SubidaPoderes({
-  documentos,
-  onCambiar,
-}: {
-  documentos: string[];
-  onCambiar: (documentos: string[]) => void;
-}) {
+/**
+ * DropzonePoderes — subir uno o varios poderes de representación.
+ *
+ * Compacta (a diferencia de `DropzoneIdentidad`, que es la grande de arriba):
+ * este Figma la dibuja como una franja fina con borde punteado, sin la
+ * casilla de icono en amarillo.
+ */
+function DropzonePoderes({ onSubir }: { onSubir: (documentos: string[]) => void }) {
   const [arrastrando, setArrastrando] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function anadir(archivos: FileList | null) {
     if (!archivos?.length) return;
-    onCambiar([...documentos, ...[...archivos].map((f) => f.name)]);
+    onSubir([...archivos].map((f) => f.name));
   }
 
   return (
-    <div className="flex flex-col gap-02">
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setArrastrando(true);
-        }}
-        onDragLeave={() => setArrastrando(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setArrastrando(false);
-          anadir(e.dataTransfer.files);
-        }}
-        className={[
-          "flex w-full cursor-pointer items-center justify-center gap-02 rounded-md border border-dashed p-05",
-          "transition-colors motion-micro-states",
-          "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
-          arrastrando
-            ? "border-highlight-muted bg-highlight-soft"
-            : "border-border-mid hover:border-border-high",
-        ].join(" ")}
-      >
-        <span className="text-highlight-muted">
-          <Icon name="upload" size={20} />
-        </span>
-        <Text variant="body-m" color="mid" as="span">
-          Arrastra los poderes o haz clic para subirlos
-        </Text>
-      </button>
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setArrastrando(true);
+      }}
+      onDragLeave={() => setArrastrando(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setArrastrando(false);
+        anadir(e.dataTransfer.files);
+      }}
+      className={[
+        "flex w-full cursor-pointer flex-col items-center justify-center gap-02 rounded-sm border border-dashed p-05",
+        "transition-colors motion-micro-states",
+        "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
+        arrastrando
+          ? "border-highlight-muted bg-highlight-soft"
+          : "border-content-low bg-background-low",
+      ].join(" ")}
+    >
+      <Icon name="upload" size={20} />
+      <Text variant="body-s" as="span" className="text-center">
+        Arrastra tu archivo aquí o haz clic para seleccionar
+      </Text>
+      <Text variant="body-s" color="low" as="span" className="text-center">
+        PDF, JPG, PNG — máx. 10 MB
+      </Text>
 
       <input
         ref={inputRef}
         type="file"
         multiple
-        accept=".pdf"
+        accept=".pdf,.jpg,.jpeg,.png"
         onChange={(e) => anadir(e.target.files)}
         className="hidden"
       />
+    </button>
+  );
+}
 
-      {documentos.map((doc, i) => (
-        <span
-          key={`${doc}-${i}`}
-          className="anim-aparece flex items-center gap-02 rounded-md bg-background-low p-02"
-          style={retardo(i)}
-        >
-          <span className="text-content-mid">
-            <Icon name="document" size={16} />
-          </span>
-          <Text variant="body-s" as="span" className="min-w-0 truncate">
-            {doc}
-          </Text>
-          <Tag tone="success" className="ml-auto">
-            CIF detectado
-          </Tag>
-        </span>
-      ))}
+/** Aviso de éxito tras subir el/los poder(es) — sustituye a la lista de
+ * archivos de antes: este Figma solo enseña la confirmación agregada. */
+function ArchivosCargados({ cantidad }: { cantidad: number }) {
+  return (
+    <div className="anim-aparece flex w-full flex-col items-center gap-02 rounded-sm border border-success-high bg-success-low p-05">
+      <Icon name="check" size={20} className="text-success-high" />
+      <p className="text-label-s text-center text-success-high">
+        {cantidad === 1 ? "Archivo cargado correctamente" : "Archivos cargados correctamente"}
+      </p>
+      <p className="text-body-s text-center text-success-high">
+        PDF, JPG, PNG — máx. 10 MB
+      </p>
     </div>
   );
 }
 
-/** Mini formulario para enviar el enlace de firma, y su confirmación. */
-function EnvioEnlaceFirma({
-  enviadoA,
-  onEnviar,
-}: {
-  enviadoA: string | null;
-  onEnviar: (email: string | null) => void;
-}) {
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
+/** Enlace de firma para la persona representante, con botón de copiar. No
+ * hace falta recoger nombre ni email: el enlace ya está listo, y quien
+ * tramita lo comparte por el canal que prefiera. */
+function EnlaceFirma() {
+  const [copiado, setCopiado] = useState(false);
+  // Dato de mentira: en el repo real este enlace lo genera el backend, uno
+  // distinto por cada solicitud.
+  const enlace = "https://aczo.com/firma-representante-cambio.com";
 
-  if (enviadoA) {
-    return (
-      <div className="anim-aparece flex flex-col gap-02 rounded-md bg-success-low p-04">
-        <Text variant="body-m" color="high">
-          Hemos enviado un enlace a <strong>{enviadoA}</strong> para que autorice
-          el cambio directamente. Puedes seguir con el resto del proceso mientras
-          tanto — te avisaremos en cuanto firme.
-        </Text>
-        <button
-          type="button"
-          onClick={() => onEnviar(null)}
-          className="cursor-pointer self-start text-body-s text-content-high underline transition-opacity motion-micro-states hover:opacity-60"
-        >
-          Reenviar enlace
-        </button>
-      </div>
-    );
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(enlace);
+    } catch {
+      // Sin permiso de portapapeles: el enlace sigue ahí, se puede
+      // seleccionar y copiar a mano — no bloquea nada.
+    }
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
   }
 
   return (
-    <div className="flex flex-col gap-03">
-      <Input
-        label="Nombre de quien debe firmar"
-        placeholder="Ej: María López García"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-      />
-      <Input
-        label="Email de quien debe firmar"
-        type="email"
-        placeholder="Ej: maria@empresa.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <Button
-        size="small"
-        iconEnd="arrow-right"
-        disabled={!email.trim()}
-        onClick={() => onEnviar(email.trim())}
-        className="self-start"
-      >
-        Enviar enlace de firma
-      </Button>
+    <div className="flex w-full flex-col gap-04 rounded-md bg-background-low p-04">
+      <Text variant="label-s-uppercase" color="low" as="span">
+        Link
+      </Text>
+      <div className="flex items-center justify-between gap-04 rounded-sm bg-background-base p-03">
+        <Text
+          variant="body-m"
+          as="span"
+          className="min-w-0 truncate text-extended-five-dark"
+        >
+          {enlace}
+        </Text>
+        <Button
+          variant="tertiary"
+          size="small"
+          onClick={copiar}
+          className="shrink-0"
+        >
+          {copiado ? "Copiado" : "Copiar"}
+        </Button>
+      </div>
     </div>
   );
 }

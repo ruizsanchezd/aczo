@@ -309,18 +309,29 @@ cual sea).
      poco), y más abajo un bloque de firma: un lienzo (`<canvas>`) donde se dibuja con el ratón
      o el dedo (`FirmaCanvas`), más una casilla de declaración de poderes con los nombres de las
      sociedades ya escritos (función `listaConY`, "A, B y C").
-   - **Encendido (en nombre de otra persona):** esos dos bloques desaparecen (no es esta persona
-     la que se identifica ni firma) y en su lugar aparece "¿Cómo quieres autorizar el cambio?":
-     dos tarjetas de opción única (mismo patrón `TarjetaOpcion` de 0fr → 1fr que
-     `PantallaFirma.tsx`) — subir los poderes de representación, o enviar un enlace de firma a
-     la persona representante (mini formulario que al enviarse se sustituye por su confirmación).
+   - **Encendido (en nombre de otra persona):** el bloque de identidad desaparece (no es esta
+     persona la que se identifica) y en su lugar aparece "¿Cómo quieres autorizar el cambio?":
+     dos tarjetas de opción única (`TarjetaOpcion`) que, a diferencia de `PantallaFirma.tsx`, NO
+     despliegan nada por dentro — comparten un mismo hueco justo debajo de las dos, según cuál
+     esté elegida:
+       - **"Tengo los poderes":** una zona de subida compacta (`DropzonePoderes`, borde
+         punteado, sin la casilla de icono en amarillo de la de identidad). En cuanto hay al
+         menos un archivo, se sustituye por un aviso de éxito en verde (`ArchivosCargados`) y
+         aparece, como bloque nuevo debajo, "Firma de autorización" — igual que en tramita
+         standard, pero con una casilla más: confirmar que la documentación es veraz y
+         responsabilizarse de su confidencialidad.
+       - **"No tengo el poder, enviar solicitud de firma...":** un enlace ya generado
+         (`EnlaceFirma`) con botón "Copiar" que cambia a "Copiado" 2 segundos — no hace falta
+         recoger nombre ni email de quien deba firmar; el enlace se comparte por el canal que se
+         prefiera, fuera de la app.
 3. **IBAN por sociedad:** una tarjeta por cada sociedad incluida en el plan elegido, con nombre
    del titular, DNI e IBAN — un campo más que en el recorrido particular (aquí hace falta el DNI
    de quien firma cada domiciliación). El contador "n/3 completados" reacciona al instante
    (`motion-micro-states`), igual que en `PantallaFirma.tsx`.
 4. **Todo es obligatorio:** "Activar cambio" está desactivado (`disabled`) hasta completar los
-   datos de quien tramita, el IBAN de cada sociedad, y — según el interruptor — la identidad más
-   la firma, o la forma de autorizar elegida (poderes subidos, o enlace enviado).
+   datos de quien tramita, el IBAN de cada sociedad, y — según el interruptor y la forma de
+   autorizar — la identidad más la firma, los poderes subidos más la firma, o (con "enviar
+   solicitud de firma") nada más: en cuanto se elige esa opción no queda nada pendiente aquí.
 5. **Firma con lienzo (`FirmaCanvas`):** el recuadro cambia de borde al pasar el ratón por
    encima y el cursor pasa a cruz; en cuanto hay un trazo aparece "Borrar firma". El lienzo mide
    su tamaño en píxeles una sola vez al montar (para que el trazo no salga borroso), así que
