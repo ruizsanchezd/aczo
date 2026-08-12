@@ -359,17 +359,17 @@ export function PantallaCambioCompaniaEmpresas({
                 </Bloque>
 
                 {/* Banda "Aczo garantiza": superficie oscura fija (no cambia
-                    entre modos), por eso el botón va en contorno claro. */}
+                    entre modos), por eso el texto y el botón van en tonos
+                    claros. El dibujo de la esquina es decorativo (patrón de
+                    marca), sin icono de escudo — a diferencia de la versión
+                    del recorrido particular, este Figma no lo lleva. */}
                 <div
-                  className="anim-aparece flex flex-col gap-04 rounded-lg bg-highlight-deep p-06"
+                  className="anim-aparece flex items-start rounded-lg bg-highlight-deep pb-05 pl-06"
                   style={retardo(3)}
                 >
-                  <div className="flex items-start gap-03">
-                    <span className="flex size-07 shrink-0 items-center justify-center rounded-md bg-highlight-soft text-highlight-vivid">
-                      <Icon name="shield" />
-                    </span>
-                    <div className="flex flex-col">
-                      <Text variant="label-l" color="always-light" as="h4">
+                  <div className="flex min-w-0 flex-1 flex-col items-start justify-center pt-06">
+                    <div className="flex flex-col gap-01">
+                      <Text variant="heading-m" color="always-light" as="h4">
                         Aczo garantiza
                       </Text>
                       <Text variant="body-m" color="always-light">
@@ -377,15 +377,21 @@ export function PantallaCambioCompaniaEmpresas({
                         quieras
                       </Text>
                     </div>
+                    <Button
+                      variant="tertiary"
+                      feedback="highlight"
+                      size="small"
+                      className="self-start pr-09 underline"
+                    >
+                      Ver detalle completo
+                    </Button>
                   </div>
-                  <Button
-                    variant="tertiary"
-                    feedback="highlight"
-                    size="small"
-                    className="self-start underline"
-                  >
-                    Ver detalle completo
-                  </Button>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG decorativo, no necesita optimización de next/image. */}
+                  <img
+                    src="/patron-garantia.svg"
+                    alt=""
+                    className="h-[71px] w-[107px] shrink-0"
+                  />
                 </div>
               </aside>
             </div>
