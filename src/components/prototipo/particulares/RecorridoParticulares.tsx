@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PantallaCargaEmpresas } from "../empresas/PantallaCargaEmpresas";
 import { NavbarParticulares } from "./NavbarParticulares";
+import { PantallaAhorroParticulares } from "./PantallaAhorroParticulares";
 import { PantallaResultadoParticulares } from "./PantallaResultadoParticulares";
 import { PantallaSubidaParticulares } from "./PantallaSubidaParticulares";
 
@@ -35,20 +36,21 @@ import { PantallaSubidaParticulares } from "./PantallaSubidaParticulares";
  *   subida       01          sube tu factura (con nombre, email y consentimiento)
  *   carga        (ninguno)   pantalla de carga a pantalla completa
  *   resultado    01          errores y alertas del análisis (sigue en el paso 1)
+ *   ahorro       02          "Recomendado para ti", tras "Calcular ahorro"
  *
- * Pendiente: "ahorro y recomendación" (paso 02, con la misma mecánica que
- * `PantallaAhorroEmpresas.tsx` pero para una sola vivienda) y lo que venga
- * después. El botón "Calcular ahorro" de `resultado` está listo para
- * conectarse en cuanto exista esa pantalla.
+ * Pendiente: "Cambio de compañía" (paso 03) y lo que venga después. El botón
+ * "Hacer el cambio" de `ahorro` está listo para conectarse en cuanto exista
+ * esa pantalla.
  */
 
-const VISTAS = ["subida", "carga", "resultado"] as const;
+const VISTAS = ["subida", "carga", "resultado", "ahorro"] as const;
 type Vista = (typeof VISTAS)[number];
 
 const PASO_DE_VISTA: Record<Vista, number | null> = {
   subida: 0,
   carga: null,
   resultado: 0,
+  ahorro: 1,
 };
 
 export function RecorridoParticulares() {
@@ -77,7 +79,10 @@ export function RecorridoParticulares() {
         {vista === "carga" && (
           <PantallaCargaEmpresas onTerminar={() => ir("resultado")} />
         )}
-        {vista === "resultado" && <PantallaResultadoParticulares />}
+        {vista === "resultado" && (
+          <PantallaResultadoParticulares onContinuar={() => ir("ahorro")} />
+        )}
+        {vista === "ahorro" && <PantallaAhorroParticulares onAtras={() => ir("resultado")} />}
       </main>
     </div>
   );

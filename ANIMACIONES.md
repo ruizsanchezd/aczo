@@ -435,10 +435,32 @@ Hasta dónde está construido:
    pestañas, Permanencia y Vencidas. La única diferencia real de la ficha: no enseña "Sociedad"
    ni "CIF" (esa idea no existe para un particular), así que esos dos datos desaparecen y solo
    queda el CUPS.
+4. **Ahorro y recomendación** (paso 02, `PantallaAhorroParticulares.tsx`): del Figma "Recomendado
+   para ti" — aquí SÍ hay una diferencia real de fondo con `PantallaAhorroEmpresas.tsx`, porque
+   con solo dos puntos de suministro (luz y gas de esta vivienda) no tiene sentido agrupar por
+   sociedad ni por dirección:
+   - **Tres tarjetas destacadas por un motivo distinto cada una** ("Ahorro Aczo" / "La más
+     completa" / "La más flexible"), no tres niveles de ahorro. La de "La más completa" lleva la
+     etiqueta "Recomendado" y sale elegida por defecto (fondo oscuro, sin sombra ni borde — misma
+     señal de "elegida" que en empresas).
+   - **Cada tarjeta lleva su propio interruptor "Condiciones"/"Detalles"**, independiente de la
+     selección (corta la propagación del clic para no elegir la tarjeta sin querer al tocarlo):
+     Condiciones enseña la lista de ventajas; Detalles la sustituye por la ficha técnica de los
+     dos puntos de la vivienda (CUPS, tarifa, consumo, compañía actual).
+   - **Debajo, "Todas las ofertas"**: el resto de compañías, con menos ahorro y que no siempre
+     cubren los dos puntos — cada fila se puede desplegar (misma rejilla 0fr → 1fr de siempre)
+     para ver su ficha técnica, sin que eso la seleccione.
+   - **Selección única entre las tres tarjetas de arriba Y las ofertas de abajo**: un solo
+     `radiogroup` repartido en dos bloques — elegir una de un lado desselecciona cualquiera del
+     otro.
+   - **El selector empieza en "Ver ahorro mensual"**, al revés que en empresas (que empieza en
+     anual) — así lo marca este Figma.
+   - **El mantenimiento se activa por tipo** (un interruptor para Luz, otro para Gas, sin
+     contador n/m porque solo hay un punto de cada) y descuenta su cuota de cualquier tarjeta u
+     oferta que cubra ese tipo (`conMantenimientoMixto`, la misma función que usa empresas).
 
-Pendiente: **"Ahorro y recomendación"** (paso 02, con la misma mecánica de tarjetas de plan
-elegibles que `PantallaAhorroEmpresas.tsx`) y lo que venga después — se documentará aquí en
-cuanto se construya.
+Pendiente: "Cambio de compañía" (paso 03) y lo que venga después — se documentará aquí en cuanto
+se construya.
 
 ## Transición entre pantallas
 

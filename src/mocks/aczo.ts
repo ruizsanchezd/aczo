@@ -440,21 +440,109 @@ export const VIVIENDA_DIRECCION = "Calle Mayor 14, 3ºB, Madrid";
 
 /** Los dos puntos de suministro de la vivienda (luz y gas). Reutiliza el
  * mismo tipo `Suministro` que el resto del prototipo — no lleva `sociedadId`
- * porque esa idea no existe para un particular. */
+ * porque esa idea no existe para un particular.
+ *
+ * `costeActual` y `ahorro` van en EUROS AL AÑO, como en el resto del
+ * prototipo (`ahorroDireccion`/`ahorroComercializadora` en este mismo
+ * archivo suman estos campos sin dividir entre 12; la vista mensual los
+ * divide ella misma). Para una vivienda son 744 €/año de luz (62 €/mes) y
+ * 456 €/año de gas (38 €/mes) — cifras de una vivienda normal, no de una
+ * cartera de empresa. */
 export const SUMINISTROS_PARTICULARES: Suministro[] = [
-  suministro("part-luz", "Luz — Calle Mayor 14", "Luz", "2.0TD", 62, 14, {
+  suministro("part-luz", "Luz — Calle Mayor 14", "Luz", "2.0TD", 744, 168, {
     ciudad: "Madrid",
     companiaActual: "Iberdrola",
     consumoAnual: 3_200,
     potencia: 4.6,
     permanencia: { hasta: "Marzo 2027", penalizacion: { min: 60, max: 90 } },
   }),
-  suministro("part-gas", "Gas — Calle Mayor 14", "Gas", "3.1", 38, 9, {
+  suministro("part-gas", "Gas — Calle Mayor 14", "Gas", "3.1", 456, 108, {
     ciudad: "Madrid",
     companiaActual: "Naturgy",
     consumoAnual: 9_800,
     potencia: 0,
   }),
+];
+
+/**
+ * Las tres recomendaciones de "Recomendado para ti" (pantalla "Ahorro y
+ * recomendación" de particulares). A diferencia de los `PLANES` de empresas
+ * (tres niveles de ahorro: máximo/equilibrado/simple), aquí son tres
+ * comercializadoras destacadas cada una por un motivo distinto — así lo pide
+ * el Figma de esta pantalla. Cada una es una propuesta para LOS DOS puntos
+ * de la vivienda a la vez (luz y gas), por eso `ahorroAnual` ya es la suma de
+ * los dos — la ficha de "Detalles" de cada tarjeta enseña el desglose de
+ * `SUMINISTROS_PARTICULARES` completo, no solo uno de los dos puntos.
+ */
+export type RecomendacionParticular = {
+  id: string;
+  /** Etiqueta en mayúsculas de la tarjeta: "AHORRO ACZO", "LA MÁS COMPLETA"... */
+  categoria: string;
+  /** La única marcada así lleva la etiqueta "Recomendado" y el fondo oscuro
+   * — es la que sale elegida por defecto, igual que el plan recomendado en
+   * empresas. */
+  recomendado: boolean;
+  comercializadora: string;
+  ahorroAnual: number;
+  ventajas: string[];
+};
+
+export const RECOMENDACIONES_PARTICULARES: RecomendacionParticular[] = [
+  {
+    id: "aczo",
+    categoria: "Ahorro Aczo",
+    recomendado: false,
+    comercializadora: "TotalEnergies",
+    ahorroAnual: 276,
+    ventajas: [
+      "Tarifas flexibles luz y gas",
+      "Sin permanencia",
+      "Energía 100% verde certificada",
+    ],
+  },
+  {
+    id: "completa",
+    categoria: "La más completa",
+    recomendado: true,
+    comercializadora: "Repsol",
+    ahorroAnual: 252,
+    ventajas: [
+      "Descuento en carburante",
+      "Precio fijo 12 meses",
+      "Servicio de mantenimiento incluido",
+    ],
+  },
+  {
+    id: "flexible",
+    categoria: "La más flexible",
+    recomendado: false,
+    comercializadora: "Octopus",
+    ahorroAnual: 228,
+    ventajas: [
+      "Tarifa por horas de consumo",
+      "Sin permanencia ni penalización",
+      "App con control de consumo en tiempo real",
+    ],
+  },
+];
+
+/**
+ * El resto de ofertas de "Todas las ofertas", debajo de las tres
+ * recomendadas: opciones con menos ahorro, y que no necesariamente cubren
+ * los dos puntos de la vivienda (`tipos` dice cuáles). Se puede elegir
+ * cualquiera igual que las tres de arriba — al hacerlo, ninguna de esas tres
+ * queda ya seleccionada.
+ */
+export type OfertaParticular = {
+  id: string;
+  comercializadora: string;
+  tipos: TipoSuministro[];
+  ahorroAnual: number;
+};
+
+export const OFERTAS_PARTICULARES: OfertaParticular[] = [
+  { id: "naturgy", comercializadora: "Naturgy", tipos: ["Gas"], ahorroAnual: 96 },
+  { id: "endesa", comercializadora: "Endesa", tipos: ["Luz"], ahorroAnual: 84 },
 ];
 
 /** Total de archivos leídos en la subida de particulares (dato de la
