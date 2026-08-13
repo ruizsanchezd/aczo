@@ -1,23 +1,18 @@
 import type { Preview } from '@storybook/nextjs-vite'
 import React from 'react'
 import '../src/app/globals.css'
+import { ModoClaro } from './ModoClaro'
 
 // El prototipo va siempre en modo claro (ver CLAUDE.md), así que Storybook
-// fuerza data-theme="light" igual que src/app/layout.tsx. Tiene que ir en
-// <html> (document.documentElement): la regla `:root[data-theme="light"]`
-// de globals.css no mira un <div> normal, solo la raíz real del documento.
+// fuerza data-theme="light" igual que src/app/layout.tsx, y con las mismas
+// fuentes. Todo eso lo hace ModoClaro (ver ese archivo).
 const preview: Preview = {
   decorators: [
-    (Story) => {
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-      return (
-        <div className="antialiased">
-          <Story />
-        </div>
-      );
-    },
+    (Story) => (
+      <ModoClaro>
+        <Story />
+      </ModoClaro>
+    ),
   ],
   parameters: {
     options: {

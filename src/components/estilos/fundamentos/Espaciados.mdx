@@ -1,6 +1,7 @@
 import { Meta } from "@storybook/addon-docs/blocks";
 import { Text } from "../../ui/Text";
-import { ModoClaro, spacing } from "../TokenSwatch";
+import { spacing } from "../TokenSwatch";
+import { ModoClaro } from "../../../../.storybook/ModoClaro";
 
 <Meta title="Fundamentos/Espaciados" />
 
@@ -12,10 +13,12 @@ La escala de espaciado va de `00` a `10`. En clases se usan como **p-04**, **gap
 **mt-02**… La sección (**layout-section**) es 600px de ancho máximo con 16px de padding en
 móvil, y 1200px con 32px en desktop.
 
-<div className="flex flex-col gap-03">
-  {/* Los anchos de columna van a pelo: son el andamio de esta tabla de
-      documentación, no valores de diseño del Figma. La barra sí usa el
-      token: su ancho ES el valor que describe. */}
+{/* sb-unstyled: que Storybook no le imponga su propia tipografía de "prosa"
+    a los <Text> de aquí dentro (son etiquetas reales, no texto de
+    documentación). Los anchos de columna van a pelo: son el andamio de esta
+    tabla, no valores de diseño del Figma. La barra sí usa el token: su
+    ancho ES el valor que describe. */}
+<div className="sb-unstyled flex flex-col gap-03">
   {spacing.map(([token, px]) => (
     <div key={token} className="flex items-center gap-04">
       <Text variant="body-s" color="mid" className="w-[110px] shrink-0">

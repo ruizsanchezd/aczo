@@ -8,21 +8,14 @@ import type { TextVariant } from "@/components/ui/Text";
  * se ve igual en los dos sitios.
  */
 
-/**
- * Fuerza el modo claro en los tokens `light-dark()` de dentro. Hace falta en
- * Storybook: las páginas de "Fundamentos" son MDX puro (sin `<Story>`), así
- * que el decorador de `.storybook/preview.tsx` —que fuerza `data-theme` en
- * el `<html>`— nunca llega a ejecutarse, y los tokens seguirían el modo del
- * sistema en vez del claro fijo del producto. `color-scheme` se hereda, así
- * que basta con fijarlo aquí para que todo lo de dentro use la rama clara.
- */
-export function ModoClaro({ children }: { children: React.ReactNode }) {
-  return <div style={{ colorScheme: "light" }}>{children}</div>;
-}
-
 export function Swatch({ name, className }: { name: string; className: string }) {
   return (
-    <div>
+    // sb-unstyled: en Storybook, la página de documentación pone su propio
+    // estilo a cualquier <p> (tipografía y color de "prosa"), y como el
+    // nombre del token es justo un <Text as="p">, se lo pisaba. Esta clase le
+    // dice a Storybook que no toque nada aquí dentro; fuera de Storybook no
+    // hace nada (no hay ninguna regla que la use).
+    <div className="sb-unstyled">
       <div
         className={`h-10 w-full rounded-md border border-border-low ${className}`}
       />

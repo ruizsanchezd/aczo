@@ -1,6 +1,7 @@
 import { Meta } from "@storybook/addon-docs/blocks";
 import { Text } from "../../ui/Text";
-import { ModoClaro, typeScale } from "../TokenSwatch";
+import { typeScale } from "../TokenSwatch";
+import { ModoClaro } from "../../../../.storybook/ModoClaro";
 
 <Meta title="Fundamentos/Tipografía" />
 
@@ -12,7 +13,10 @@ Los `heading` usan **Bradford LL TT**, la fuente de marca. Las demás familias (
 **label** y **body**) usan **Inter**. Se puede usar la escala directamente con el componente
 `<Text variant="…">`, que ya aplica familia, tamaño, interlineado y peso correctos.
 
-<div className="flex flex-col gap-05">
+{/* sb-unstyled: que Storybook no le imponga su propia tipografía de "prosa"
+    a estos <Text as="p"> — son la demo real de la fuente, no texto de
+    documentación. */}
+<div className="sb-unstyled flex flex-col gap-05">
   {typeScale.map((variant) => (
     <div key={variant}>
       <Text variant="body-s" color="low" as="p">
