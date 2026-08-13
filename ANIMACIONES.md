@@ -285,7 +285,11 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    (`ModalComparar`) que el recorrido particular.
 8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
    (lleva a "Cambio de compañía", pantalla 5 más abajo), igual patrón que la barra de la
-   pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos).
+   pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos). No
+   aparece hasta que se ha bajado más de un 8 % del recorrido de la página
+   (`useVisibleAlDesplazar` en `src/lib/prototipo.ts`, un pequeño hook que escucha el scroll):
+   así, al entrar, no da la sensación de que ya se ve todo — la barra aparece (y desaparece,
+   `transition-opacity motion-micro-appear`) según se baje o se suba.
 
 ### Pantalla 5 · Cambio de compañía
 
@@ -340,6 +344,9 @@ cual sea).
    un `ResizeObserver` que reescale sin perder el trazo. El color del trazo es negro fijo (no un
    token: un lienzo pinta píxeles, no puede leer variables CSS) — coincide con `content-high` en
    modo claro, el único modo del producto.
+6. **Barra inferior fija**, mismo comportamiento que en "Tu ahorro potencial" (pantalla 4): no
+   aparece hasta que se baja más de un 8 % de la página (`useVisibleAlDesplazar`), para que se
+   note que hay más formulario debajo.
 
 ### Pantalla 6 · Alta completada / Alta en tramitación
 
@@ -411,8 +418,12 @@ Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depend
 
 | Sentido | Desde | Token |
 | --- | --- | --- |
-| Hacia delante | derecha | `macro-levelup` (350 ms) |
-| Hacia atrás | izquierda | `macro-leveldown` (400 ms) |
+| Hacia delante | abajo | `macro-levelup` (350 ms) |
+| Hacia atrás | arriba | `macro-leveldown` (400 ms) |
+
+(Antes entraba en horizontal, desde los laterales — se cambió a vertical porque quedaba
+demasiado sutil como para leerse bien; el gesto de subir/bajar además encaja mejor con los
+nombres de los propios tokens, `levelup`/`leveldown`.)
 
 **Navegación:** hacia delante solo con los botones de cada pantalla (hay datos que rellenar). Hacia
 atrás, además, pulsando un paso ya completado en el indicador de la barra superior. Los pasos
