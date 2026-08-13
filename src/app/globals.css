@@ -423,6 +423,49 @@
   }
 }
 
+/* El tramo "en curso" de una SegmentedProgress con tono="success" y
+   animado: se rellena hasta su marca (35 %) y, a partir de ahí, entra en un
+   lazo continuo hasta el 100 % y de vuelta — para que se lea "esto sigue
+   trabajando", no "esto se ha quedado a medias". La duración del lazo (2.4s)
+   no sale de los seis tokens de motion: esos son para transiciones de un
+   estado a otro, y esto es un lazo ambiental sin fin, como el giro de la
+   pantalla de carga (aczo-gira-cuarto) — el mismo caso especial, solo que
+   suave en vez de a saltos. */
+@keyframes aczo-tramitacion-entra {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 35%;
+  }
+}
+
+@keyframes aczo-tramitacion-pulso {
+  0%,
+  100% {
+    width: 35%;
+  }
+  50% {
+    width: 100%;
+  }
+}
+
+/* Las cruces de la pantalla "Alta completada"/"Alta en tramitación": entran
+   a modo de chispazo, no solo apareciendo. Arrancan giradas y a tamaño cero,
+   y "aterrizan" a su sitio — es la misma cruz que gira en la pantalla de
+   carga (aczo-gira-cuarto): allí "trabaja", aquí "se posa" para celebrar
+   que el proceso ha terminado. */
+@keyframes aczo-estrella-entra {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-30deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 /* Una pantalla entra avanzando (se va hacia delante en el recorrido). */
 @utility anim-entra-adelante {
   animation: aczo-entra-adelante var(--motion-timing-3) var(--ease-3) both;
@@ -454,11 +497,26 @@
   animation: aczo-escala-entrada var(--motion-timing-3) var(--ease-3) both;
 }
 
+/* El chispazo de las cruces al completarse el proceso (ver el keyframe). */
+@utility anim-estrella-entra {
+  animation: aczo-estrella-entra var(--motion-timing-4) var(--ease-3) both;
+}
+
 /* Giro a saltos, en cuartos de vuelta: tres tirones por cuarto de vuelta.
    Es el giro del spinner de la pantalla de carga. Se eligió a saltos y no
    continuo porque se siente como "una máquina trabajando". */
 @utility anim-gira-saltos {
   animation: aczo-gira-cuarto var(--motion-timing-6) steps(3) infinite;
+}
+
+/* El tramo "en curso" de la barra de seguimiento: se rellena hasta su marca
+   una vez (motion-timing-5, la misma duración que el resto de tramos, para
+   que las cuatro barras terminen su entrada a la vez) y, sin pausa, entra en
+   el lazo suave de ida y vuelta. */
+@utility anim-tramitacion-en-curso {
+  animation:
+    aczo-tramitacion-entra var(--motion-timing-5) var(--ease-4) both,
+    aczo-tramitacion-pulso 2400ms var(--ease-4) var(--motion-timing-5) infinite;
 }
 
 /* ============================================================================

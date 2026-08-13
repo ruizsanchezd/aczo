@@ -59,33 +59,64 @@ export function ProgressBar({
  * SegmentedProgress — la barra por tramos de la última pantalla.
  *
  * Cuatro tramos con su nombre debajo (Solicitado · En tramitación · Aceptado ·
- * Activado). Los tramos ya pasados se pintan enteros en oliva; el actual se
- * queda a medias y su nombre va en verde; los que faltan, en gris.
+ * Activado). Los tramos ya pasados se pintan enteros; el actual se queda a
+ * medias y su nombre va en verde; los que faltan, en gris.
+ *
+ * `tono` decide el color del relleno:
+ *   "muted"   (por defecto) — oliva (`highlight-muted`), texto en negro para
+ *             los tramos ya pasados. Es el que ya usaba "Alta en tramitación"
+ *             del recorrido particular; se mantiene tal cual para no
+ *             cambiarle el aspecto sin que se pida.
+ *   "success" — verde (`success-high`), como marca el Figma del flujo de
+ *             empresas: el relleno de los tramos pasados Y del actual es el
+ *             mismo verde, y el texto de los tramos pasados pasa a gris
+ *             (`content-low`) en vez de negro. Además, el tramo en curso
+ *             queda en movimiento continuo (ver `animado`).
+ *
+ * `animado` (solo tiene efecto real con `tono="success"`): el tramo en curso
+ * no se queda quieto a medias — se rellena hasta el final y vuelve a vaciarse
+ * hasta su marca en un lazo suave, para leerse como "esto sigue en marcha"
+ * en vez de "esto se ha quedado a medias". El relleno hasta su marca (35 %)
+ * ya lo hace solo, con su propia animación de entrada — no depende del
+ * truco de `current` en -1 que usa el resto de tramos.
  */
 export function SegmentedProgress({
   steps,
   current,
+  tono = "muted",
+  animado = false,
   className = "",
 }: {
   steps: readonly string[];
   /** Índice del tramo en curso (empieza en 0). */
   current: number;
+  tono?: "muted" | "success";
+  animado?: boolean;
   className?: string;
 }) {
+  const relleno = tono === "success" ? "bg-success-high" : "bg-highlight-muted";
+
   return (
     <div className={`flex gap-02 ${className}`}>
       {steps.map((step, i) => {
         const completado = i < current;
         const enCurso = i === current;
+        const pulsando = enCurso && tono === "success" && animado;
 
         return (
           <div key={step} className="flex flex-1 flex-col gap-02">
             <div className="h-01 overflow-hidden rounded-full bg-background-mid">
               <div
-                className="h-full rounded-full bg-highlight-muted transition-[width] motion-macro-structure"
-                style={{
-                  width: completado ? "100%" : enCurso ? "35%" : "0%",
-                }}
+                className={[
+                  "h-full rounded-full",
+                  relleno,
+                  pulsando ? "anim-tramitacion-en-curso" : "transition-[width] motion-macro-structure",
+                ].join(" ")}
+                style={
+                  pulsando
+                    ? undefined
+                    : { width: completado ? "100%" : enCurso ? "35%" : "0%" }
+                }
               />
             </div>
             <span
@@ -93,7 +124,9 @@ export function SegmentedProgress({
                 enCurso
                   ? "text-success-high"
                   : completado
-                    ? "text-content-high"
+                    ? tono === "success"
+                      ? "text-content-low"
+                      : "text-content-high"
                     : "text-content-low"
               }`}
             >

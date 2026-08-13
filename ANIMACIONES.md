@@ -315,11 +315,12 @@ cual sea).
      despliegan nada por dentro — comparten un mismo hueco justo debajo de las dos, según cuál
      esté elegida:
        - **"Tengo los poderes":** una zona de subida compacta (`DropzonePoderes`, borde
-         punteado, sin la casilla de icono en amarillo de la de identidad). En cuanto hay al
-         menos un archivo, se sustituye por un aviso de éxito en verde (`ArchivosCargados`) y
-         aparece, como bloque nuevo debajo, "Firma de autorización" — igual que en tramita
-         standard, pero con una casilla más: confirmar que la documentación es veraz y
-         responsabilizarse de su confidencialidad.
+         punteado, sin la casilla de icono en amarillo de la de identidad) que recicla el
+         patrón de progreso de `PantallaSubidaEmpresas.tsx` (la subida de facturas): insignia
+         de tipo, tamaño y botón para quitarlo, con "+ Agregar más archivos". En cuanto todos
+         terminan de subir aparece, como bloque nuevo debajo, "Firma de autorización" — igual
+         que en tramita standard, pero con una casilla más: confirmar que la documentación es
+         veraz y responsabilizarse de su confidencialidad.
        - **"No tengo el poder, enviar solicitud de firma...":** un enlace ya generado
          (`EnlaceFirma`) con botón "Copiar" que cambia a "Copiado" 2 segundos — no hace falta
          recoger nombre ni email de quien deba firmar; el enlace se comparte por el canal que se
@@ -339,6 +340,70 @@ cual sea).
    un `ResizeObserver` que reescale sin perder el trazo. El color del trazo es negro fijo (no un
    token: un lienzo pinta píxeles, no puede leer variables CSS) — coincide con `content-high` en
    modo claro, el único modo del producto.
+
+### Pantalla 6 · Alta completada / Alta en tramitación
+
+Al pulsar "Activar cambio" (o "Confirmar solicitud", ver más abajo) en la pantalla 5
+(`PantallaAltaEmpresas.tsx`). Mismo contenido de fondo que "Alta en tramitación" del recorrido
+particular (`PantallaTramitacion.tsx`: barra de cuatro tramos + tarjeta de acceso al área de
+cliente), pero en dos versiones según cómo haya terminado el paso anterior — lo decide
+`pendienteAprobacion`, que viaja desde `RecorridoEmpresas.tsx`:
+
+- **Alta completada** (`pendienteAprobacion` false): la propia persona autorizó el cambio — firma
+  propia, o poderes ya subidos y firmados. No queda nada pendiente.
+- **Alta en tramitación** (true): se eligió "No tengo el poder, enviar solicitud de firma...". El
+  enlace de firma (`EnlaceFirma`, con su botón "Copiar") se repite dentro de la tarjeta de
+  seguimiento, para no perderlo de vista mientras la persona representante no haya confirmado. El
+  botón de la pantalla anterior (`PantallaCambioCompaniaEmpresas.tsx`) pasa a decir **"Confirmar
+  solicitud"** en vez de "Activar cambio" en este caso — nada se activa todavía, solo se manda la
+  solicitud de firma.
+
+**Fidelidad al Figma — todo dentro de una sola tarjeta blanca.** Todo el contenido (titular, barra
+de tramos, tarjeta de acceso y enlace de descarga) vive dentro de una única tarjeta blanca
+centrada, y el panel oscuro que la rodea llega hasta los bordes de la pantalla, sin marco ni
+padding alrededor — así lo marca el Figma. Antes el titular flotaba suelto sobre el fondo oscuro y
+cada bloque era una tarjeta separada, con un margen de por medio: además de no coincidir con el
+diseño, hacía que las cruces del patrón denso se vieran por detrás de las letras. Metiéndolo todo
+en la tarjeta blanca (opaca) el problema de legibilidad desaparece solo, sin ningún recorte de CSS.
+
+**La animación de entrada — el fondo "nace" para anunciar que el proceso ha terminado:**
+
+1. **El fondo se construye poco a poco.** `BrandPattern` (el mismo patrón denso de cruces
+   pequeñas de la pantalla "Analizando documentación") entra con su prop nueva `animado`: cada
+   cruz aparece por separado, solo con opacidad (sin moverse), en cascada de **15 ms** por cruz —
+   con las 138 cruces del mapa, el fondo entero tarda **algo más de dos segundos** en completarse.
+   Es la pantalla que CIERRA el recorrido, así que el fondo se "construye" en vez de aparecer ya
+   hecho — al revés que en la pantalla de carga, que necesita el fondo listo desde el primer
+   fotograma porque ahí lo urgente es "ya está trabajando", no "algo ha terminado".
+2. **Las cruces grandes de las esquinas** (`EstrellasEsquina`, dentro de
+   `PantallaAltaEmpresas.tsx`) entran por encima del fondo, a modo de chispazo. Son la misma cruz
+   de 4 puntas que gira en la pantalla de carga (`Icon name="spark"`, la reutiliza directamente en
+   vez de dibujar un SVG nuevo). Entran con `anim-estrella-entra`: arrancan giradas -30° y a
+   tamaño cero, y "aterrizan" a su sitio — la cruz que **giraba** mientras se analizaba la
+   documentación ahora **se posa**, como cierre del mismo gesto.
+   - Cada cruz tiene su propio retardo, en pasos de **50 ms** (`retardo(i, 50)`) — más rápido que
+     la cascada normal de 60 ms del resto del contenido, para que se lea como una salva de
+     chispas y no como una lista que va apareciendo.
+   - Dos grupos, transcritos del Figma (no aleatorios): un tresillo apretado arriba a la
+     izquierda, y una "pirámide" de 6 abajo a la derecha (más ancha por abajo).
+3. **Las cruces (las grandes de las esquinas Y las del fondo) siempre en `highlight-neutral`**,
+   el mismo tono apagado en las dos versiones de la pantalla: aquí el color no distingue
+   "pendiente" de "completado" — de eso ya se encargan la barra de tramos y el texto del titular.
+4. **La barra de cuatro tramos se llena al entrar**, no aparece ya llena: se monta en cero y pasa
+   al tramo real 200 ms después (`macro-structure`) — mismo truco que la pantalla 6 del recorrido
+   particular. El relleno es `success-high` (verde), tal cual el Figma de esta pantalla — es un
+   tono nuevo (`tono="success"`) en el componente compartido `SegmentedProgress`
+   (`src/components/ui/ProgressBar.tsx`); por defecto sigue en `highlight-muted` (oliva), así que
+   la pantalla 6 del recorrido particular no cambia. Con ese tono, los tramos ya completados
+   pintan su nombre en gris (`content-low`) en vez de negro — así también lo marca el Figma.
+5. **El tramo "En tramitación" queda en movimiento continuo** (prop `animado` de
+   `SegmentedProgress`): en cuanto se rellena hasta su marca (35 %), sigue solo, en un lazo suave
+   de ida y vuelta hasta el 100 % y de nuevo a su marca (`anim-tramitacion-en-curso`, 2.4 s,
+   ease-in-out) — es la microinteracción que dice "esto sigue trabajando", no "esto se ha quedado
+   a medias". Es un lazo sin fin, como el giro de la pantalla de carga: no sale de los seis
+   tokens de motion porque esos son para transiciones de un estado a otro, y esto es ambiental.
+6. El resto (tarjeta de seguimiento, tarjeta de acceso, enlace de descarga) entra en cascada
+   normal (60 ms).
 
 ## Transición entre pantallas
 

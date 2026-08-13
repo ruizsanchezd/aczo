@@ -1,10 +1,17 @@
+import { retardo } from "@/lib/prototipo";
+
 /**
  * BrandPattern — el fondo de cruces de la marca.
  *
- * Aparece en dos sitios, con los colores invertidos:
+ * Aparece en tres sitios, con los colores invertidos entre los dos primeros:
  *   - Pantalla "Analizando documentación": fondo oscuro, cruces claras.
- *   - Pantalla "Alta en tramitación": fondo claro, cruces oscuras, y las cruces
- *     mucho más grandes.
+ *   - Pantalla "Alta en tramitación" (recorrido particular): fondo claro,
+ *     cruces oscuras, y las cruces mucho más grandes.
+ *   - Pantalla "Alta completada"/"Alta en tramitación" del flujo de
+ *     empresas: mismo fondo y densidad que la de "Analizando", pero con
+ *     `animado` para que el patrón se vea nacer poco a poco en vez de
+ *     aparecer ya puesto — es la pantalla que CIERRA el recorrido, así que
+ *     tiene sentido que el fondo se "construya" en vez de solo aparecer.
  *
  * Las posiciones NO son aleatorias: están transcritas de las dos composiciones
  * del Figma, celda a celda. Cada fila del mapa es una fila de la rejilla; una
@@ -48,11 +55,23 @@ const CRUZ =
 type BrandPatternProps = {
   /** "densa" = pantalla de carga · "grande" = pantalla final */
   variant?: "densa" | "grande";
+  /** Solo tiene efecto en "densa" (en "grande" las cruces siempre son
+   * `highlight-deep`, no cambian de estado): "vivid" para cuando el fondo
+   * anuncia que queda una acción pendiente — mismo lenguaje que el resto
+   * del sistema (el "Recomendado" de las tarjetas de plan también es
+   * vivid). */
+  tono?: "neutral" | "vivid";
+  /** Las cruces entran en cascada (solo opacidad, sin moverse) en vez de
+   * aparecer ya puestas — "poco a poco". No se usa en la pantalla de
+   * carga, que necesita el fondo listo desde el primer fotograma. */
+  animado?: boolean;
   className?: string;
 };
 
 export function BrandPattern({
   variant = "densa",
+  tono = "neutral",
+  animado = false,
   className = "",
 }: BrandPatternProps) {
   const denso = variant === "densa";
@@ -64,7 +83,13 @@ export function BrandPattern({
 
   // Fondo y cruces intercambian papeles entre las dos variantes.
   const fondo = denso ? "bg-highlight-deep" : "bg-highlight-neutral";
-  const cruces = denso ? "text-highlight-neutral" : "text-highlight-deep";
+  const cruces = denso
+    ? tono === "vivid"
+      ? "text-highlight-vivid"
+      : "text-highlight-neutral"
+    : "text-highlight-deep";
+
+  let indice = -1;
 
   return (
     <div
@@ -78,16 +103,20 @@ export function BrandPattern({
         className={`${cruces} max-w-none`}
       >
         {mapa.flatMap((fila, y) =>
-          [...fila].map((c, x) =>
-            c === "x" ? (
+          [...fila].map((c, x) => {
+            if (c !== "x") return null;
+            indice++;
+            return (
               <g
                 key={`${x}-${y}`}
                 transform={`translate(${x * celda} ${y * celda}) scale(${celda / 20})`}
+                className={animado ? "anim-aparece-simple" : undefined}
+                style={animado ? retardo(indice, 15) : undefined}
               >
                 <path d={CRUZ} fill="currentColor" />
               </g>
-            ) : null,
-          ),
+            );
+          }),
         )}
       </svg>
     </div>
