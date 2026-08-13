@@ -23,6 +23,15 @@ import { retardo } from "@/lib/prototipo";
  *   confirme, así que aquí se repite el enlace con su botón "Copiar" para
  *   no perderlo de vista.
  *
+ * FIDELIDAD AL FIGMA — todo el contenido (titular, tramos, tarjeta de acceso
+ * y el enlace de descarga) vive dentro de UNA sola tarjeta blanca, igual que
+ * en el diseño: solo las cruces grandes de las esquinas quedan fuera, sobre
+ * el fondo oscuro. Antes el titular flotaba suelto sobre el fondo oscuro y
+ * cada bloque era una tarjeta separada, así que las cruces del patrón denso
+ * se veían por detrás de las letras. Al meterlo todo en la tarjeta blanca
+ * (opaca) el problema desaparece solo, sin tener que recortar el patrón con
+ * ningún truco de CSS.
+ *
  * ANIMACIÓN DE ENTRADA — el "chispazo" que anuncia que el proceso terminó:
  *   - **El fondo se construye poco a poco.** `BrandPattern` (el mismo patrón
  *     denso de la pantalla de carga) entra con `animado`: cada cruz pequeña
@@ -32,18 +41,18 @@ import { retardo } from "@/lib/prototipo";
  *     fondo se construya en vez de aparecer ya hecho, al revés que en la
  *     pantalla de carga (que necesita el fondo listo desde el primer
  *     fotograma, porque ahí lo urgente es transmitir "ya está trabajando").
+ *     Como ahora todo el contenido está dentro de la tarjeta blanca, esas
+ *     cruces solo se ven en el margen oscuro alrededor — nunca detrás del
+ *     texto.
  *   - **Las cruces grandes de las esquinas** (mismo icono, `Icon
  *     name="spark"`) entran por encima, a modo de chispazo
  *     (`anim-estrella-entra`: arrancan giradas y a tamaño cero, "aterrizan"
  *     a su sitio), una tras otra con un escalonado rápido (50 ms, más rápido
  *     que la cascada normal de 60 ms del resto del contenido — así se leen
  *     como una salva, no como una lista).
- *   - **El color de las cruces cuenta el estado** (las grandes Y las del
- *     fondo): `highlight-neutral` (el mismo tono apagado de siempre) cuando
- *     ya no hace falta nada más, `highlight-vivid` (el amarillo de marca)
- *     cuando todavía hay una acción pendiente — mismo lenguaje que el resto
- *     del sistema (el "Recomendado" de las tarjetas de plan también es
- *     vivid).
+ *   - **Las cruces siempre en `highlight-neutral`**, el mismo tono apagado en
+ *     los dos contenidos: aquí el color no distingue "pendiente" de
+ *     "completado" — de eso ya se encargan la barra de tramos y el texto.
  *   - **La barra de cuatro tramos se llena al entrar** en vez de aparecer ya
  *     llena (arranca en -1 y pasa a 1 un instante después): se lee "vas por
  *     aquí" en vez de "esto es un gráfico" — mismo truco que
@@ -87,25 +96,26 @@ export function PantallaAltaEmpresas({
     return () => clearTimeout(id);
   }, []);
 
-  const tono = pendienteAprobacion ? "vivid" : "neutral";
+  // Mismo tono en los dos contenidos: aquí el color de las cruces no
+  // distingue "pendiente" de "completado".
+  const tono = "neutral";
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col items-center bg-background-base px-06 pb-06">
-        <div className="relative flex w-full flex-1 flex-col items-center overflow-hidden rounded-md bg-highlight-deep">
-          <BrandPattern
-            tono={tono}
-            animado
-            className="pointer-events-none absolute inset-0 flex items-start justify-start"
-          />
-          <EstrellasEsquina posicion="superior-izquierda" tono={tono} />
-          <EstrellasEsquina posicion="inferior-derecha" tono={tono} />
+      <div className="relative flex flex-1 flex-col items-center overflow-hidden bg-highlight-deep">
+        <BrandPattern
+          tono={tono}
+          animado
+          className="absolute inset-0 flex items-start justify-start"
+        />
+        <EstrellasEsquina posicion="superior-izquierda" tono={tono} />
+        <EstrellasEsquina posicion="inferior-derecha" tono={tono} />
 
-          <div className="layout-section relative z-10 flex flex-1 flex-col items-center justify-center gap-08 py-10 text-center">
-            <div className="anim-aparece flex flex-col items-center gap-03" style={retardo(6)}>
+        <div className="layout-section relative z-10 flex flex-1 items-center justify-center py-10">
+          <div className="flex w-full max-w-[800px] flex-col gap-10 rounded-md bg-background-base pt-10 pb-06 px-06">
+            <div className="anim-aparece flex flex-col items-center gap-03 text-center" style={retardo(6)}>
               <Text
                 variant={pendienteAprobacion ? "heading-xl" : "heading-l"}
-                color="always-light"
                 className="max-w-[700px]"
               >
                 {pendienteAprobacion
@@ -122,9 +132,9 @@ export function PantallaAltaEmpresas({
               )}
             </div>
 
-            <div className="flex w-full max-w-[800px] flex-col items-start gap-06">
+            <div className="flex w-full flex-col items-start gap-06 text-left">
               <div
-                className="anim-aparece flex w-full flex-col gap-05 rounded-md border border-border-low bg-background-base p-05 text-left"
+                className="anim-aparece flex w-full flex-col gap-05 rounded-md border border-border-low bg-background-low p-05"
                 style={retardo(7)}
               >
                 <Text variant="label-s-uppercase" color="low">
@@ -135,7 +145,7 @@ export function PantallaAltaEmpresas({
               </div>
 
               <div
-                className="anim-aparece flex w-full flex-col gap-04 rounded-md border border-border-low bg-background-base p-06 text-left"
+                className="anim-aparece flex w-full flex-col gap-04 rounded-md border border-border-low bg-background-low p-06"
                 style={retardo(8)}
               >
                 <span className="flex size-09 items-center justify-center rounded-md bg-highlight-soft text-content-high">
@@ -165,13 +175,13 @@ export function PantallaAltaEmpresas({
                 <Button fullWidth>Iniciar sesión</Button>
               </div>
 
-              <button
-                type="button"
-                className="anim-aparece cursor-pointer text-body-m text-content-always-light underline transition-opacity motion-micro-states hover:opacity-60"
+              <Button
+                variant="tertiary"
+                className="anim-aparece"
                 style={retardo(9)}
               >
                 Descargar mandato (PDF)
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -254,7 +264,7 @@ function EnlaceFirma() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-04 rounded-md bg-background-low p-04">
+    <div className="flex w-full flex-col gap-04 rounded-md bg-background-base p-04">
       <Text variant="label-s-uppercase" color="low" as="span">
         Link
       </Text>

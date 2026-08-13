@@ -343,16 +343,28 @@ cual sea).
 
 ### Pantalla 6 · Alta completada / Alta en tramitación
 
-Al pulsar "Activar cambio" en la pantalla 5 (`PantallaAltaEmpresas.tsx`). Mismo contenido de fondo
-que "Alta en tramitación" del recorrido particular (`PantallaTramitacion.tsx`: barra de cuatro
-tramos + tarjeta de acceso al área de cliente), pero en dos versiones según cómo haya terminado el
-paso anterior — lo decide `pendienteAprobacion`, que viaja desde `RecorridoEmpresas.tsx`:
+Al pulsar "Activar cambio" (o "Confirmar solicitud", ver más abajo) en la pantalla 5
+(`PantallaAltaEmpresas.tsx`). Mismo contenido de fondo que "Alta en tramitación" del recorrido
+particular (`PantallaTramitacion.tsx`: barra de cuatro tramos + tarjeta de acceso al área de
+cliente), pero en dos versiones según cómo haya terminado el paso anterior — lo decide
+`pendienteAprobacion`, que viaja desde `RecorridoEmpresas.tsx`:
 
 - **Alta completada** (`pendienteAprobacion` false): la propia persona autorizó el cambio — firma
   propia, o poderes ya subidos y firmados. No queda nada pendiente.
 - **Alta en tramitación** (true): se eligió "No tengo el poder, enviar solicitud de firma...". El
   enlace de firma (`EnlaceFirma`, con su botón "Copiar") se repite dentro de la tarjeta de
-  seguimiento, para no perderlo de vista mientras la persona representante no haya confirmado.
+  seguimiento, para no perderlo de vista mientras la persona representante no haya confirmado. El
+  botón de la pantalla anterior (`PantallaCambioCompaniaEmpresas.tsx`) pasa a decir **"Confirmar
+  solicitud"** en vez de "Activar cambio" en este caso — nada se activa todavía, solo se manda la
+  solicitud de firma.
+
+**Fidelidad al Figma — todo dentro de una sola tarjeta blanca.** Todo el contenido (titular, barra
+de tramos, tarjeta de acceso y enlace de descarga) vive dentro de una única tarjeta blanca
+centrada, y el panel oscuro que la rodea llega hasta los bordes de la pantalla, sin marco ni
+padding alrededor — así lo marca el Figma. Antes el titular flotaba suelto sobre el fondo oscuro y
+cada bloque era una tarjeta separada, con un margen de por medio: además de no coincidir con el
+diseño, hacía que las cruces del patrón denso se vieran por detrás de las letras. Metiéndolo todo
+en la tarjeta blanca (opaca) el problema de legibilidad desaparece solo, sin ningún recorte de CSS.
 
 **La animación de entrada — el fondo "nace" para anunciar que el proceso ha terminado:**
 
@@ -374,12 +386,9 @@ paso anterior — lo decide `pendienteAprobacion`, que viaja desde `RecorridoEmp
      chispas y no como una lista que va apareciendo.
    - Dos grupos, transcritos del Figma (no aleatorios): un tresillo apretado arriba a la
      izquierda, y una "pirámide" de 6 abajo a la derecha (más ancha por abajo).
-3. **El color de las cruces cuenta el estado** (las grandes de las esquinas Y las del fondo),
-   mismo lenguaje que el resto del sistema (el "Recomendado" de las tarjetas de plan también es
-   `vivid`):
-   - `highlight-neutral` (el tono apagado de siempre) — Alta completada, no hace falta nada más.
-   - `highlight-vivid` (el amarillo de marca) — Alta en tramitación, todavía hay una acción
-     pendiente (que la persona representante firme).
+3. **Las cruces (las grandes de las esquinas Y las del fondo) siempre en `highlight-neutral`**,
+   el mismo tono apagado en las dos versiones de la pantalla: aquí el color no distingue
+   "pendiente" de "completado" — de eso ya se encargan la barra de tramos y el texto del titular.
 4. **La barra de cuatro tramos se llena al entrar**, no aparece ya llena: se monta en cero y pasa
    al tramo real 200 ms después (`macro-structure`) — mismo truco que la pantalla 6 del recorrido
    particular. El relleno es `success-high` (verde), tal cual el Figma de esta pantalla — es un

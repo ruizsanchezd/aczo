@@ -214,6 +214,9 @@ export function PantallaCambioCompaniaEmpresas({
 
   const todoCompleto =
     datosTramitanteCompletos && identidadCompleta && ibanCompleto && autorizacionCompleta;
+  // Con el enlace de firma no se activa nada todavía: solo se manda la
+  // solicitud a la persona representante, así que el CTA lo dice tal cual.
+  const enviaSolicitudDeFirma = enNombreDeOtro && formaAutorizar === "que-firme-otro";
 
   return (
     <div className="flex flex-1 flex-col">
@@ -543,13 +546,10 @@ export function PantallaCambioCompaniaEmpresas({
             iconEnd="chevron-right"
             disabled={!todoCompleto}
             onClick={() =>
-              onContinuar({
-                pendienteAprobacion:
-                  enNombreDeOtro && formaAutorizar === "que-firme-otro",
-              })
+              onContinuar({ pendienteAprobacion: enviaSolicitudDeFirma })
             }
           >
-            Activar cambio
+            {enviaSolicitudDeFirma ? "Confirmar solicitud" : "Activar cambio"}
           </Button>
         </div>
       </div>
