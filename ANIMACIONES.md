@@ -411,8 +411,12 @@ Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depend
 
 | Sentido | Desde | Token |
 | --- | --- | --- |
-| Hacia delante | derecha | `macro-levelup` (350 ms) |
-| Hacia atrás | izquierda | `macro-leveldown` (400 ms) |
+| Hacia delante | abajo | `macro-levelup` (350 ms) |
+| Hacia atrás | arriba | `macro-leveldown` (400 ms) |
+
+(Antes entraba en horizontal, desde los laterales — se cambió a vertical porque quedaba
+demasiado sutil como para leerse bien; el gesto de subir/bajar además encaja mejor con los
+nombres de los propios tokens, `levelup`/`leveldown`.)
 
 **Navegación:** hacia delante solo con los botones de cada pantalla (hay datos que rellenar). Hacia
 atrás, además, pulsando un paso ya completado en el indicador de la barra superior. Los pasos
