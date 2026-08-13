@@ -231,6 +231,19 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   "Alta en tramitación" según haya quedado pendiente la firma de la persona representante, con un
   fondo oscuro y cruces de la marca (`Icon name="spark"`) entrando a modo de chispazo.
   Componentes en `src/components/prototipo/empresas/`.
+- **`/particulares`** — el flujo de particulares, en construcción paso a paso desde la landing
+  ("Calcula tu ahorro particular"). `RecorridoParticulares.tsx` une las vistas con la MISMA
+  estructura que `/empresas`, y en las partes que comparten mecánica reutiliza sus componentes
+  tal cual o los calca sin sociedad/CIF (esa idea no existe para un particular): subir la
+  factura (`PantallaSubidaParticulares`), la pantalla de carga (reutiliza
+  `PantallaCargaEmpresas` directamente), el resultado con errores y alertas
+  (`PantallaResultadoParticulares` + el panel `PanelAlertasParticulares`) y, al pulsar "Calcular
+  ahorro", "Ahorro y recomendación" (`PantallaAhorroParticulares`): tres tarjetas destacadas cada
+  una por un motivo distinto (no tres niveles de ahorro como en empresas), con su propio
+  interruptor "Condiciones"/"Detalles", más "Todas las ofertas" debajo con el resto de
+  compañías — selección única entre las tres tarjetas y esas ofertas. Pendiente: "Cambio de
+  compañía" (paso 03) y lo que venga después. Componentes en
+  `src/components/prototipo/particulares/`.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una

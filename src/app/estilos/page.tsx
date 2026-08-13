@@ -145,6 +145,15 @@ export default function EstilosPage() {
             { name: "background-low", className: "bg-background-low" },
             { name: "background-mid", className: "bg-background-mid" },
             { name: "background-high", className: "bg-background-high" },
+            { name: "background-inverse", className: "bg-background-inverse" },
+            {
+              name: "background-always-light",
+              className: "bg-background-always-light",
+            },
+            {
+              name: "background-always-dark",
+              className: "bg-background-always-dark",
+            },
             { name: "background-overlay", className: "bg-background-overlay" },
           ]}
         />
