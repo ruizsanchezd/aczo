@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
 import { euros, SOCIEDADES } from "@/mocks/aczo";
-import { retardo } from "@/lib/prototipo";
+import { retardo, useVisibleAlDesplazar } from "@/lib/prototipo";
 import { HuecoLogo } from "../TarjetaPlan";
 import type { ResumenCambioEmpresas } from "./PantallaAhorroEmpresas";
 
@@ -109,6 +109,9 @@ export function PantallaCambioCompaniaEmpresas({
   onContinuar: (datos: { pendienteAprobacion: boolean }) => void;
 }) {
   const [enNombreDeOtro, setEnNombreDeOtro] = useState(false);
+  // La barra inferior no aparece hasta que se empieza a bajar: así se nota
+  // que hay más formulario que ver, en vez de parecer que ya se ve todo.
+  const mostrarBarra = useVisibleAlDesplazar();
 
   // Datos de quien tramita: nombre y email llegan ya rellenados.
   const [nombre, setNombre] = useState(datosContratante.nombre);
@@ -536,8 +539,14 @@ export function PantallaCambioCompaniaEmpresas({
         </div>
       </div>
 
-      {/* Barra inferior: mismo patrón que el resto del flujo de empresas. */}
-      <div className="sticky bottom-00 z-10 bg-background-base">
+      {/* Barra inferior: mismo patrón que el resto del flujo de empresas, sin
+          aparecer hasta que se empieza a hacer scroll (mostrarBarra). */}
+      <div
+        className={[
+          "sticky bottom-00 z-10 bg-background-base transition-opacity motion-micro-appear",
+          mostrarBarra ? "opacity-100" : "pointer-events-none opacity-0",
+        ].join(" ")}
+      >
         <div className="layout-section flex items-center justify-between py-04">
           <Button variant="secondary" iconStart="chevron-left" onClick={onAtras}>
             Atrás
