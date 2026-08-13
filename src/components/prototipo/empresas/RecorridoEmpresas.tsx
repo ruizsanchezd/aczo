@@ -56,6 +56,14 @@ export function RecorridoEmpresas() {
   const [resumenCambio, setResumenCambio] = useState<ResumenCambioEmpresas | null>(null);
   const [pendienteAprobacion, setPendienteAprobacion] = useState(false);
 
+  // Cada cambio de paso entra por el inicio de la página, nunca por donde se
+  // había quedado el scroll en el paso anterior — mismo patrón que
+  // Recorrido.tsx (el recorrido particular).
+  function ir(destino: Vista) {
+    setVista(destino);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   const paso = PASO_DE_VISTA[vista];
   const etiquetaPasoActual =
     vista === "alta"
@@ -75,22 +83,22 @@ export function RecorridoEmpresas() {
           <PantallaSubidaEmpresas
             onContinuar={(datos) => {
               setDatosContratante(datos);
-              setVista("carga");
+              ir("carga");
             }}
           />
         )}
         {vista === "carga" && (
-          <PantallaCargaEmpresas onTerminar={() => setVista("resultado")} />
+          <PantallaCargaEmpresas onTerminar={() => ir("resultado")} />
         )}
         {vista === "resultado" && (
-          <PantallaResultadoEmpresas onContinuar={() => setVista("ahorro")} />
+          <PantallaResultadoEmpresas onContinuar={() => ir("ahorro")} />
         )}
         {vista === "ahorro" && (
           <PantallaAhorroEmpresas
-            onAtras={() => setVista("resultado")}
+            onAtras={() => ir("resultado")}
             onContinuar={(resumen) => {
               setResumenCambio(resumen);
-              setVista("cambio");
+              ir("cambio");
             }}
           />
         )}
@@ -98,10 +106,10 @@ export function RecorridoEmpresas() {
           <PantallaCambioCompaniaEmpresas
             datosContratante={datosContratante}
             resumen={resumenCambio}
-            onAtras={() => setVista("ahorro")}
+            onAtras={() => ir("ahorro")}
             onContinuar={(datos) => {
               setPendienteAprobacion(datos.pendienteAprobacion);
-              setVista("alta");
+              ir("alta");
             }}
           />
         )}
