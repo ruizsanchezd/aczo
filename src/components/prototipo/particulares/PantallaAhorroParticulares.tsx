@@ -412,8 +412,11 @@ function TarjetaRecomendacion({
  * tarjeta (cada una guarda su propia vista) y no afecta a la selección.
  *
  * El interruptor en sí SIEMPRE es una píldora clara (`background-low` en las
- * tarjetas blancas, `background-inverse` — blanco — en la oscura, que es lo
- * que hace que el segmento activo, oscuro, se note encima): solo cambia el
+ * tarjetas blancas, `background-always-light` en la oscura — no
+ * `background-inverse`, que en modo claro es NEGRO: aquí hace falta blanco
+ * siempre, con independencia del modo, igual que `content-always-light`,
+ * porque la tarjeta oscura de alrededor tampoco cambia entre modos). Es lo
+ * que hace que el segmento activo, oscuro, se note encima: solo cambia el
  * fondo/borde de la píldora entre tarjetas, no el color de los segmentos.
  */
 function SelectorVista({
@@ -431,7 +434,7 @@ function SelectorVista({
       aria-label="Condiciones o detalles técnicos"
       className={[
         "flex items-center gap-01 self-start rounded-sm border p-01",
-        oscuro ? "border-border-mid bg-background-inverse" : "border-border-low bg-background-low",
+        oscuro ? "border-border-mid bg-background-always-light" : "border-border-low bg-background-low",
       ].join(" ")}
     >
       {(
