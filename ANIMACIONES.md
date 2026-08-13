@@ -412,6 +412,34 @@ en la tarjeta blanca (opaca) el problema de legibilidad desaparece solo, sin nin
 6. El resto (tarjeta de seguimiento, tarjeta de acceso, enlace de descarga) entra en cascada
    normal (60 ms).
 
+## Flujo de particulares (/particulares)
+
+Flujo aparte del recorrido particular clásico (`/recorrido`, que no se toca) y del flujo de
+empresas: se entra pulsando "Calcula tu ahorro particular" en la landing. Se construye paso a
+paso con la MISMA estructura que `/empresas` (subida → carga → resultado → ahorro y
+recomendación → …), y en las partes que comparten mecánica, **es literalmente la misma
+interacción, no una versión simplificada** — solo cambian los números (a la escala de una
+vivienda: un puñado de facturas, uno o dos avisos, no una cartera de sociedades) y la copia
+(habla de "tu vivienda", nunca de "sociedades").
+
+Hasta dónde está construido:
+
+1. **Sube tu factura** (`PantallaSubidaParticulares.tsx`): calco de `PantallaSubidaEmpresas.tsx`
+   (mismo dropzone, misma subida simulada, nombre/email/consentimiento en la misma pantalla),
+   con copia adaptada a una sola vivienda.
+2. **Carga**: reutiliza `PantallaCargaEmpresas.tsx` tal cual — ya es genérica (logo, barra de
+   progreso, aviso de conexión segura), sin nada específico de empresas que haya que quitar.
+3. **Resultado: errores y alertas** (`PantallaResultadoParticulares.tsx`): calco de
+   `PantallaResultadoEmpresas.tsx`, con el mismo botón "Revisar" que abre un panel lateral
+   (`PanelAlertasParticulares.tsx`, calco de `PanelAlertasEmpresas.tsx`) con sus mismas dos
+   pestañas, Permanencia y Vencidas. La única diferencia real de la ficha: no enseña "Sociedad"
+   ni "CIF" (esa idea no existe para un particular), así que esos dos datos desaparecen y solo
+   queda el CUPS.
+
+Pendiente: **"Ahorro y recomendación"** (paso 02, con la misma mecánica de tarjetas de plan
+elegibles que `PantallaAhorroEmpresas.tsx`) y lo que venga después — se documentará aquí en
+cuanto se construya.
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -438,12 +466,14 @@ transición de pantalla.
 src/
   app/
     globals.css                tokens + utilidades de motion y de animación
-    recorrido/page.tsx          la ruta del recorrido particular
+    recorrido/page.tsx          la ruta del recorrido particular clásico
     empresas/page.tsx           la ruta del flujo de empresas
+    particulares/page.tsx       la ruta del flujo de particulares (nuevo)
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
       empresas/                 pantallas y navbar propios del flujo de empresas
+      particulares/             pantallas y navbar propios del flujo de particulares
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript

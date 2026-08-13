@@ -45,6 +45,14 @@ export const PASOS_EMPRESA = [
   { numero: "04", nombre: "Monitoreo constante" },
 ] as const;
 
+/** Los pasos del flujo de particulares (/particulares), construido paso a
+ * paso con la misma estructura que el de empresas. Solo lleva los pasos que
+ * ya existen; se amplía a medida que se construyan los siguientes. */
+export const PASOS_PARTICULARES = [
+  { numero: "01", nombre: "Sube tu factura" },
+  { numero: "02", nombre: "Ahorro y recomendación" },
+] as const;
+
 /* -------------------------------------------------------------------------- */
 /* Los tres planes de la pantalla de recomendación                            */
 /* -------------------------------------------------------------------------- */
@@ -168,7 +176,7 @@ export type Comercializadora = {
 };
 
 /** Atajo para no repetir la misma estructura veinte veces. */
-function suministro(
+export function suministro(
   id: string,
   nombre: string,
   tipo: TipoSuministro,
@@ -420,6 +428,86 @@ export const COMERCIALIZADORAS_POR_NOMBRE: Record<string, Comercializadora> = {
   Naturgy: NATURGY,
   Octopus: OCTOPUS,
 };
+
+/* -------------------------------------------------------------------------- */
+/* Flujo de particulares (/particulares): una sola vivienda                   */
+/* -------------------------------------------------------------------------- */
+
+/** La dirección de la persona que hace el cálculo — a diferencia del flujo de
+ * empresas, aquí solo hay una, así que no hace falta agrupar por sociedad ni
+ * por dirección: se enseñan los puntos directamente. */
+export const VIVIENDA_DIRECCION = "Calle Mayor 14, 3ºB, Madrid";
+
+/** Los dos puntos de suministro de la vivienda (luz y gas). Reutiliza el
+ * mismo tipo `Suministro` que el resto del prototipo — no lleva `sociedadId`
+ * porque esa idea no existe para un particular. */
+export const SUMINISTROS_PARTICULARES: Suministro[] = [
+  suministro("part-luz", "Luz — Calle Mayor 14", "Luz", "2.0TD", 62, 14, {
+    ciudad: "Madrid",
+    companiaActual: "Iberdrola",
+    consumoAnual: 3_200,
+    potencia: 4.6,
+    permanencia: { hasta: "Marzo 2027", penalizacion: { min: 60, max: 90 } },
+  }),
+  suministro("part-gas", "Gas — Calle Mayor 14", "Gas", "3.1", 38, 9, {
+    ciudad: "Madrid",
+    companiaActual: "Naturgy",
+    consumoAnual: 9_800,
+    potencia: 0,
+  }),
+];
+
+/** Total de archivos leídos en la subida de particulares (dato de la
+ * maqueta): dos facturas de luz y una de gas, una de ellas con error. */
+export const TOTAL_ARCHIVOS_LEIDOS_PARTICULARES = 3;
+
+export const ARCHIVOS_CON_ERROR_PARTICULARES: ArchivoConError[] = [
+  { id: "err-part-1", nombre: "foto_factura_gas.jpg", motivo: "Imagen borrosa o cortada" },
+];
+
+/**
+ * Fichas de alerta para el panel de particulares (`PanelAlertasParticulares`,
+ * mismo patrón que `PanelAlertasEmpresas`: portal, pestañas Permanencia /
+ * Vencidas, "Revisar" abre el panel en la pestaña correcta). Mismo tipo que
+ * `ContratoAlerta` pero sin `sociedad` ni `cif` — esa idea no existe para un
+ * particular, así que la ficha tampoco la enseña.
+ */
+export type ContratoAlertaParticular = {
+  id: string;
+  comercializadora: string;
+  archivo: string;
+  tarifa: string;
+  cups: string;
+  etiquetaFecha: string;
+  fecha: string;
+  importe: { min: number; max: number } | null;
+};
+
+export const PERMANENCIAS_PARTICULARES: ContratoAlertaParticular[] = [
+  {
+    id: "perm-part-1",
+    comercializadora: "Iberdrola",
+    archivo: "factura_iberdrola_2024_03.pdf",
+    tarifa: "Tarifa 2.0TD",
+    cups: "ES0031406225146001JN0F",
+    etiquetaFecha: "Fin estimado",
+    fecha: "Marzo 2027",
+    importe: { min: 60, max: 90 },
+  },
+];
+
+export const FACTURAS_VENCIDAS_PARTICULARES: ContratoAlertaParticular[] = [
+  {
+    id: "venc-part-1",
+    comercializadora: "Naturgy",
+    archivo: "factura_naturgy_2023_01.pdf",
+    tarifa: "Tarifa 3.1",
+    cups: "ES0021877401925003KP1A",
+    etiquetaFecha: "Fecha de la factura",
+    fecha: "Enero 2023",
+    importe: null,
+  },
+];
 
 /* -------------------------------------------------------------------------- */
 /* Ofertas de la ventana "otras compañías"                                    */

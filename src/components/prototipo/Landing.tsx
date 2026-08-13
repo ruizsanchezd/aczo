@@ -6,7 +6,8 @@ import { Text } from "@/components/ui/Text";
 
 /**
  * Landing — la página de entrada (captación). Es la primera pantalla que ve
- * alguien que todavía no es cliente, antes de entrar en el /recorrido.
+ * alguien que todavía no es cliente, antes de entrar en /particulares o en
+ * /empresas según qué tarjeta pulse.
  *
  * Sale del frame "Aczo / Landing / Desktop" del Figma máster. Los anchos y
  * paddings de cada sección (140px, 220px, 1000px...) son la maqueta de esa
@@ -20,13 +21,13 @@ const calculadoras = [
     titulo: "Calcula tu ahorro particular",
     descripcion:
       "Una vivienda, tus facturas de luz y gas. Un proceso rápido y sencillo, sin tecnicismos.",
+    enlace: "/particulares",
   },
   {
     imagen: "/landing/calculadora-empresa.png",
     titulo: "Calcula el ahorro de tu empresa",
     descripcion:
       "De un local a una cartera de suministros. Ahorra de manera automática y eficiente.",
-    // Única de las dos tarjetas que ya lleva a un flujo real (/empresas).
     enlace: "/empresas",
   },
 ];
@@ -111,8 +112,9 @@ function LandingHero() {
               </>
             );
 
-            // Solo la tarjeta con `enlace` lleva a un flujo real: es la única
-            // que se comporta (y se ve) como pulsable.
+            // Solo las tarjetas con `enlace` se comportan (y se ven) como
+            // pulsables — así, si algún día se añade una calculadora sin
+            // flujo real todavía, basta con no darle `enlace`.
             return calculadora.enlace ? (
               <Link
                 key={calculadora.titulo}
