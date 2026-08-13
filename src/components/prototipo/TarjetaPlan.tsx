@@ -206,8 +206,11 @@ export function HuecoLogo({
       className={[
         // 80 × 40: medida del hueco en el Figma. 40 es de la escala (h-08); 80
         // es el ancho de la caja del logo, y aquí funciona como mínimo para que
-        // el nombre se lea entero mientras no haya archivos.
-        "flex h-08 min-w-[80px] items-center justify-center rounded-md px-03",
+        // el nombre se lea entero mientras no haya archivos. `self-start`
+        // evita que se estire a lo ancho cuando el hueco es el único hijo de
+        // un contenedor en columna (ese contenedor, por defecto, estira a
+        // todos sus hijos) — así abraza su contenido en vez de rellenar.
+        "flex h-08 min-w-[80px] shrink-0 items-center justify-center self-start rounded-md px-03",
         "text-label-s",
         sobreOscuro
           ? "bg-highlight-neutral text-content-always-dark"

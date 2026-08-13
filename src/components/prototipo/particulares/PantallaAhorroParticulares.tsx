@@ -6,8 +6,10 @@ import { Icon } from "@/components/ui/Icon";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
+import { Tooltip } from "@/components/ui/Tooltip";
 import {
   conMantenimientoMixto,
+  euros,
   kwh,
   OFERTAS_PARTICULARES,
   RECOMENDACIONES_PARTICULARES,
@@ -373,7 +375,7 @@ function TarjetaRecomendacion({
         <HuecoLogo nombre={recomendacion.comercializadora} sobreOscuro={seleccionada} />
       </div>
 
-      <div onClick={(e) => e.stopPropagation()}>
+      <div className="self-start" onClick={(e) => e.stopPropagation()}>
         <SelectorVista vista={vista} onChange={setVista} oscuro={seleccionada} />
       </div>
 
@@ -382,7 +384,7 @@ function TarjetaRecomendacion({
           {recomendacion.ventajas.map((v) => (
             <li key={v} className="flex items-start gap-03">
               <span className={seleccionada ? "text-highlight-vivid" : "text-highlight-muted"}>
-                <Icon name="check-circle" />
+                <Icon name="check-circle-outline" />
               </span>
               <Text
                 variant="body-m"
@@ -405,8 +407,15 @@ function TarjetaRecomendacion({
   );
 }
 
-/** El segmentado "Condiciones"/"Detalles" de cada tarjeta. Independiente por
- * tarjeta (cada una guarda su propia vista) y no afecta a la selección. */
+/**
+ * El segmentado "Condiciones"/"Detalles" de cada tarjeta. Independiente por
+ * tarjeta (cada una guarda su propia vista) y no afecta a la selección.
+ *
+ * El interruptor en sí SIEMPRE es una píldora clara (`background-low` en las
+ * tarjetas blancas, `background-inverse` — blanco — en la oscura, que es lo
+ * que hace que el segmento activo, oscuro, se note encima): solo cambia el
+ * fondo/borde de la píldora entre tarjetas, no el color de los segmentos.
+ */
 function SelectorVista({
   vista,
   onChange,
@@ -422,7 +431,7 @@ function SelectorVista({
       aria-label="Condiciones o detalles técnicos"
       className={[
         "flex items-center gap-01 self-start rounded-sm border p-01",
-        oscuro ? "border-white/20" : "border-border-low bg-background-low",
+        oscuro ? "border-border-mid bg-background-inverse" : "border-border-low bg-background-low",
       ].join(" ")}
     >
       {(
@@ -442,11 +451,7 @@ function SelectorVista({
             className={[
               "cursor-pointer rounded-sm px-03 py-01 text-body-s whitespace-nowrap",
               "transition-colors motion-micro-states",
-              activo
-                ? "bg-highlight-deep text-content-always-light"
-                : oscuro
-                  ? "text-content-always-light opacity-60"
-                  : "text-content-low",
+              activo ? "bg-highlight-deep text-content-always-light" : "text-content-low",
             ].join(" ")}
           >
             {seg.etiqueta}
@@ -458,14 +463,15 @@ function SelectorVista({
 }
 
 /** La ficha técnica de un punto (Luz o Gas): los mismos campos que
- * `DetalleSuministro` en mocks/aczo.ts, recortados a lo esencial para que
- * quepa dentro de una tarjeta de recomendación (sin el perfil de consumo ni
- * la permanencia, que ya se explican en la pantalla de resultado). */
+ * `DetalleSuministro` en mocks/aczo.ts y en el mismo orden que el Figma —
+ * CUPS, tarifa, consumo, potencia contratada (solo si aplica), perfil de
+ * consumo y compañía actual, con una línea divisoria entre cada fila. */
 function FichaTecnica({ suministro, oscuro }: { suministro: Suministro; oscuro: boolean }) {
   const { detalle } = suministro;
+  const divisor = <div className={oscuro ? "h-[1px] w-full bg-white/10" : "h-[1px] w-full bg-border-low"} />;
 
   return (
-    <div className="flex flex-col gap-03">
+    <div className="flex flex-col gap-04">
       <Text
         variant="label-s-uppercase"
         color={oscuro ? "always-light" : "mid"}
@@ -474,18 +480,82 @@ function FichaTecnica({ suministro, oscuro }: { suministro: Suministro; oscuro: 
       >
         Punto de {suministro.tipo === "Luz" ? "luz" : "gas"}
       </Text>
+
       <FilaDato etiqueta="CUPS" oscuro={oscuro}>
         {detalle.cups}
       </FilaDato>
+      {divisor}
       <FilaDato etiqueta="Tarifa contratada" oscuro={oscuro}>
         {suministro.tarifa} ({suministro.tipo})
       </FilaDato>
+      {divisor}
       <FilaDato etiqueta="Consumo anual" oscuro={oscuro}>
         {kwh(detalle.consumoAnual)} kWh/año
       </FilaDato>
-      <FilaDato etiqueta="Compañía actual" oscuro={oscuro}>
-        {detalle.companiaActual}
-      </FilaDato>
+      {detalle.potencia > 0 && (
+        <>
+          {divisor}
+          <FilaDato etiqueta="Nueva potencia contratada" oscuro={oscuro}>
+            {detalle.potencia.toLocaleString("es-ES")} kW
+          </FilaDato>
+        </>
+      )}
+      {divisor}
+      <div className="flex flex-col gap-02">
+        <span
+          className={`text-label-s tracking-wide uppercase ${
+            oscuro ? "text-content-always-light opacity-60" : "text-content-mid"
+          }`}
+        >
+          Nuevo perfil de consumo
+        </span>
+        <div className="flex flex-wrap items-center gap-02">
+          {(
+            [
+              ["Punta", detalle.perfil.punta],
+              ["Llano", detalle.perfil.llano],
+              ["Valle", detalle.perfil.valle],
+            ] as const
+          ).map(([franja, porcentaje]) => (
+            <span
+              key={franja}
+              className={[
+                "flex items-center gap-01 rounded-sm border px-02 py-01 text-body-s",
+                oscuro ? "border-white/10 text-content-always-light" : "border-border-low text-content-high",
+              ].join(" ")}
+            >
+              <span className="font-medium">{franja}</span>
+              <span className={oscuro ? "opacity-60" : "text-content-mid"}>
+                {kwh(Math.round((detalle.consumoAnual * porcentaje) / 100))} kWh ({porcentaje}%)
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+      {divisor}
+      <div className="flex items-center justify-between gap-04">
+        <span
+          className={`text-label-s tracking-wide uppercase ${
+            oscuro ? "text-content-always-light opacity-60" : "text-content-mid"
+          }`}
+        >
+          Compañía actual
+        </span>
+        <span className="flex items-center gap-01">
+          <span className={`text-body-m ${oscuro ? "text-content-always-light" : "text-content-high"}`}>
+            {detalle.companiaActual}
+          </span>
+          {detalle.permanencia && (
+            <Tooltip
+              content={`Tienes permanencia con ${detalle.companiaActual} hasta ${detalle.permanencia.hasta}. Si cambias ahora, la penalización estimada sería de ${euros(detalle.permanencia.penalizacion.min)}-${euros(detalle.permanencia.penalizacion.max)} €.`}
+            >
+              <span className={oscuro ? "text-content-always-light opacity-60" : "text-content-mid"}>
+                <Icon name="info" size={16} />
+              </span>
+            </Tooltip>
+          )}
+        </span>
+      </div>
     </div>
   );
 }
