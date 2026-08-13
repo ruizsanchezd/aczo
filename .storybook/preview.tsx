@@ -20,6 +20,16 @@ const preview: Preview = {
     },
   ],
   parameters: {
+    options: {
+      storySort: {
+        order: [
+          "Fundamentos",
+          ["Colores", "Tipografía", "Espaciados", "Radios y sombras", "Animación"],
+          "Sistema de diseño",
+        ],
+      },
+    },
+
     controls: {
       matchers: {
        color: /(background|color)$/i,

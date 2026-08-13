@@ -1,0 +1,28 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Text } from "../../ui/Text";
+import { ModoClaro, typeScale } from "../TokenSwatch";
+
+<Meta title="Fundamentos/Tipografía" />
+
+<ModoClaro>
+
+# Tipografía
+
+Los `heading` usan **Bradford LL TT**, la fuente de marca. Las demás familias (**title**,
+**label** y **body**) usan **Inter**. Se puede usar la escala directamente con el componente
+`<Text variant="…">`, que ya aplica familia, tamaño, interlineado y peso correctos.
+
+<div className="flex flex-col gap-05">
+  {typeScale.map((variant) => (
+    <div key={variant}>
+      <Text variant="body-s" color="low" as="p">
+        {variant}
+      </Text>
+      <Text variant={variant} as="p">
+        Aczo · Ag 123
+      </Text>
+    </div>
+  ))}
+</div>
+
+</ModoClaro>
