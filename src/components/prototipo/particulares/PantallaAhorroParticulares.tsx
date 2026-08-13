@@ -622,8 +622,8 @@ function FilaOferta({
   return (
     <div
       className={[
-        "overflow-hidden rounded-md border transition-colors motion-micro-states",
-        seleccionada ? "border-highlight-muted bg-highlight-soft" : "border-border-low bg-background-low",
+        "overflow-hidden rounded-md border bg-background-low transition-colors motion-micro-states",
+        seleccionada ? "border-border-mid" : "border-border-low",
       ].join(" ")}
     >
       <div
