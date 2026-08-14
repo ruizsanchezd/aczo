@@ -243,9 +243,11 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   interruptor "Condiciones"/"Detalles", más "Todas las ofertas" debajo con el resto de
   compañías — selección única entre las tres tarjetas y esas ofertas, y cada oferta se despliega
   en la misma tabla de puntos de suministro que empresas (con casilla para dejar un punto fuera
-  del cálculo e interruptor de mantenimiento, que aquí empieza apagado también en gas).
-  Pendiente: "Cambio de compañía" (paso 03) y lo que venga después. Componentes en
-  `src/components/prototipo/particulares/`.
+  del cálculo e interruptor de mantenimiento, que aquí empieza apagado también en gas). Y, al
+  pulsar "Hacer el cambio", "Cambio de compañía" (`PantallaCambioCompaniaParticulares`): casi
+  todo llega ya relleno —nombre y email de la subida, DNI y dirección "leídos de la factura",
+  CUPS bloqueado— y solo quedan el IBAN y la firma. Pendiente: "Alta en tramitación" (paso 04) y
+  lo que venga después. Componentes en `src/components/prototipo/particulares/`.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una
