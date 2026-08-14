@@ -52,7 +52,10 @@ export const PASOS_PARTICULARES = [
   { numero: "01", nombre: "Sube tu factura" },
   { numero: "02", nombre: "Ahorro y recomendación" },
   { numero: "03", nombre: "Cambio de compañía" },
-  { numero: "04", nombre: "Monitoreo constante" },
+  // "Inicio de sesión", no "Monitoreo constante" como en empresas: así lo
+  // marca el Figma de este paso (node 4136:42677), y encaja con lo que la
+  // pantalla ofrece de verdad — entrar al área de cliente.
+  { numero: "04", nombre: "Inicio de sesión" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */

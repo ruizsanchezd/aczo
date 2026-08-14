@@ -83,10 +83,26 @@ const ESQUINA_INFERIOR: Array<[number, number]> = [
   [3, 1],
 ];
 
+/**
+ * Tapa el email dejando a la vista las dos primeras letras y el dominio:
+ * "laura@gmail.com" → "la•••@gmail.com". Es lo que enseña el Figma en el
+ * bloque de credenciales — la persona reconoce su correo sin que quede
+ * escrito entero en pantalla.
+ */
+function taparEmail(email: string) {
+  const [usuario, dominio] = email.split("@");
+  if (!usuario || !dominio) return email;
+  return `${usuario.slice(0, 2)}•••@${dominio}`;
+}
+
 export function PantallaAltaEmpresas({
   pendienteAprobacion,
+  email,
 }: {
   pendienteAprobacion: boolean;
+  /** El email de quien tramita, para enseñarlo tapado en el bloque de
+   * credenciales. Si no llega, se usa el de ejemplo del Figma. */
+  email?: string;
 }) {
   // Arranca sin ningún tramo hecho para que la barra se vea llenarse.
   const [tramo, setTramo] = useState(-1);
@@ -165,7 +181,7 @@ export function PantallaAltaEmpresas({
                 <div className="flex flex-col gap-01 rounded-md border border-border-low bg-background-low p-04">
                   <Text variant="body-s" color="low">
                     Te hemos enviado tu acceso por SMS al ••••••456 y por
-                    email a co•••@empresa.es
+                    email a {email ? taparEmail(email) : "co•••@empresa.es"}
                   </Text>
                   <Text variant="body-m" as="span">
                     Usuario: contacto · Contraseña temporal: ••••
