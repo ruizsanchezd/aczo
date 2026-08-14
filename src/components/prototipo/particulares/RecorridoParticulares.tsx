@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PantallaAltaEmpresas } from "../empresas/PantallaAltaEmpresas";
 import { PantallaCargaEmpresas } from "../empresas/PantallaCargaEmpresas";
 import { NavbarParticulares } from "./NavbarParticulares";
 import {
@@ -42,16 +43,22 @@ import { PantallaSubidaParticulares } from "./PantallaSubidaParticulares";
  *   resultado    01          errores y alertas del análisis (sigue en el paso 1)
  *   ahorro       02          "Recomendado para ti", tras "Calcular ahorro"
  *   cambio       03          "Cambio de compañía", tras "Hacer el cambio"
+ *   alta         04          "Inicio de sesión", tras "Activar cambio"
  *
  * QUÉ SE ARRASTRA DE UNA PANTALLA A OTRA: el nombre y el email que se
  * escriben en `subida` llegan hasta `cambio`, donde salen ya rellenos (junto
- * con lo "leído de la factura"); y `ahorro` le pasa a `cambio` una foto de la
- * oferta elegida para la columna del resumen.
+ * con lo "leído de la factura"), y el email sigue hasta `alta`, donde se
+ * enseña tapado en el bloque de credenciales; y `ahorro` le pasa a `cambio`
+ * una foto de la oferta elegida para la columna del resumen.
  *
- * Pendiente: "Alta en tramitación" (paso 04) y lo que venga después.
+ * El paso 04 REUTILIZA `PantallaAltaEmpresas` tal cual, igual que la pantalla
+ * de carga: el Figma la dibuja idéntica en los dos flujos (node 4136:42677).
+ * Se usa siempre en su variante "alta completada" (`pendienteAprobacion` en
+ * false) porque aquí no existe la figura del apoderado que tenga que firmar
+ * aparte — eso solo pasa en empresas.
  */
 
-const VISTAS = ["subida", "carga", "resultado", "ahorro", "cambio"] as const;
+const VISTAS = ["subida", "carga", "resultado", "ahorro", "cambio", "alta"] as const;
 type Vista = (typeof VISTAS)[number];
 
 const PASO_DE_VISTA: Record<Vista, number | null> = {
@@ -60,6 +67,7 @@ const PASO_DE_VISTA: Record<Vista, number | null> = {
   resultado: 0,
   ahorro: 1,
   cambio: 2,
+  alta: 3,
 };
 
 export function RecorridoParticulares() {
@@ -114,9 +122,13 @@ export function RecorridoParticulares() {
             datosContratante={datosContratante}
             resumen={resumen}
             onAtras={() => ir("ahorro")}
-            // El paso 04 ("Alta en tramitación") todavía no existe: de
-            // momento el botón no lleva a ningún sitio.
-            onContinuar={() => {}}
+            onContinuar={() => ir("alta")}
+          />
+        )}
+        {vista === "alta" && (
+          <PantallaAltaEmpresas
+            pendienteAprobacion={false}
+            email={datosContratante.email}
           />
         )}
       </main>
