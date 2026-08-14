@@ -1,0 +1,113 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { SwatchGrid } from "../TokenSwatch";
+import { ModoClaro } from "../../../../.storybook/ModoClaro";
+
+<Meta title="Fundamentos/Colores" />
+
+<ModoClaro>
+
+# Colores
+
+Toda la paleta vive como variables CSS en `src/app/globals.css`. Los componentes nunca usan
+colores directos: siempre tokens semánticos (`bg-background-low`, `text-content-mid`…), de modo
+que un cambio en el token repinta todo el prototipo.
+
+El producto va siempre en **modo claro** (lo fuerza `data-theme="light"`), así que lo que ves
+abajo es ese modo. Lo que **sí cambia** si algún día se activa el oscuro: contenido, fondos,
+bordes y los fondos suaves de feedback. Lo que **no cambia** entre modos (así está en el Figma,
+no es un olvido): la familia `highlight`, la paleta `extended`, los colores fuertes de feedback y
+los `content-always-*` / `background-always-*`.
+
+## Contenido — texto e iconos
+
+<SwatchGrid
+  label="Contenido"
+  swatches={[
+    { name: "content-high", className: "bg-content-high" },
+    { name: "content-mid", className: "bg-content-mid" },
+    { name: "content-low", className: "bg-content-low" },
+    { name: "content-inverse", className: "bg-content-inverse" },
+    { name: "content-state-disabled", className: "bg-content-state-disabled" },
+  ]}
+/>
+
+## Fondos
+
+<SwatchGrid
+  label="Fondos"
+  swatches={[
+    { name: "background-base", className: "bg-background-base" },
+    { name: "background-low", className: "bg-background-low" },
+    { name: "background-mid", className: "bg-background-mid" },
+    { name: "background-high", className: "bg-background-high" },
+    { name: "background-inverse", className: "bg-background-inverse" },
+    { name: "background-always-light", className: "bg-background-always-light" },
+    { name: "background-always-dark", className: "bg-background-always-dark" },
+    { name: "background-overlay", className: "bg-background-overlay" },
+  ]}
+/>
+
+## Bordes
+
+<SwatchGrid
+  label="Bordes"
+  swatches={[
+    { name: "border-low", className: "bg-border-low" },
+    { name: "border-mid", className: "bg-border-mid" },
+    { name: "border-high", className: "bg-border-high" },
+  ]}
+/>
+
+## Highlight — el amarillo de marca y su familia
+
+<SwatchGrid
+  label="Highlight"
+  swatches={[
+    { name: "highlight-vivid", className: "bg-highlight-vivid" },
+    { name: "highlight-soft", className: "bg-highlight-soft" },
+    { name: "highlight-muted", className: "bg-highlight-muted" },
+    { name: "highlight-neutral", className: "bg-highlight-neutral" },
+    { name: "highlight-deep", className: "bg-highlight-deep" },
+  ]}
+/>
+
+## Feedback
+
+<SwatchGrid
+  label="Feedback"
+  swatches={[
+    { name: "success-high", className: "bg-success-high" },
+    { name: "success-low", className: "bg-success-low" },
+    { name: "danger-high", className: "bg-danger-high" },
+    { name: "danger-low", className: "bg-danger-low" },
+    { name: "info-high", className: "bg-info-high" },
+    { name: "info-low", className: "bg-info-low" },
+    { name: "warning-high", className: "bg-warning-high" },
+    { name: "warning-low", className: "bg-warning-low" },
+  ]}
+/>
+
+## Extended — paleta ampliada (gráficas, categorías)
+
+<SwatchGrid
+  label="Extended"
+  swatches={[
+    { name: "extended-one-mid", className: "bg-extended-one-mid" },
+    { name: "extended-two-mid", className: "bg-extended-two-mid" },
+    { name: "extended-three-mid", className: "bg-extended-three-mid" },
+    { name: "extended-four-mid", className: "bg-extended-four-mid" },
+    { name: "extended-five-mid", className: "bg-extended-five-mid" },
+    { name: "extended-one-light", className: "bg-extended-one-light" },
+    { name: "extended-two-light", className: "bg-extended-two-light" },
+    { name: "extended-three-light", className: "bg-extended-three-light" },
+    { name: "extended-four-light", className: "bg-extended-four-light" },
+    { name: "extended-five-light", className: "bg-extended-five-light" },
+    { name: "extended-one-dark", className: "bg-extended-one-dark" },
+    { name: "extended-two-dark", className: "bg-extended-two-dark" },
+    { name: "extended-three-dark", className: "bg-extended-three-dark" },
+    { name: "extended-four-dark", className: "bg-extended-four-dark" },
+    { name: "extended-five-dark", className: "bg-extended-five-dark" },
+  ]}
+/>
+
+</ModoClaro>

@@ -1,0 +1,28 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Text } from "../../ui/Text";
+import { ModoClaro } from "../../../../.storybook/ModoClaro";
+import { MotionDemo } from "../../../app/estilos/MotionDemo";
+
+<Meta title="Fundamentos/Animación" />
+
+<ModoClaro>
+
+# Animación
+
+Los tokens semánticos: cada uno lleva ya su duración y su curva. Pulsa para comparar cómo se
+sienten.
+
+{/* sb-unstyled: que Storybook no le imponga su tipografía de "prosa" a los
+    <Text> de la demo — son reales, no texto de documentación. */}
+<div className="sb-unstyled">
+  <MotionDemo />
+</div>
+
+<div className="sb-unstyled mt-07 rounded-md bg-background-low p-04">
+  <Text variant="body-s" color="mid">
+    Si en los ajustes del sistema tienes activado <strong>reducir movimiento</strong>, las
+    animaciones se desactivan solas en todo el prototipo. Es a propósito.
+  </Text>
+</div>
+
+</ModoClaro>

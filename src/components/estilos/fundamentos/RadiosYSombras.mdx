@@ -1,0 +1,74 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Text } from "../../ui/Text";
+import { ModoClaro } from "../../../../.storybook/ModoClaro";
+
+<Meta title="Fundamentos/Radios y sombras" />
+
+<ModoClaro>
+
+# Radios y sombras
+
+## Radios
+
+{/* sb-unstyled en cada bloque: que Storybook no le imponga su tipografía de
+    "prosa" a los <Text> de las etiquetas — son reales, no texto de docs. */}
+<div className="sb-unstyled mb-07 grid grid-cols-2 gap-04 sm:grid-cols-5">
+  {[
+    ["rounded-none", "0px"],
+    ["rounded-sm", "4px"],
+    ["rounded-md", "8px"],
+    ["rounded-lg", "16px"],
+    ["rounded-full", "999px"],
+  ].map(([cls, px]) => (
+    <div key={cls}>
+      <div className={`h-09 w-full border-2 border-border-high ${cls}`} />
+      <Text variant="body-s" color="mid" className="mt-02">
+        {cls} · {px}
+      </Text>
+    </div>
+  ))}
+</div>
+
+## Grosor de borde
+
+<div className="sb-unstyled mb-07 grid grid-cols-2 gap-04">
+  {[
+    ["border", "1px · border-width-m"],
+    ["border-2", "2px · border-width-l"],
+  ].map(([cls, label]) => (
+    <div key={cls}>
+      <div className={`h-09 w-full rounded-md border-border-high ${cls}`} />
+      <Text variant="body-s" color="mid" className="mt-02">
+        {label}
+      </Text>
+    </div>
+  ))}
+</div>
+
+## Opacidad de estado
+
+<div className="sb-unstyled mb-07 grid grid-cols-3 gap-04">
+  {[
+    ["opacity-100", "100% · default"],
+    ["opacity-60", "60% · hover"],
+    ["opacity-30", "30% · pressed"],
+  ].map(([cls, label]) => (
+    <div key={cls}>
+      <div className={`h-09 w-full rounded-md bg-content-high ${cls}`} />
+      <Text variant="body-s" color="mid" className="mt-02">
+        {label}
+      </Text>
+    </div>
+  ))}
+</div>
+
+## Sombra
+
+<div className="sb-unstyled rounded-md bg-background-low p-07">
+  <div className="h-09 w-full rounded-md bg-background-base shadow-md" />
+  <Text variant="body-s" color="mid" className="mt-03">
+    shadow-md · style-shadow-m
+  </Text>
+</div>
+
+</ModoClaro>

@@ -1,5 +1,6 @@
 import { Text } from "@/components/ui/Text";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SwatchGrid, spacing, typeScale } from "@/components/estilos/TokenSwatch";
 import { MotionDemo } from "./MotionDemo";
 
 /**
@@ -28,73 +29,6 @@ function Section({
     </section>
   );
 }
-
-function Swatch({ name, className }: { name: string; className: string }) {
-  return (
-    <div>
-      <div
-        className={`h-10 w-full rounded-md border border-border-low ${className}`}
-      />
-      <Text variant="body-s" color="mid" className="mt-02 break-all">
-        {name}
-      </Text>
-    </div>
-  );
-}
-
-function SwatchGrid({
-  label,
-  swatches,
-}: {
-  label: string;
-  swatches: { name: string; className: string }[];
-}) {
-  return (
-    <div className="mb-07">
-      <Text variant="label-m" color="mid" className="mb-03">
-        {label}
-      </Text>
-      <div className="grid grid-cols-2 gap-04 sm:grid-cols-3 md:grid-cols-5">
-        {swatches.map((s) => (
-          <Swatch key={s.name} {...s} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const spacing = [
-  ["00", "0"],
-  ["01", "4"],
-  ["02", "8"],
-  ["03", "12"],
-  ["04", "16"],
-  ["05", "20"],
-  ["06", "24"],
-  ["07", "32"],
-  ["08", "40"],
-  ["09", "48"],
-  ["10", "64"],
-];
-
-const typeScale = [
-  "heading-xl",
-  "heading-l",
-  "heading-m",
-  "heading-s",
-  "heading-xs",
-  "title-xl",
-  "title-l",
-  "title-m",
-  "title-s",
-  "label-l",
-  "label-m",
-  "label-s",
-  "label-s-uppercase",
-  "body-l",
-  "body-m",
-  "body-s",
-] as const;
 
 export default function EstilosPage() {
   return (
