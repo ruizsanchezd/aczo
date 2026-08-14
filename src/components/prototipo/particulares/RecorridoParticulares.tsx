@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { PantallaCargaEmpresas } from "../empresas/PantallaCargaEmpresas";
 import { NavbarParticulares } from "./NavbarParticulares";
-import { PantallaAhorroParticulares } from "./PantallaAhorroParticulares";
+import {
+  PantallaAhorroParticulares,
+  type ResumenCambioParticulares,
+} from "./PantallaAhorroParticulares";
+import { PantallaCambioCompaniaParticulares } from "./PantallaCambioCompaniaParticulares";
 import { PantallaResultadoParticulares } from "./PantallaResultadoParticulares";
 import { PantallaSubidaParticulares } from "./PantallaSubidaParticulares";
 
@@ -37,13 +41,17 @@ import { PantallaSubidaParticulares } from "./PantallaSubidaParticulares";
  *   carga        (ninguno)   pantalla de carga a pantalla completa
  *   resultado    01          errores y alertas del análisis (sigue en el paso 1)
  *   ahorro       02          "Recomendado para ti", tras "Calcular ahorro"
+ *   cambio       03          "Cambio de compañía", tras "Hacer el cambio"
  *
- * Pendiente: "Cambio de compañía" (paso 03) y lo que venga después. El botón
- * "Hacer el cambio" de `ahorro` está listo para conectarse en cuanto exista
- * esa pantalla.
+ * QUÉ SE ARRASTRA DE UNA PANTALLA A OTRA: el nombre y el email que se
+ * escriben en `subida` llegan hasta `cambio`, donde salen ya rellenos (junto
+ * con lo "leído de la factura"); y `ahorro` le pasa a `cambio` una foto de la
+ * oferta elegida para la columna del resumen.
+ *
+ * Pendiente: "Alta en tramitación" (paso 04) y lo que venga después.
  */
 
-const VISTAS = ["subida", "carga", "resultado", "ahorro"] as const;
+const VISTAS = ["subida", "carga", "resultado", "ahorro", "cambio"] as const;
 type Vista = (typeof VISTAS)[number];
 
 const PASO_DE_VISTA: Record<Vista, number | null> = {
@@ -51,10 +59,18 @@ const PASO_DE_VISTA: Record<Vista, number | null> = {
   carga: null,
   resultado: 0,
   ahorro: 1,
+  cambio: 2,
 };
 
 export function RecorridoParticulares() {
   const [vista, setVista] = useState<Vista>("subida");
+  // Lo que se escribió al subir la factura, para no volver a pedirlo en el
+  // paso 3.
+  const [datosContratante, setDatosContratante] = useState({
+    nombre: "",
+    email: "",
+  });
+  const [resumen, setResumen] = useState<ResumenCambioParticulares | null>(null);
 
   // Cada cambio de paso entra por el inicio de la página — mismo patrón que
   // RecorridoEmpresas.tsx.
@@ -71,10 +87,12 @@ export function RecorridoParticulares() {
 
       <main key={vista} className="anim-entra-adelante flex flex-1 flex-col">
         {vista === "subida" && (
-          // El nombre y el email todavía no viajan a ningún sitio: la
-          // siguiente pantalla que los necesitará ("ahorro y recomendación")
-          // aún no existe. Se recogerán en cuanto haga falta pasarlos.
-          <PantallaSubidaParticulares onContinuar={() => ir("carga")} />
+          <PantallaSubidaParticulares
+            onContinuar={(datos) => {
+              setDatosContratante(datos);
+              ir("carga");
+            }}
+          />
         )}
         {vista === "carga" && (
           <PantallaCargaEmpresas onTerminar={() => ir("resultado")} />
@@ -82,7 +100,25 @@ export function RecorridoParticulares() {
         {vista === "resultado" && (
           <PantallaResultadoParticulares onContinuar={() => ir("ahorro")} />
         )}
-        {vista === "ahorro" && <PantallaAhorroParticulares onAtras={() => ir("resultado")} />}
+        {vista === "ahorro" && (
+          <PantallaAhorroParticulares
+            onAtras={() => ir("resultado")}
+            onContinuar={(nuevoResumen) => {
+              setResumen(nuevoResumen);
+              ir("cambio");
+            }}
+          />
+        )}
+        {vista === "cambio" && resumen && (
+          <PantallaCambioCompaniaParticulares
+            datosContratante={datosContratante}
+            resumen={resumen}
+            onAtras={() => ir("ahorro")}
+            // El paso 04 ("Alta en tramitación") todavía no existe: de
+            // momento el botón no lleva a ningún sitio.
+            onContinuar={() => {}}
+          />
+        )}
       </main>
     </div>
   );

@@ -51,6 +51,8 @@ export const PASOS_EMPRESA = [
 export const PASOS_PARTICULARES = [
   { numero: "01", nombre: "Sube tu factura" },
   { numero: "02", nombre: "Ahorro y recomendación" },
+  { numero: "03", nombre: "Cambio de compañía" },
+  { numero: "04", nombre: "Monitoreo constante" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -437,6 +439,61 @@ export const COMERCIALIZADORAS_POR_NOMBRE: Record<string, Comercializadora> = {
  * empresas, aquí solo hay una, así que no hace falta agrupar por sociedad ni
  * por dirección: se enseñan los puntos directamente. */
 export const VIVIENDA_DIRECCION = "Calle Mayor 14, 3ºB, Madrid";
+
+/**
+ * Lo que Aczo dice haber LEÍDO DE LA FACTURA subida en el paso 1, y que en el
+ * paso 3 ("Cambio de compañía") aparece ya relleno para no pedirlo otra vez:
+ * el DNI de quien titula el contrato y la dirección del suministro, desglosada
+ * en los campos del formulario.
+ *
+ * En el prototipo son datos inventados, claro; lo que importa es la idea de
+ * que a la persona solo le queda poner el IBAN y firmar. Cuadra con
+ * `VIVIENDA_DIRECCION` de arriba y con el CUPS del punto de luz.
+ */
+export type DatosLeidosParticulares = {
+  dni: string;
+  tipoVia: string;
+  nombreVia: string;
+  numero: string;
+  piso: string;
+  puerta: string;
+  codigoPostal: string;
+  localidad: string;
+  provincia: string;
+};
+
+export const DATOS_LEIDOS_PARTICULARES: DatosLeidosParticulares = {
+  dni: "38829103B",
+  tipoVia: "calle",
+  nombreVia: "Mayor",
+  numero: "14",
+  piso: "3",
+  puerta: "B",
+  codigoPostal: "28013",
+  localidad: "Madrid",
+  provincia: "madrid",
+};
+
+/** Opciones del desplegable "Tipo de vía" del paso 3. */
+export const TIPOS_DE_VIA = [
+  { value: "calle", label: "Calle" },
+  { value: "avenida", label: "Avenida" },
+  { value: "plaza", label: "Plaza" },
+  { value: "paseo", label: "Paseo" },
+  { value: "camino", label: "Camino" },
+  { value: "carretera", label: "Carretera" },
+] as const;
+
+/** Opciones del desplegable "Provincia" del paso 3. Una muestra, no las 52:
+ * es un prototipo y la lista entera solo añadiría ruido. */
+export const PROVINCIAS = [
+  { value: "madrid", label: "Madrid" },
+  { value: "barcelona", label: "Barcelona" },
+  { value: "valencia", label: "Valencia" },
+  { value: "sevilla", label: "Sevilla" },
+  { value: "malaga", label: "Málaga" },
+  { value: "zaragoza", label: "Zaragoza" },
+] as const;
 
 /** Los dos puntos de suministro de la vivienda (luz y gas). Reutiliza el
  * mismo tipo `Suministro` que el resto del prototipo — no lleva `sociedadId`

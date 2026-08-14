@@ -72,6 +72,19 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
 type Eleccion = { tipo: "recomendacion" | "oferta"; id: string };
 
 /**
+ * Una foto de lo elegido en esta pantalla, para la columna derecha del paso 3
+ * ("Cambio de compañía"). Se calcula en el momento de pulsar "Hacer el
+ * cambio", así que recoge también los puntos que se hayan dejado fuera y el
+ * mantenimiento que esté activado.
+ */
+export type ResumenCambioParticulares = {
+  comercializadora: string;
+  puntos: number;
+  puntosConMantenimiento: number;
+  ahorroAnual: number;
+};
+
+/**
  * Qué parte del ahorro anual de una compañía corresponde a un punto de
  * suministro concreto, repartiéndolo en proporción al ahorro propio de cada
  * punto. Hace falta repartir porque en los mocks el ahorro de cada compañía es
@@ -99,7 +112,7 @@ export function PantallaAhorroParticulares({
   onContinuar,
 }: {
   onAtras: () => void;
-  onContinuar?: () => void;
+  onContinuar?: (resumen: ResumenCambioParticulares) => void;
 }) {
   const [mensual, setMensual] = useState(true);
   const [mantenimientoLuz, setMantenimientoLuz] = useState(false);
@@ -126,6 +139,39 @@ export function PantallaAhorroParticulares({
       else siguiente.add(id);
       return siguiente;
     });
+  }
+
+  /** Lo elegido ahora mismo, para pasárselo al paso 3. Una recomendación
+   * cubre los dos puntos de la vivienda; una oferta, solo los tipos que
+   * ella misma cubra. */
+  function resumenDeLoElegido(): ResumenCambioParticulares {
+    const oferta =
+      eleccion.tipo === "oferta"
+        ? OFERTAS_PARTICULARES.find((o) => o.id === eleccion.id)
+        : undefined;
+    const recomendacion =
+      eleccion.tipo === "recomendacion"
+        ? RECOMENDACIONES_PARTICULARES.find((r) => r.id === eleccion.id)
+        : undefined;
+
+    const puntos = oferta
+      ? oferta.tipos.map((t) => (t === "Luz" ? suministroLuz : suministroGas))
+      : [suministroLuz, suministroGas];
+    const incluidos = puntos.filter((p) => !excluidos.has(p.id));
+    const puntosConMantenimiento = incluidos.filter((p) =>
+      p.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas,
+    ).length;
+    const ahorroBase = oferta?.ahorroAnual ?? recomendacion?.ahorroAnual ?? 0;
+
+    return {
+      comercializadora: oferta?.comercializadora ?? recomendacion?.comercializadora ?? "",
+      puntos: incluidos.length,
+      puntosConMantenimiento,
+      ahorroAnual: conMantenimientoMixto(
+        ahorroDeLosPuntosIncluidos(ahorroBase, puntos, excluidos),
+        puntosConMantenimiento,
+      ),
+    };
   }
 
   return (
@@ -227,7 +273,10 @@ export function PantallaAhorroParticulares({
           <Button variant="secondary" iconStart="chevron-left" onClick={onAtras}>
             Atrás
           </Button>
-          <Button iconEnd="chevron-right" onClick={onContinuar}>
+          <Button
+            iconEnd="chevron-right"
+            onClick={() => onContinuar?.(resumenDeLoElegido())}
+          >
             Hacer el cambio
           </Button>
         </div>

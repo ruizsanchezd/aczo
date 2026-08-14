@@ -471,7 +471,33 @@ Hasta dónde está construido:
      mantenimiento de la luz" y "el de este punto de luz" son la misma cosa, así que comparten
      estado y se mueven a la vez.
 
-Pendiente: "Cambio de compañía" (paso 03) y lo que venga después — se documentará aquí en cuanto
+5. **Cambio de compañía** (paso 03, `PantallaCambioCompaniaParticulares.tsx`): del Figma
+   node 4105:32954. Aparece al pulsar "Hacer el cambio". La idea de la pantalla es que casi todo
+   llegue ya relleno y solo queden el IBAN y la firma:
+   - **Nombre y email** vienen de lo que se escribió en el paso 1 (los arrastra
+     `RecorridoParticulares` desde `PantallaSubidaParticulares`).
+   - **DNI y toda la dirección del suministro** salen "leídos de la factura"
+     (`DATOS_LEIDOS_PARTICULARES` en `mocks/aczo.ts`), y el bloque lo dice con la etiqueta
+     "Detectados de tu factura". El **CUPS** también, pero va bloqueado: identifica el punto de
+     suministro, no es algo que se corrija a mano.
+   - **Titular** de la cuenta se rellena con el nombre de la persona; **IBAN y firma** son lo
+     único vacío.
+   - "Activar cambio" está desactivado hasta que hay IBAN, firma y consentimiento de la
+     domiciliación.
+   - La columna derecha lleva el resumen de lo elegido en el paso 02 (comercializadora, puntos
+     incluidos, mantenimiento y ahorro — se calcula al pulsar "Hacer el cambio", así que refleja
+     los puntos que se hayan dejado fuera) y la banda oscura "Aczo garantiza".
+   - Diferencias con la misma pantalla de empresas: aquí no hay sociedades ni apoderados, así que
+     desaparecen el interruptor "¿tramitas en nombre de otra persona?", los poderes de
+     representación, el enlace de firma y el IBAN por sociedad. Las piezas que sí son idénticas
+     (tarjeta blanca, cabecera, fila de resumen, zona de subida del DNI y recuadro de firma) ya no
+     están duplicadas: viven en `PiezasCambioCompania.tsx` y las usan los dos flujos.
+   - Animaciones: las mismas que en empresas, porque son las mismas piezas — arrastrar el DNI tiñe
+     la zona de `highlight-soft` y agranda el icono, el recuadro de firma cambia de borde al pasar
+     por encima y el cursor pasa a cruz, "Borrar firma" aparece en cuanto hay trazo, y la barra
+     inferior no se ve hasta que se empieza a bajar (`useVisibleAlDesplazar`).
+
+Pendiente: "Alta en tramitación" (paso 04) y lo que venga después — se documentará aquí en cuanto
 se construya.
 
 ## Transición entre pantallas
@@ -508,6 +534,9 @@ src/
     prototipo/                  una pantalla por archivo + Recorrido.tsx
       DetalleTecnicoSuministro.tsx  la ficha técnica de un punto, compartida por
                                     las tablas de empresas y de particulares
+      PiezasCambioCompania.tsx      tarjeta, cabecera, fila de resumen, subida
+                                    del DNI y recuadro de firma — las comparten
+                                    las dos pantallas del paso 03
       empresas/                 pantallas y navbar propios del flujo de empresas
       particulares/             pantallas y navbar propios del flujo de particulares
     ui/                         componentes del sistema de diseño
