@@ -60,7 +60,6 @@ export function PantallaSubidaParticulares({
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
-  const [confirmaDatos, setConfirmaDatos] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Subida simulada: mientras haya archivos "subiendo", el progreso avanza
@@ -113,8 +112,7 @@ export function PantallaSubidaParticulares({
     todosListos &&
     nombre.trim() !== "" &&
     email.trim() !== "" &&
-    aceptaPrivacidad &&
-    confirmaDatos;
+    aceptaPrivacidad;
 
   return (
     <div className="flex flex-1 flex-col items-center bg-background-base px-06 pb-06">
@@ -278,11 +276,6 @@ export function PantallaSubidaParticulares({
                 He leído y acepto la Política de Privacidad y Protección de
                 Datos, y autorizo el tratamiento de mis facturas para el
                 análisis y la optimización energética.
-              </Checkbox>
-              <Checkbox checked={confirmaDatos} onChange={setConfirmaDatos}>
-                Confirmo que los datos aportados son míos y autorizo su
-                tratamiento confidencial por parte de ACZO, sin cesión a
-                terceros salvo para ejecutar el cambio de suministro.
               </Checkbox>
             </div>
           </div>
