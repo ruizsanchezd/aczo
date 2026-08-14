@@ -25,10 +25,12 @@ import { HuecoLogo } from "../TarjetaPlan";
 import type { ResumenCambioParticulares } from "./PantallaAhorroParticulares";
 
 /**
- * PantallaCambioCompaniaParticulares — pantalla 03 "Cambio de compañía" del
- * flujo de particulares (Figma node 4105:32954). Aparece al pulsar "Hacer el
- * cambio" en "Ahorro y recomendación", que le pasa una foto de la oferta
- * elegida (`ResumenCambioParticulares`) para la columna derecha.
+ * PantallaCambioCompaniaParticulares — pantalla 03 del flujo de particulares,
+ * la que se titula "Confirma tus datos" (igual que el paso en el indicador de
+ * arriba; el nombre del archivo viene de cuando se llamaba "Cambio de
+ * compañía"). Del Figma node 4105:32954. Aparece al pulsar "Hacer el cambio"
+ * en "Ahorro y recomendación", que le pasa una foto de la oferta elegida
+ * (`ResumenCambioParticulares`) para la columna derecha.
  *
  * LA IDEA DE ESTA PANTALLA: que casi todo venga ya relleno y a la persona
  * solo le quede poner el IBAN y firmar. De dónde sale cada cosa:
@@ -121,7 +123,7 @@ export function PantallaCambioCompaniaParticulares({
               className="anim-aparece flex flex-col items-center gap-03 text-center"
               style={retardo(0)}
             >
-              <Text variant="heading-l">Cambio de compañía</Text>
+              <Text variant="heading-l">Confirma tus datos</Text>
               <Text variant="body-l" color="mid" className="max-w-[600px]">
                 Ya hemos rellenado tus datos con lo que leímos de la factura.
                 Solo falta la cuenta donde domiciliar y tu firma.

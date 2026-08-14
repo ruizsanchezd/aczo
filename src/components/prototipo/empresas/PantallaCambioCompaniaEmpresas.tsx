@@ -23,10 +23,12 @@ import { HuecoLogo } from "../TarjetaPlan";
 import type { ResumenCambioEmpresas } from "./PantallaAhorroEmpresas";
 
 /**
- * PantallaCambioCompaniaEmpresas — pantalla 03 "Cambio de compañía" del
- * flujo de empresas. Aparece al pulsar "Hacer el cambio" en "Tu ahorro
- * potencial" (`PantallaAhorroEmpresas`), que le pasa una foto del plan
- * elegido en ese momento (`ResumenCambioEmpresas`) para la columna derecha.
+ * PantallaCambioCompaniaEmpresas — pantalla 03 del flujo de empresas, la que
+ * se titula "Confirma tus datos" (igual que el paso en el indicador de
+ * arriba; el nombre del archivo viene de cuando se llamaba "Cambio de
+ * compañía"). Aparece al pulsar "Hacer el cambio" en "Tu ahorro potencial"
+ * (`PantallaAhorroEmpresas`), que le pasa una foto del plan elegido en ese
+ * momento (`ResumenCambioEmpresas`) para la columna derecha.
  *
  * DOS FLUJOS, según el interruptor "¿Tramitas este proceso en nombre de
  * otra persona?" (por defecto apagado = tramita standard):
@@ -234,7 +236,7 @@ export function PantallaCambioCompaniaEmpresas({
         <div className="flex w-full flex-col rounded-md bg-background-low">
           <div className="layout-section flex flex-col gap-08 py-09">
             <div className="anim-aparece flex flex-col items-center gap-03 text-center" style={retardo(0)}>
-              <Text variant="heading-l">Cambio de compañía</Text>
+              <Text variant="heading-l">Confirma tus datos</Text>
               <Text variant="body-l" color="mid" className="max-w-[600px]">
                 Para tramitar el cambio en nombre de las sociedades necesitamos al
                 apoderado, su firma y el poder que lo acredite.
