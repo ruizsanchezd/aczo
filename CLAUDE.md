@@ -262,9 +262,13 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
 
 Ya tienen logo real TotalEnergies y Repsol (`public/logos/totalenergies.png` y `repsol.png`,
 exportados del Figma) — se ven en `HuecoLogo` y `LogoComercializadora`, ambos en
-`TarjetaPlan.tsx`. Pendiente: Naturgy, Octopus, Iberdrola y Endesa, que de momento siguen
-enseñando el nombre en el hueco reservado (80 × 40). Cuando lleguen los archivos, van en
-`public/logos/` con el mismo nombre en minúsculas y solo hay que añadirlos al mapa `LOGOS`.
+`TarjetaPlan.tsx`. También tienen logo "Ahorra Energía" y "Bululú Energía"
+(`ahorra-energia.svg` y `bululu-energia.svg`), pero ese es INVENTADO, porque las dos compañías
+también lo son (salen en el panel de comparar). Pendiente: Naturgy, Octopus, Iberdrola y Endesa
+— son marcas reales, así que su logo no se inventa: de momento enseñan el nombre en el hueco
+reservado (80 × 40) o su inicial en las listas de caja cuadrada. Cuando lleguen los archivos,
+van en `public/logos/` y solo hay que añadirlos al mapa `LOGOS`, cuya clave es el nombre en
+minúsculas tal cual (con espacios y tildes).
 
 - **Datos mock:** todos en `src/mocks/aczo.ts`, un solo archivo. Los totales no están escritos a
   mano: se calculan sumando los suministros, así que al editar una cifra todo sigue cuadrando.

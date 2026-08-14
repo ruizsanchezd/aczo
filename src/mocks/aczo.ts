@@ -709,6 +709,101 @@ export const OFERTAS: Oferta[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
+/* Alternativas del panel "Comparar con..." (/empresas)                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Lo que se ve en el panel lateral que se abre con "Comparar" en cada
+ * comercializadora de "Tu ahorro potencial": otras compañías que podrían
+ * hacerse cargo de esos mismos puntos de suministro, cada una con su ahorro y
+ * su letra pequeña.
+ *
+ * Van ordenadas de más a menos ahorro, que es como se leen: la primera es la
+ * que más conviene.
+ */
+export type AlternativaComparar = {
+  id: string;
+  nombre: string;
+  tipo: TipoSuministro;
+  /** Cuántos de los puntos de esa comercializadora cubriría. */
+  suministros: number;
+  ahorroAnual: number;
+  /** La ficha que se despliega al abrir la tarjeta. */
+  detalles: {
+    precioEnergia: string;
+    precioPotencia: string;
+    tipoTarifa: string;
+    permanencia: string;
+    penalizacion: string;
+  };
+  condiciones: string[];
+};
+
+export const ALTERNATIVAS_COMPARAR: AlternativaComparar[] = [
+  {
+    id: "octopus",
+    nombre: "Octopus",
+    tipo: "Luz",
+    suministros: 11,
+    ahorroAnual: 480,
+    detalles: {
+      precioEnergia: "0,095 €/kWh",
+      precioPotencia: "38,50 €/kW año",
+      tipoTarifa: "Fija 12 meses",
+      permanencia: "Sin permanencia",
+      penalizacion: "Sin penalización",
+    },
+    condiciones: [
+      "Factura 100% digital",
+      "Energía 100% renovable",
+      "Atención al cliente 24/7",
+      "Sin servicios adicionales obligatorios",
+    ],
+  },
+  // Las dos siguientes son compañías inventadas, con los nombres del Figma
+  // (node 4136:43254). Su logo también es inventado, claro: está en
+  // `public/logos/`.
+  {
+    id: "ahorra",
+    nombre: "Ahorra Energía",
+    tipo: "Luz",
+    suministros: 10,
+    ahorroAnual: 380,
+    detalles: {
+      precioEnergia: "0,101 €/kWh",
+      precioPotencia: "36,20 €/kW año",
+      tipoTarifa: "Indexada",
+      permanencia: "12 meses",
+      penalizacion: "60 € por punto",
+    },
+    condiciones: [
+      "Precio que sigue al mercado mayorista",
+      "Gestor de cuenta asignado",
+      "Informe mensual de consumo",
+    ],
+  },
+  {
+    id: "bululu",
+    nombre: "Bululú Energía",
+    tipo: "Luz",
+    suministros: 10,
+    ahorroAnual: 180,
+    detalles: {
+      precioEnergia: "0,108 €/kWh",
+      precioPotencia: "34,90 €/kW año",
+      tipoTarifa: "Fija 24 meses",
+      permanencia: "24 meses",
+      penalizacion: "90 € por punto",
+    },
+    condiciones: [
+      "Precio cerrado durante dos años",
+      "Mantenimiento incluido sin coste",
+      "Atención telefónica en horario de oficina",
+    ],
+  },
+];
+
+/* -------------------------------------------------------------------------- */
 /* Sociedades (pantalla de firma)                                             */
 /* -------------------------------------------------------------------------- */
 

@@ -294,8 +294,35 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    avisa si hay permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar
    ahora — el dato sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la
    tienen).
-7. **Botón "Comparar"** de cada comercializadora: abre la misma ventana de comparación
-   (`ModalComparar`) que el recorrido particular.
+7. **Botón "Comparar"** de cada comercializadora: abre `PanelCompararEmpresas`, un PANEL LATERAL
+   (Figma nodes 4096:19503 y 4181:44479). **No es `ModalComparar`**, que es la ventana centrada
+   del recorrido particular clásico y se queda como está: este Figma pide otra forma y, sobre
+   todo, otra mecánica — allí solo se miran ofertas, y aquí se ELIGE una para sustituir a la
+   comercializadora desde la que se abrió.
+   - Mismo patrón de panel que el de alertas (`PanelAlertasEmpresas`): portal colgado del
+     `<body>`, velo, entrada deslizándose desde la derecha, cierre con la X, con Escape y
+     pulsando fuera.
+   - Cada compañía alternativa **se despliega** (rejilla 0fr → 1fr de siempre) para enseñar la
+     ficha de la oferta (precio de energía y potencia, tipo de tarifa, permanencia y penalización)
+     y sus condiciones. Desplegar NO es elegir: son dos gestos distintos, y por eso la flecha
+     corta la propagación del clic.
+   - La elegida se marca subiendo el borde de `border-low` a `border-mid`, sin cambiar el fondo —
+     la misma señal que las filas de "Todas las ofertas" en particulares.
+   - Pie fijo con "Descartar" (cierra sin tocar nada) y "Seleccionar compañía", **desactivado
+     hasta que hay una elegida**. Al confirmar, la fila de origen pasa a enseñar la compañía
+     elegida: su nombre, su logo, su tipo de suministro, sus puntos y su ahorro. Los puntos de
+     suministro del desplegable no cambian —son los mismos—, lo que cambia es quién los sirve.
+   - **Al cambiar una compañía, las tres tarjetas de arriba se DESMARCAN**: la propuesta ya no es
+     ninguna de ellas, sino una hecha a medida, así que ninguna debe seguir pareciendo la
+     elegida. Se sigue enseñando el contenido de la última (sus comercializadoras y sus puntos,
+     que son los que se están tocando), pero sin el fondo oscuro de "seleccionada". Volver a
+     pulsar una tarjeta deshace los cambios de compañía y vuelve a esa propuesta: son dos formas
+     distintas de decidir y no se suman.
+   - Las tres alternativas están en `ALTERNATIVAS_COMPARAR` (`mocks/aczo.ts`), ordenadas de más a
+     menos ahorro. Dos son compañías inventadas —"Ahorra Energía" y "Bululú Energía", los nombres
+     del Figma— y su logo también es inventado (`public/logos/`). Octopus, que sí es una marca
+     real, no tiene todavía archivo de logo: en esta lista enseña su inicial en la misma caja
+     cuadrada, para no romper el ritmo.
 8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
    (lleva a "Cambio de compañía", pantalla 5 más abajo), igual patrón que la barra de la
    pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos). No
