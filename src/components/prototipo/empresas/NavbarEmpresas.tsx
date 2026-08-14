@@ -1,5 +1,8 @@
+"use client";
+
 import { Logo } from "@/components/brand/Logo";
 import { PASOS_EMPRESA } from "@/mocks/aczo";
+import { useDesplazado } from "@/lib/prototipo";
 
 /**
  * NavbarEmpresas — cabecera del flujo de empresas (/empresas).
@@ -12,8 +15,22 @@ import { PASOS_EMPRESA } from "@/mocks/aczo";
  * volver desde la subida); se deja preparado para cuando existan más pantallas.
  *
  * `etiquetaPasoActual` sustituye el nombre del paso 04: en el Figma no dice
- * siempre "Monitoreo constante" — cambia a "Alta completada" o "Alta en
- * tramitación" según cómo haya terminado el cambio de compañía.
+ * siempre "Seguimiento" — cambia a "Alta completada" o "Alta en tramitación"
+ * según cómo haya terminado el cambio de compañía.
+ *
+ * SE QUEDA PEGADA ARRIBA Y SE ENCOGE AL BAJAR: la cabecera acompaña siempre
+ * (`sticky`), pero en cuanto la página deja de estar arriba del todo pasa de
+ * 20 px de aire arriba y abajo a 16 px. Se gana pantalla para el contenido sin
+ * perder de vista en qué paso se está, y el cambio de altura se anima
+ * (`motion-micro-states`) para que no dé un salto seco. Al volver arriba
+ * recupera su altura completa.
+ *
+ * Las dos alturas van a pelo porque son medidas, no decisiones de color ni de
+ * espaciado libre: 80 px es la altura de la cabecera en el Figma, y 64 px es
+ * lo que mide al encogerse (32 px de contenido + los 16 px de arriba y abajo
+ * del token `py-04`). Se fijan a mano, y no se deja que las calcule el
+ * padding, para que el cambio se pueda animar: de una altura a "auto" el
+ * navegador no sabe interpolar.
  */
 export function NavbarEmpresas({
   pasoActual,
@@ -22,8 +39,16 @@ export function NavbarEmpresas({
   pasoActual: number;
   etiquetaPasoActual?: string;
 }) {
+  const desplazado = useDesplazado();
+
   return (
-    <header className="flex h-[80px] w-full items-center justify-between bg-background-base px-10 py-05">
+    <header
+      className={[
+        "sticky top-00 z-20 flex w-full items-center justify-between bg-background-base px-10",
+        "transition-[height,padding] motion-micro-states",
+        desplazado ? "h-[64px] py-04" : "h-[80px] py-05",
+      ].join(" ")}
+    >
       <div className="flex shrink-0 items-center gap-03 text-content-high">
         <Logo />
         <span className="font-heading text-heading-xs">Aczo</span>

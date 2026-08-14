@@ -28,6 +28,29 @@ export function retardo(i: number, paso = PASO_CASCADA) {
 }
 
 /**
+ * true en cuanto la página deja de estar arriba del todo.
+ *
+ * La usa la cabecera de los dos flujos para encogerse mientras se navega y
+ * recuperar su altura completa solo al volver arriba. El umbral de 8 px evita
+ * que parpadee con el rebote del scroll en macOS o con un roce del trackpad:
+ * hace falta bajar de verdad para que se note.
+ */
+export function useDesplazado(umbral = 8): boolean {
+  const [desplazado, setDesplazado] = useState(false);
+
+  useEffect(() => {
+    function comprobar() {
+      setDesplazado(window.scrollY > umbral);
+    }
+    comprobar();
+    window.addEventListener("scroll", comprobar, { passive: true });
+    return () => window.removeEventListener("scroll", comprobar);
+  }, [umbral]);
+
+  return desplazado;
+}
+
+/**
  * true en cuanto se ha bajado más de `umbral` (0 a 1) del recorrido de scroll
  * de la página. Para no mostrar algo (p. ej. la barra de CTAs al final de una
  * pantalla larga) hasta que la persona empieza a moverse — así se nota que

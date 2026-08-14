@@ -1,14 +1,18 @@
+"use client";
+
 import { Logo } from "@/components/brand/Logo";
 import { PASOS_PARTICULARES } from "@/mocks/aczo";
+import { useDesplazado } from "@/lib/prototipo";
 
 /**
  * NavbarParticulares — cabecera del flujo de particulares (/particulares).
  *
  * Copia exacta de `NavbarEmpresas.tsx` (mismos tokens, mismo layout, misma
- * píldora de paso), solo que con los rótulos de `PASOS_PARTICULARES`. Se
- * duplica en vez de generalizar una sola Navbar con los pasos por prop,
- * siguiendo el mismo criterio que el resto del flujo de empresas: cada
- * recorrido es independiente y se puede tocar sin afectar al otro.
+ * píldora de paso, y también se queda pegada arriba encogiéndose al bajar),
+ * solo que con los rótulos de `PASOS_PARTICULARES`. Se duplica en vez de
+ * generalizar una sola Navbar con los pasos por prop, siguiendo el mismo
+ * criterio que el resto del flujo de empresas: cada recorrido es
+ * independiente y se puede tocar sin afectar al otro.
  */
 export function NavbarParticulares({
   pasoActual,
@@ -17,8 +21,16 @@ export function NavbarParticulares({
   pasoActual: number;
   etiquetaPasoActual?: string;
 }) {
+  const desplazado = useDesplazado();
+
   return (
-    <header className="flex h-[80px] w-full items-center justify-between bg-background-base px-10 py-05">
+    <header
+      className={[
+        "sticky top-00 z-20 flex w-full items-center justify-between bg-background-base px-10",
+        "transition-[height,padding] motion-micro-states",
+        desplazado ? "h-[64px] py-04" : "h-[80px] py-05",
+      ].join(" ")}
+    >
       <div className="flex shrink-0 items-center gap-03 text-content-high">
         <Logo />
         <span className="font-heading text-heading-xs">Aczo</span>

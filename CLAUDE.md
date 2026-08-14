@@ -247,10 +247,14 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   pulsar "Hacer el cambio", "Cambio de compañía" (`PantallaCambioCompaniaParticulares`): casi
   todo llega ya relleno —nombre y email de la subida, DNI y dirección "leídos de la factura",
   CUPS bloqueado— y solo quedan el IBAN y la firma. Y, al pulsar "Activar cambio", el paso 04
-  "Inicio de sesión", que reutiliza `PantallaAltaEmpresas` tal cual (es la misma pantalla) con el
-  email de la persona tapado en el bloque de credenciales. Ojo: aquí el paso 04 se llama "Inicio
-  de sesión", no "Monitoreo constante" como en empresas. El recorrido está completo. Componentes
-  en `src/components/prototipo/particulares/`.
+  ("Seguimiento"), que reutiliza `PantallaAltaEmpresas` tal cual (es la misma pantalla) con el
+  email de la persona tapado en el bloque de credenciales. El recorrido está completo.
+  Componentes en `src/components/prototipo/particulares/`.
+
+  Los dos flujos comparten los rótulos del indicador de pasos (`PASOS_EMPRESA` y
+  `PASOS_PARTICULARES` en `mocks/aczo.ts`): sube tu factura → ahorro y recomendación → confirma
+  tus datos → seguimiento. Y su cabecera se queda pegada arriba, encogiéndose de 80 a 64 px
+  mientras se navega y recuperando su altura completa al volver arriba.
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una
