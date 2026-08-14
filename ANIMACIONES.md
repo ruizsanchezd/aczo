@@ -582,6 +582,34 @@ Bloques que entran, en orden: título del hero → las dos tarjetas de calculado
 ventajas → cabecera de "Por qué Aczo" → sus cuatro tarjetas (en cascada) → texto y logos de la
 comparativa → las dos partes del pie.
 
+### La cinta de logos
+
+Los logos de "Comparamos entre las principales compañías del mercado" **pasan sin parar de
+izquierda a derecha**. Es ambiente, no información: no se puede parar, ni tiene controles, ni
+hace falta llegar al final para enterarse de nada (los logos van repetidos).
+
+| | |
+| --- | --- |
+| Recorrido | 60 s por vuelta, **lineal**, sin fin |
+| Sentido | de izquierda a derecha (`translateX` de `-50 %` a `0`) |
+| Bordes | dos degradados al color de fondo, para que la fila no se corte en seco |
+
+Ni la duración ni la curva salen de los seis tokens de motion: esos son para transiciones de un
+estado a otro, y esto es un lazo ambiental sin fin — el mismo caso que el giro de la pantalla de
+carga y el pulso de la barra de seguimiento. Una cinta **tiene que ir a velocidad constante**:
+cualquier easing la haría acelerar y frenar en cada vuelta y delataría la costura.
+
+**El truco para que el bucle no se vea:** dentro hay **dos copias idénticas** de la fila, una
+detrás de otra, y el recorrido es exactamente la mitad de la cinta (el ancho de una copia). Al
+volver a empezar, la cinta está pintando lo mismo que al acabar. Para que la costura tenga el
+mismo hueco que el resto, la separación de cada copia va como **relleno por la derecha** y no
+como hueco entre copias — así cada copia mide justo la mitad. La segunda copia es decorado, así
+que va oculta a los lectores de pantalla.
+
+Con "menos movimiento" activado la cinta se queda quieta con los logos a la vista (la regla
+global deja la animación en una sola pasada de 0,01 ms, y su fotograma final es la posición
+normal).
+
 Está en `useRevelarAlEntrar` (`src/lib/prototipo.ts`) y en el componente que lo envuelve,
 `src/components/prototipo/Revelar.tsx`. Va en su propio archivo con `"use client"` para que
 `Landing.tsx` pueda seguir siendo un componente de servidor.

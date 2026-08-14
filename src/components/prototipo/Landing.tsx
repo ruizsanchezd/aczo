@@ -299,6 +299,29 @@ function LandingWhyAczo() {
   );
 }
 
+/** Una pasada de la fila de logos. La cinta pinta dos, seguidas.
+ *
+ *  La separación de la derecha (`pr-08`) es la MISMA que hay entre logos, y va
+ *  como relleno en vez de como hueco a propósito: así cada copia mide justo la
+ *  mitad de la cinta y el bucle empalma sin que se note dónde acaba una y
+ *  empieza la otra. */
+function FilaLogosComparativa(props: { "aria-hidden"?: boolean }) {
+  return (
+    <div className="flex shrink-0 items-center gap-08 pr-08" {...props}>
+      {logosComparativa.map((logo) => (
+        <img
+          key={logo.imagen}
+          src={logo.imagen}
+          alt=""
+          width={logo.width}
+          height={logo.height}
+          className="max-w-none opacity-40 grayscale"
+        />
+      ))}
+    </div>
+  );
+}
+
 function LandingComparativa() {
   return (
     <section className="bg-background-base px-06 py-[80px] md:py-[140px]">
@@ -309,17 +332,13 @@ function LandingComparativa() {
           </Text>
         </Revelar>
         <Revelar orden={1} className="relative w-full overflow-hidden">
-          <div className="flex items-center justify-center gap-08 py-03">
-            {logosComparativa.map((logo) => (
-              <img
-                key={logo.imagen}
-                src={logo.imagen}
-                alt=""
-                width={logo.width}
-                height={logo.height}
-                className="opacity-40 grayscale"
-              />
-            ))}
+          {/* La cinta: dos copias iguales de la fila, una detrás de otra, para
+              que el bucle empalme sin que se vea el salto (ver el comentario de
+              `anim-cinta-derecha` en globals.css). La segunda copia es puro
+              decorado, así que se oculta a los lectores de pantalla. */}
+          <div className="flex w-max anim-cinta-derecha py-03">
+            <FilaLogosComparativa />
+            <FilaLogosComparativa aria-hidden />
           </div>
           {/* Desvanecido en los bordes: la fila de logos no se corta en seco. */}
           <div
