@@ -27,8 +27,8 @@ export function NavbarParticulares({
     <header
       className={[
         "sticky top-00 z-20 flex w-full items-center justify-between bg-background-base px-10",
-        "transition-[height,padding] motion-micro-states",
-        desplazado ? "h-[64px] py-04" : "h-[80px] py-05",
+        "transition-[min-height,padding] motion-micro-states",
+        desplazado ? "min-h-00 py-04" : "min-h-[80px] py-05",
       ].join(" ")}
     >
       <div className="flex shrink-0 items-center gap-03 text-content-high">

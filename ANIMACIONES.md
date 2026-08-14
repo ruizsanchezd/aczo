@@ -188,11 +188,15 @@ botones de "Ver demo" / "Iniciar sesión" (ya se ha entrado al flujo).
 **La cabecera se queda pegada arriba y se encoge al bajar** — lo mismo en los dos flujos
 (`NavbarEmpresas` y `NavbarParticulares`, que es su calco). Es `sticky`, así que acompaña
 siempre; y en cuanto la página deja de estar arriba del todo pasa de 80 px de alto (20 px de aire
-arriba y abajo, la medida del Figma) a 64 px (16 px). Al volver arriba recupera su altura
-completa. El cambio se anima con `motion-micro-states` para que no dé un salto seco, y el umbral
-para considerar que "ya no está arriba" son 8 px, lo justo para que no parpadee con el rebote del
-scroll de macOS (ver `useDesplazado` en `lib/prototipo.ts`). Las dos alturas se fijan a mano
-—no se dejan al padding— porque de una altura a "auto" el navegador no sabe interpolar.
+arriba y abajo, la medida del Figma) a unos 64 px, con 16 px arriba y abajo. Al volver arriba
+recupera su altura completa. El cambio se anima con `motion-micro-states` para que no dé un salto
+seco, y el umbral para considerar que "ya no está arriba" son 8 px, lo justo para que no parpadee
+con el rebote del scroll de macOS (ver `useDesplazado` en `lib/prototipo.ts`).
+
+Encogida NO lleva altura impuesta: abraza su contenido (32 px) más el padding, y de ahí salen los
+~64 px. Los 80 px de arriba son una altura MÍNIMA, no fija — así la cabecera crecería sola si el
+contenido no cupiera, y además el encogimiento se puede animar (de una altura a "auto" el
+navegador no sabe interpolar; de 80 px a 0, sí).
 
 ### Pantalla 1 · Sube las facturas de tus sociedades
 

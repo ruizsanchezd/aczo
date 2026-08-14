@@ -25,12 +25,14 @@ import { useDesplazado } from "@/lib/prototipo";
  * (`motion-micro-states`) para que no dé un salto seco. Al volver arriba
  * recupera su altura completa.
  *
- * Las dos alturas van a pelo porque son medidas, no decisiones de color ni de
- * espaciado libre: 80 px es la altura de la cabecera en el Figma, y 64 px es
- * lo que mide al encogerse (32 px de contenido + los 16 px de arriba y abajo
- * del token `py-04`). Se fijan a mano, y no se deja que las calcule el
- * padding, para que el cambio se pueda animar: de una altura a "auto" el
- * navegador no sabe interpolar.
+ * Al bajar ABRAZA SU CONTENIDO: no se le fija ninguna altura, así que mide lo
+ * que ocupa por dentro (32 px) más los 16 px de arriba y abajo del token
+ * `py-04` — unos 64 px. Arriba del todo sí lleva una altura MÍNIMA de 80 px,
+ * que es la medida de la cabecera en el Figma; va a pelo porque es eso, una
+ * medida del diseño. Se usa `min-height` y no `height` por dos motivos: deja
+ * que la cabecera crezca sola si algún día el contenido no cupiera, y permite
+ * animar el encogimiento (de una altura a "auto" el navegador no sabe
+ * interpolar, pero de 80 px a 0 sí).
  */
 export function NavbarEmpresas({
   pasoActual,
@@ -45,8 +47,8 @@ export function NavbarEmpresas({
     <header
       className={[
         "sticky top-00 z-20 flex w-full items-center justify-between bg-background-base px-10",
-        "transition-[height,padding] motion-micro-states",
-        desplazado ? "h-[64px] py-04" : "h-[80px] py-05",
+        "transition-[min-height,padding] motion-micro-states",
+        desplazado ? "min-h-00 py-04" : "min-h-[80px] py-05",
       ].join(" ")}
     >
       <div className="flex shrink-0 items-center gap-03 text-content-high">
