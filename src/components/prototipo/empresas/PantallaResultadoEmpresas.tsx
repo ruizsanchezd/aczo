@@ -110,28 +110,10 @@ export function PantallaResultadoEmpresas({
           />
 
           <div className="flex w-full flex-col items-end gap-04">
-            {/* Barra de "añadir más", ya reducida (los archivos ya están subidos). */}
-            <button
-              type="button"
-              onClick={() => {
-                reemplazando.current = null;
-                inputRef.current?.click();
-              }}
-              className="anim-aparece flex w-full items-center gap-03 rounded-md border border-border-low bg-background-base p-06 text-left transition-colors motion-micro-states hover:bg-background-low"
-              style={retardo(1)}
-            >
-              <span className="flex size-08 shrink-0 items-center justify-center rounded-sm bg-highlight-soft text-content-high">
-                <Icon name="upload" size={20} />
-              </span>
-              <Text variant="label-m" as="span">
-                Arrastra más facturas o haz clic para añadir
-              </Text>
-            </button>
-
             {/* Tarjeta de revisión ----------------------------------------- */}
             <div
               className="anim-aparece flex w-full flex-col gap-[44px] rounded-md border border-border-low bg-background-base p-06"
-              style={retardo(2)}
+              style={retardo(1)}
             >
               <div className="flex flex-col gap-03">
                 <div className="flex items-center justify-between gap-04">
@@ -319,6 +301,24 @@ export function PantallaResultadoEmpresas({
                 </div>
               </div>
             </div>
+
+            {/* Barra de "añadir más", ya reducida (los archivos ya están subidos). */}
+            <button
+              type="button"
+              onClick={() => {
+                reemplazando.current = null;
+                inputRef.current?.click();
+              }}
+              className="anim-aparece flex w-full items-center gap-03 rounded-md border border-border-low bg-background-base p-06 text-left transition-colors motion-micro-states hover:bg-background-low"
+              style={retardo(2)}
+            >
+              <span className="flex size-08 shrink-0 items-center justify-center rounded-sm bg-highlight-soft text-content-high">
+                <Icon name="upload" size={20} />
+              </span>
+              <Text variant="label-m" as="span">
+                Arrastra más facturas o haz clic para añadir
+              </Text>
+            </button>
           </div>
         </div>
 

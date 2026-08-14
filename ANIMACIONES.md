@@ -185,6 +185,19 @@ Flujo aparte del recorrido particular, en construcción paso a paso. El indicado
 (`NavbarEmpresas`) es distinto al del recorrido: es una píldora que se ajusta al texto, sin
 botones de "Ver demo" / "Iniciar sesión" (ya se ha entrado al flujo).
 
+**La cabecera se queda pegada arriba y se encoge al bajar** — lo mismo en los dos flujos
+(`NavbarEmpresas` y `NavbarParticulares`, que es su calco). Es `sticky`, así que acompaña
+siempre; y en cuanto la página deja de estar arriba del todo pasa de 80 px de alto (20 px de aire
+arriba y abajo, la medida del Figma) a unos 64 px, con 16 px arriba y abajo. Al volver arriba
+recupera su altura completa. El cambio se anima con `motion-micro-states` para que no dé un salto
+seco, y el umbral para considerar que "ya no está arriba" son 8 px, lo justo para que no parpadee
+con el rebote del scroll de macOS (ver `useDesplazado` en `lib/prototipo.ts`).
+
+Encogida NO lleva altura impuesta: abraza su contenido (32 px) más el padding, y de ahí salen los
+~64 px. Los 80 px de arriba son una altura MÍNIMA, no fija — así la cabecera crecería sola si el
+contenido no cupiera, y además el encogimiento se puede animar (de una altura a "auto" el
+navegador no sabe interpolar; de 80 px a 0, sí).
+
 ### Pantalla 1 · Sube las facturas de tus sociedades
 
 Los tres estados de la maqueta del Figma (zona vacía → subiendo → subido) **no son tres
@@ -497,15 +510,12 @@ Hasta dónde está construido:
      por encima y el cursor pasa a cruz, "Borrar firma" aparece en cuanto hay trazo, y la barra
      inferior no se ve hasta que se empieza a bajar (`useVisibleAlDesplazar`).
 
-6. **Inicio de sesión** (paso 04): del Figma node 4136:42677. Aparece al pulsar "Activar cambio".
+6. **Seguimiento** (paso 04): del Figma node 4136:42677. Aparece al pulsar "Activar cambio".
    Es **la misma pantalla que en empresas**, así que reutiliza `PantallaAltaEmpresas.tsx` tal cual
    (igual que la pantalla de carga), siempre en su variante "alta completada" — aquí no existe la
    figura del apoderado que tenga que firmar aparte, eso solo pasa en empresas. Lo único que se le
    pasa es el email escrito en el paso 1, que sale tapado en el bloque de credenciales
    ("laura@gmail.com" → "la•••@gmail.com").
-   - Ojo con el rótulo del indicador: en particulares el paso 04 se llama **"Inicio de sesión"**,
-     no "Monitoreo constante" como en empresas. Así lo marca este Figma, y encaja con lo que la
-     pantalla ofrece de verdad: entrar al área de cliente.
    - Animaciones: las que ya tenía esa pantalla — el fondo de cruces que se construye en cascada,
      las cruces grandes de las esquinas entrando a modo de chispazo y la barra de cuatro tramos
      que se llena al entrar (con "En tramitación" en movimiento continuo).
