@@ -448,8 +448,15 @@ Hasta dónde está construido:
      Condiciones enseña la lista de ventajas; Detalles la sustituye por la ficha técnica de los
      dos puntos de la vivienda (CUPS, tarifa, consumo, compañía actual).
    - **Debajo, "Todas las ofertas"**: el resto de compañías, con menos ahorro y que no siempre
-     cubren los dos puntos — cada fila se puede desplegar (misma rejilla 0fr → 1fr de siempre)
-     para ver su ficha técnica, sin que eso la seleccione.
+     cubren los dos puntos. Cada fila se despliega (misma rejilla 0fr → 1fr de siempre) en la
+     MISMA tabla que empresas — punto de suministro con su casilla, tipo, coste actual, ahorro
+     potencial y mantenimiento —, y cada punto se abre a su vez en su ficha técnica, que ya es
+     literalmente el mismo componente en los dos flujos (`DetalleTecnicoSuministro.tsx`). La
+     tabla no lleva caja propia: las únicas líneas son las que separan un punto del siguiente.
+     Desplegar no selecciona. Quitar la casilla de un punto lo saca del cálculo de TODAS las tarjetas y
+     ofertas que lo cubrían: como en los mocks el ahorro de cada compañía es una cifra global,
+     se reparte entre sus puntos en proporción al ahorro propio de cada uno y se suman solo los
+     que siguen marcados.
    - **Selección única entre las tres tarjetas de arriba Y las ofertas de abajo**: un solo
      `radiogroup` repartido en dos bloques — elegir una de un lado desselecciona cualquiera del
      otro.
@@ -457,7 +464,12 @@ Hasta dónde está construido:
      anual) — así lo marca este Figma.
    - **El mantenimiento se activa por tipo** (un interruptor para Luz, otro para Gas, sin
      contador n/m porque solo hay un punto de cada) y descuenta su cuota de cualquier tarjeta u
-     oferta que cubra ese tipo (`conMantenimientoMixto`, la misma función que usa empresas).
+     oferta que cubra ese tipo (`conMantenimientoMixto`, la misma función que usa empresas). Los
+     dos empiezan APAGADOS: aquí el mantenimiento no viene incluido de serie (en empresas el de
+     gas sí), y el tooltip de la columna "Mantenimiento" lo dice con esas palabras. El
+     interruptor de la tabla es ESE MISMO, no otro: con un solo punto por tipo, "el
+     mantenimiento de la luz" y "el de este punto de luz" son la misma cosa, así que comparten
+     estado y se mueven a la vez.
 
 Pendiente: "Cambio de compañía" (paso 03) y lo que venga después — se documentará aquí en cuanto
 se construya.
@@ -494,6 +506,8 @@ src/
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
+      DetalleTecnicoSuministro.tsx  la ficha técnica de un punto, compartida por
+                                    las tablas de empresas y de particulares
       empresas/                 pantallas y navbar propios del flujo de empresas
       particulares/             pantallas y navbar propios del flujo de particulares
     ui/                         componentes del sistema de diseño

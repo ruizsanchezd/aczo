@@ -13,7 +13,6 @@ import {
   conMantenimientoMixto,
   COMERCIALIZADORAS_POR_NOMBRE,
   euros,
-  kwh,
   sociedadDe,
   suministrosDe,
   PLANES,
@@ -23,6 +22,7 @@ import {
   type Suministro,
 } from "@/mocks/aczo";
 import { retardo, useVisibleAlDesplazar } from "@/lib/prototipo";
+import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
 import { ModalComparar } from "../ModalComparar";
 import { NumeroAnimado } from "../NumeroAnimado";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
@@ -798,7 +798,6 @@ function FilaPuntoSuministro({
   onCambiarIncluido: (incluido: boolean) => void;
 }) {
   const [abierto, setAbierto] = useState(false);
-  const { detalle } = suministro;
   const ahorro = incluido ? conMantenimiento(suministro.ahorro, 1, activo) : 0;
 
   return (
@@ -854,75 +853,8 @@ function FilaPuntoSuministro({
       </div>
 
       <Plegable abierto={abierto}>
-        <div className="flex flex-col gap-04 border-t border-border-low bg-background-base px-07 py-06">
-          <FilaDatoSuministro etiqueta="CUPS">{detalle.cups}</FilaDatoSuministro>
-          <FilaDatoSuministro etiqueta="Tarifa contratada">
-            {suministro.tarifa} ({suministro.tipo})
-          </FilaDatoSuministro>
-          <FilaDatoSuministro etiqueta="Consumo anual">
-            {kwh(detalle.consumoAnual)} kWh/año
-          </FilaDatoSuministro>
-          {detalle.potencia > 0 && (
-            <FilaDatoSuministro etiqueta="Nueva potencia contratada">
-              {detalle.potencia.toLocaleString("es-ES")} kW
-            </FilaDatoSuministro>
-          )}
-          <FilaDatoSuministro etiqueta="Nuevo perfil de consumo">
-            <span className="flex flex-wrap justify-end gap-02">
-              {(
-                [
-                  ["Punta", detalle.perfil.punta],
-                  ["Llano", detalle.perfil.llano],
-                  ["Valle", detalle.perfil.valle],
-                ] as const
-              ).map(([franja, porcentaje]) => (
-                <Tag key={franja} tone="outline">
-                  <span className="font-medium">{franja}</span>
-                  <span className="text-content-mid">
-                    {kwh(Math.round((detalle.consumoAnual * porcentaje) / 100))} kWh (
-                    {porcentaje}%)
-                  </span>
-                </Tag>
-              ))}
-            </span>
-          </FilaDatoSuministro>
-          <FilaDatoSuministro etiqueta="Compañía actual">
-            <span className="flex items-center gap-01">
-              {detalle.companiaActual}
-              <Tooltip
-                content={
-                  detalle.permanencia
-                    ? `Tienes permanencia con ${detalle.companiaActual} hasta ${detalle.permanencia.hasta}. Si cambias ahora, la penalización estimada sería de ${euros(detalle.permanencia.penalizacion.min)}-${euros(detalle.permanencia.penalizacion.max)} €.`
-                    : `Sin permanencia con ${detalle.companiaActual}: se puede cambiar cuando quieras, sin penalización.`
-                }
-              >
-                <span className="text-content-mid">
-                  <Icon name="info" size={16} />
-                </span>
-              </Tooltip>
-            </span>
-          </FilaDatoSuministro>
-        </div>
+        <DetalleTecnicoSuministro suministro={suministro} />
       </Plegable>
     </li>
-  );
-}
-
-/** Una fila del detalle: etiqueta en mayúsculas a la izquierda, valor a la
- * derecha — igual que FilaDato en TablaAhorro.tsx (no está exportado ahí). */
-function FilaDatoSuministro({
-  etiqueta,
-  children,
-}: {
-  etiqueta: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-04">
-      <span className="text-label-s tracking-wide text-content-mid uppercase">
-        {etiqueta}
-      </span>
-      <span className="text-body-m text-content-high">{children}</span>
-    </div>
   );
 }

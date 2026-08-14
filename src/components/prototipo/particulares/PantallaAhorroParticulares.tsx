@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
+  conMantenimiento,
   conMantenimientoMixto,
   euros,
   kwh,
@@ -19,6 +21,7 @@ import {
   type Suministro,
 } from "@/mocks/aczo";
 import { retardo, useVisibleAlDesplazar } from "@/lib/prototipo";
+import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
 import { NumeroAnimado } from "../NumeroAnimado";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
 
@@ -45,8 +48,11 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
  *     activa la tarjeta: por eso corta la propagación del clic.
  *   - **Debajo, "Todas las ofertas"**: el resto de compañías, con menos
  *     ahorro y que no siempre cubren los dos puntos (`OfertaParticular.tipos`
- *     dice cuáles). Cada fila se puede desplegar para ver su ficha técnica,
- *     igual patrón de rejilla 0fr → 1fr que el resto del prototipo.
+ *     dice cuáles). Cada fila se despliega en la MISMA tabla que empresas
+ *     (node 4100:28083): punto de suministro con su casilla, tipo, coste
+ *     actual, ahorro potencial y mantenimiento, y cada punto se abre a su vez
+ *     en la ficha técnica. Igual patrón de rejilla 0fr → 1fr que el resto del
+ *     prototipo.
  *   - **Selección única entre las tres tarjetas Y las de "todas las
  *     ofertas"**: es un solo `radiogroup` repartido en dos bloques visuales.
  *     Elegir una tarjeta de arriba desselecciona cualquier oferta de abajo, y
@@ -56,10 +62,37 @@ import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../T
  *   - **El mantenimiento se activa por tipo** (un interruptor para Luz, otro
  *     para Gas — como en empresas, pero con dos interruptores en vez de
  *     "punto por punto" porque solo hay un punto de cada tipo) y descuenta
- *     su cuota de CUALQUIER tarjeta u oferta que cubra ese tipo.
+ *     su cuota de CUALQUIER tarjeta u oferta que cubra ese tipo. El
+ *     interruptor que sale en la tabla es ESE MISMO, no otro: con un punto
+ *     por tipo, "el mantenimiento de la luz" y "el mantenimiento de este
+ *     punto de luz" son la misma cosa, así que comparten estado.
+ *     Empieza apagado en los dos tipos: aquí no se incluye por defecto.
  */
 
 type Eleccion = { tipo: "recomendacion" | "oferta"; id: string };
+
+/**
+ * Qué parte del ahorro anual de una compañía corresponde a un punto de
+ * suministro concreto, repartiéndolo en proporción al ahorro propio de cada
+ * punto. Hace falta repartir porque en los mocks el ahorro de cada compañía es
+ * una cifra global, no la suma de sus puntos: sin esto, quitar la casilla de un
+ * punto no podría descontar su parte.
+ */
+function parteDelPunto(ahorroTotal: number, puntos: Suministro[], punto: Suministro) {
+  const base = puntos.reduce((total, p) => total + p.ahorro, 0);
+  return base === 0 ? 0 : (ahorroTotal * punto.ahorro) / base;
+}
+
+/** El ahorro de una compañía contando solo los puntos que siguen marcados. */
+function ahorroDeLosPuntosIncluidos(
+  ahorroTotal: number,
+  puntos: Suministro[],
+  excluidos: Set<string>,
+) {
+  return puntos
+    .filter((p) => !excluidos.has(p.id))
+    .reduce((total, p) => total + parteDelPunto(ahorroTotal, puntos, p), 0);
+}
 
 export function PantallaAhorroParticulares({
   onAtras,
@@ -70,7 +103,10 @@ export function PantallaAhorroParticulares({
 }) {
   const [mensual, setMensual] = useState(true);
   const [mantenimientoLuz, setMantenimientoLuz] = useState(false);
-  const [mantenimientoGas, setMantenimientoGas] = useState(true);
+  const [mantenimientoGas, setMantenimientoGas] = useState(false);
+  // Puntos de suministro que se han desmarcado en la tabla: dejan de contar
+  // para el ahorro de todas las tarjetas y ofertas que los cubrían.
+  const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
   const [eleccion, setEleccion] = useState<Eleccion>(() => {
     const recomendada = RECOMENDACIONES_PARTICULARES.find((r) => r.recomendado);
     return {
@@ -82,6 +118,15 @@ export function PantallaAhorroParticulares({
 
   const suministroLuz = SUMINISTROS_PARTICULARES.find((s) => s.tipo === "Luz")!;
   const suministroGas = SUMINISTROS_PARTICULARES.find((s) => s.tipo === "Gas")!;
+
+  function alCambiarIncluido(id: string, incluido: boolean) {
+    setExcluidos((prev) => {
+      const siguiente = new Set(prev);
+      if (incluido) siguiente.delete(id);
+      else siguiente.add(id);
+      return siguiente;
+    });
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -103,6 +148,7 @@ export function PantallaAhorroParticulares({
                     mensual={mensual}
                     mantenimientoLuz={mantenimientoLuz}
                     mantenimientoGas={mantenimientoGas}
+                    excluidos={excluidos}
                     seleccionada={eleccion.tipo === "recomendacion" && eleccion.id === r.id}
                     onSeleccionar={() => setEleccion({ tipo: "recomendacion", id: r.id })}
                     suministroLuz={suministroLuz}
@@ -153,6 +199,10 @@ export function PantallaAhorroParticulares({
                     mensual={mensual}
                     mantenimientoLuz={mantenimientoLuz}
                     mantenimientoGas={mantenimientoGas}
+                    onCambiarMantenimientoLuz={setMantenimientoLuz}
+                    onCambiarMantenimientoGas={setMantenimientoGas}
+                    excluidos={excluidos}
+                    onCambiarIncluido={alCambiarIncluido}
                     seleccionada={eleccion.tipo === "oferta" && eleccion.id === o.id}
                     onSeleccionar={() => setEleccion({ tipo: "oferta", id: o.id })}
                     suministroLuz={suministroLuz}
@@ -299,6 +349,7 @@ function TarjetaRecomendacion({
   mensual,
   mantenimientoLuz,
   mantenimientoGas,
+  excluidos,
   seleccionada,
   onSeleccionar,
   suministroLuz,
@@ -308,14 +359,24 @@ function TarjetaRecomendacion({
   mensual: boolean;
   mantenimientoLuz: boolean;
   mantenimientoGas: boolean;
+  excluidos: Set<string>;
   seleccionada: boolean;
   onSeleccionar: () => void;
   suministroLuz: Suministro;
   suministroGas: Suministro;
 }) {
   const [vista, setVista] = useState<"condiciones" | "detalles">("condiciones");
-  const puntosConMantenimiento = (mantenimientoLuz ? 1 : 0) + (mantenimientoGas ? 1 : 0);
-  const ahorro = conMantenimientoMixto(recomendacion.ahorroAnual, puntosConMantenimiento);
+  // Las tres tarjetas cubren los dos puntos de la vivienda; si uno se
+  // desmarca en la tabla de abajo, deja de sumar también aquí.
+  const puntos = [suministroLuz, suministroGas];
+  const puntosConMantenimiento = puntos.filter(
+    (p) =>
+      !excluidos.has(p.id) && (p.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas),
+  ).length;
+  const ahorro = conMantenimientoMixto(
+    ahorroDeLosPuntosIncluidos(recomendacion.ahorroAnual, puntos, excluidos),
+    puntosConMantenimiento,
+  );
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
@@ -596,6 +657,10 @@ function FilaOferta({
   mensual,
   mantenimientoLuz,
   mantenimientoGas,
+  onCambiarMantenimientoLuz,
+  onCambiarMantenimientoGas,
+  excluidos,
+  onCambiarIncluido,
   seleccionada,
   onSeleccionar,
   suministroLuz,
@@ -605,6 +670,10 @@ function FilaOferta({
   mensual: boolean;
   mantenimientoLuz: boolean;
   mantenimientoGas: boolean;
+  onCambiarMantenimientoLuz: (activo: boolean) => void;
+  onCambiarMantenimientoGas: (activo: boolean) => void;
+  excluidos: Set<string>;
+  onCambiarIncluido: (id: string, incluido: boolean) => void;
   seleccionada: boolean;
   onSeleccionar: () => void;
   suministroLuz: Suministro;
@@ -612,11 +681,19 @@ function FilaOferta({
 }) {
   const [abierto, setAbierto] = useState(false);
 
-  // El mantenimiento solo descuenta de los tipos que esta oferta cubre.
-  const puntosConMantenimiento = oferta.tipos.filter((t) =>
-    t === "Luz" ? mantenimientoLuz : mantenimientoGas,
+  // Los puntos de la vivienda que cubre esta oferta (`tipos` dice cuáles).
+  const puntos = oferta.tipos.map((t) => (t === "Luz" ? suministroLuz : suministroGas));
+  const incluidos = puntos.filter((p) => !excluidos.has(p.id));
+
+  // El mantenimiento solo descuenta de los puntos que esta oferta cubre y que
+  // siguen marcados.
+  const puntosConMantenimiento = incluidos.filter((p) =>
+    p.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas,
   ).length;
-  const ahorro = conMantenimientoMixto(oferta.ahorroAnual, puntosConMantenimiento);
+  const ahorro = conMantenimientoMixto(
+    ahorroDeLosPuntosIncluidos(oferta.ahorroAnual, puntos, excluidos),
+    puntosConMantenimiento,
+  );
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
@@ -659,6 +736,9 @@ function FilaOferta({
               </Tag>
             ))}
           </span>
+          <Text variant="body-m" color="mid" as="span">
+            {puntos.length} {puntos.length === 1 ? "punto" : "puntos"} de suministro
+          </Text>
         </span>
 
         <span className="flex shrink-0 items-center gap-03">
@@ -679,7 +759,7 @@ function FilaOferta({
             }}
             aria-expanded={abierto}
             aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${oferta.comercializadora}`}
-            className="cursor-pointer rounded-md bg-background-base text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
+            className="cursor-pointer rounded-md bg-background-low text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
           >
             <FlechaPlegar abierto={abierto} />
           </button>
@@ -687,11 +767,137 @@ function FilaOferta({
       </div>
 
       <Plegable abierto={abierto}>
-        <div className="flex flex-col gap-04 border-t border-border-low bg-background-base px-04 pb-04 pt-04">
-          {oferta.tipos.includes("Luz") && <FichaTecnica suministro={suministroLuz} oscuro={false} />}
-          {oferta.tipos.includes("Gas") && <FichaTecnica suministro={suministroGas} oscuro={false} />}
+        {/* La tabla va suelta sobre la tarjeta, sin caja propia: en el Figma
+            (node 4100:28107) las únicas líneas son las que separan un punto de
+            suministro del siguiente. */}
+        <div className="px-04 pb-04">
+          <div>
+            {/* Cabecera de la tabla — se esconde en pantallas estrechas, donde
+                cada fila se apila y las columnas dejan de tener sentido. */}
+            <div className="hidden items-center gap-03 bg-background-base px-03 py-02 md:flex">
+              <span className="size-04 shrink-0" />
+              <span className="grid flex-1 grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] gap-04 text-label-s text-content-mid">
+                <span>Punto de suministro</span>
+                <span>Tipo de suministro</span>
+                <span>Coste actual</span>
+                <span>Ahorro potencial</span>
+                <span className="flex items-center gap-01">
+                  Mantenimiento
+                  <Tooltip
+                    position="bottom"
+                    content="El mantenimiento es opcional y no viene incluido: actívalo si quieres añadirlo. Cuesta una cuota fija al mes por punto de suministro y se descuenta del ahorro estimado."
+                  >
+                    <span className="text-content-mid">
+                      <Icon name="info" size={14} />
+                    </span>
+                  </Tooltip>
+                </span>
+              </span>
+              <span className="size-07 shrink-0" />
+            </div>
+
+            <ul>
+              {puntos.map((punto) => (
+                <FilaPuntoSuministro
+                  key={punto.id}
+                  suministro={punto}
+                  ahorroDelPunto={parteDelPunto(oferta.ahorroAnual, puntos, punto)}
+                  incluido={!excluidos.has(punto.id)}
+                  mantenimiento={punto.tipo === "Luz" ? mantenimientoLuz : mantenimientoGas}
+                  onCambiarMantenimiento={
+                    punto.tipo === "Luz"
+                      ? onCambiarMantenimientoLuz
+                      : onCambiarMantenimientoGas
+                  }
+                  onCambiarIncluido={(incluido) => onCambiarIncluido(punto.id, incluido)}
+                />
+              ))}
+            </ul>
+          </div>
         </div>
       </Plegable>
     </div>
+  );
+}
+
+/**
+ * Una fila de punto de suministro dentro de la tabla de una oferta, con su
+ * propio detalle desplegable (la ficha técnica). Mismas columnas que la tabla
+ * de empresas, quitando "Ciudad": aquí solo hay una vivienda, así que repetir
+ * su ciudad en cada fila no aporta nada.
+ */
+function FilaPuntoSuministro({
+  suministro,
+  ahorroDelPunto,
+  incluido,
+  mantenimiento,
+  onCambiarMantenimiento,
+  onCambiarIncluido,
+}: {
+  suministro: Suministro;
+  /** Lo que aporta este punto al ahorro de la oferta, antes de mantenimiento. */
+  ahorroDelPunto: number;
+  incluido: boolean;
+  mantenimiento: boolean;
+  onCambiarMantenimiento: (activo: boolean) => void;
+  onCambiarIncluido: (incluido: boolean) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const ahorro = incluido
+    ? conMantenimiento(ahorroDelPunto, 1, mantenimiento)
+    : 0;
+
+  return (
+    <li className="border-b border-border-low last:border-b-00">
+      <div className="flex items-center gap-03 px-03 py-04">
+        <Checkbox checked={incluido} onChange={onCambiarIncluido} className="shrink-0" />
+        <span
+          className={[
+            "flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[2fr_1.5fr_1.2fr_1.2fr_1fr] md:items-center md:gap-04",
+            incluido ? "" : "opacity-40",
+          ].join(" ")}
+        >
+          <Text variant="label-m" as="span" className="truncate">
+            {suministro.nombre}
+          </Text>
+          <span>
+            <Tag icon={suministro.tipo === "Luz" ? "lightbulb" : "fire"}>
+              {suministro.tipo}
+            </Tag>
+          </span>
+          <Text variant="body-m" color="mid" as="span">
+            €{euros(suministro.costeActual)}/año
+          </Text>
+          <span>
+            <Tag tone="success">€{euros(ahorro)}/año</Tag>
+          </span>
+          <span className="flex items-center gap-02">
+            <span className="text-content-mid">
+              <Icon name="wrench" size={20} />
+            </span>
+            <Switch
+              checked={mantenimiento}
+              disabled={!incluido}
+              onChange={onCambiarMantenimiento}
+              label={`Añadir mantenimiento en ${suministro.nombre}`}
+            />
+          </span>
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setAbierto((a) => !a)}
+          aria-expanded={abierto}
+          aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${suministro.nombre}`}
+          className="shrink-0 cursor-pointer rounded-md text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
+        >
+          <FlechaPlegar abierto={abierto} />
+        </button>
+      </div>
+
+      <Plegable abierto={abierto}>
+        <DetalleTecnicoSuministro suministro={suministro} />
+      </Plegable>
+    </li>
   );
 }
