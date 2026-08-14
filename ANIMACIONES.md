@@ -547,6 +547,49 @@ Hasta dónde está construido:
      las cruces grandes de las esquinas entrando a modo de chispazo y la barra de cuatro tramos
      que se llena al entrar (con "En tramitación" en movimiento continuo).
 
+## Landing (`/`) · las secciones entran al bajar
+
+La landing usa **la misma entrada que los recorridos** (`anim-aparece`: sube 8 px y aparece,
+`macro-levelup` / 350 ms, con la misma cascada de 60 ms entre bloques de una misma sección).
+Lo único que cambia es **cuándo se dispara**.
+
+En los recorridos cada pantalla se ve entera de una vez, así que la cascada arranca al montarla.
+La landing es una página larga que se recorre bajando: si todo se animara al cargar, lo de abajo
+se habría movido sin que nadie lo viera. Aquí cada bloque **espera a asomar por la pantalla**.
+
+| | |
+| --- | --- |
+| Qué lo dispara | que se vea al menos el **15 %** del bloque (`IntersectionObserver`) |
+| Animación | `anim-aparece` — 8 px hacia arriba + opacidad, `macro-levelup` |
+| Antes de entrar | `anim-espera`: el bloque está en el fotograma 0 de esa animación, así que al entrar continúa sin ningún salto |
+| Cascada | 60 ms entre los bloques de una misma sección (`retardo`) |
+| Repetición | **una sola vez**. Al volver a subir no se repite: sería mareante en una página que se recorre arriba y abajo |
+
+**Tres casos que hay que respetar al reimplementarlo**, porque si no hay contenido que se queda
+invisible para siempre:
+
+1. Si se **salta de golpe** por encima de un bloque (un enlace que baja a una sección, recargar
+   con la página ya bajada, un scroll muy rápido), el bloque no llega a asomar nunca → se enseña
+   igualmente si ya ha quedado por encima de la pantalla.
+2. **No se recorta la pantalla con un margen negativo** para "esperar a estar un poco dentro".
+   Ese margen deja una franja muerta abajo del todo, y lo que cae ahí al final de la página (la
+   línea legal del pie, por ejemplo) no puede salir de ella por mucho que se baje. Por eso el
+   criterio es un porcentaje del bloque visible, no un recorte de la pantalla.
+3. Un bloque **más alto que la pantalla** nunca puede enseñar su 15 %: con que llene media
+   pantalla, ya cuenta como entrado.
+
+Bloques que entran, en orden: título del hero → las dos tarjetas de calculadora → la barra de
+ventajas → cabecera de "Por qué Aczo" → sus cuatro tarjetas (en cascada) → texto y logos de la
+comparativa → las dos partes del pie.
+
+Está en `useRevelarAlEntrar` (`src/lib/prototipo.ts`) y en el componente que lo envuelve,
+`src/components/prototipo/Revelar.tsx`. Va en su propio archivo con `"use client"` para que
+`Landing.tsx` pueda seguir siendo un componente de servidor.
+
+> ⚠️ Al envolver un bloque en `<Revelar>`, **las opacidades de estilo (`opacity-60`, `opacity-50`)
+> tienen que ir por dentro**, no en el propio `Revelar`. La animación termina fijando la opacidad
+> a 1 (`animation-fill-mode: both`) y se las comería.
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -579,6 +622,8 @@ src/
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
+      Revelar.tsx                   envuelve un bloque de la landing para que
+                                    entre cuando asoma por la pantalla
       DetalleTecnicoSuministro.tsx  la ficha técnica de un punto, compartida por
                                     las tablas de empresas y de particulares
       PiezasCambioCompania.tsx      tarjeta, cabecera, fila de resumen, subida
