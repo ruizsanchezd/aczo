@@ -143,13 +143,20 @@ export function TarjetaPlan({
 }
 
 /**
- * Logos ya disponibles, exportados del Figma (ver LogoComercializadora). El
- * resto de comercializadoras sigue sin archivo: HuecoLogo enseña su nombre
- * mientras tanto.
+ * Logos ya disponibles (ver LogoComercializadora). Los de TotalEnergies y
+ * Repsol son los reales, exportados del Figma; los de "Ahorra Energía" y
+ * "Bululú Energía" son inventados, porque esas dos compañías también lo son
+ * (ver ALTERNATIVAS_COMPARAR en mocks/aczo.ts). El resto de comercializadoras
+ * sigue sin archivo: HuecoLogo enseña su nombre mientras tanto.
+ *
+ * Las claves son el nombre en minúsculas, tal cual (con espacios y tildes):
+ * es lo que compara `tieneLogoComercializadora`.
  */
 const LOGOS: Record<string, string> = {
   totalenergies: "/logos/totalenergies.png",
   repsol: "/logos/repsol.png",
+  "ahorra energía": "/logos/ahorra-energia.svg",
+  "bululú energía": "/logos/bululu-energia.svg",
 };
 
 /** true si ya hay un logo real para esta comercializadora (ver LOGOS arriba). */

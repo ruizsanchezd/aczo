@@ -16,6 +16,7 @@ import {
   sociedadDe,
   suministrosDe,
   PLANES,
+  type AlternativaComparar,
   type Comercializadora,
   type DireccionSuministros,
   type Plan,
@@ -23,7 +24,7 @@ import {
 } from "@/mocks/aczo";
 import { retardo, useVisibleAlDesplazar } from "@/lib/prototipo";
 import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
-import { ModalComparar } from "../ModalComparar";
+import { PanelCompararEmpresas } from "./PanelCompararEmpresas";
 import { NumeroAnimado } from "../NumeroAnimado";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
 
@@ -98,10 +99,23 @@ export function PantallaAhorroEmpresas({
   // Ids de los puntos que se han desmarcado: no cuentan en el ahorro.
   const [excluidos, setExcluidos] = useState<Set<string>>(new Set());
   const [comparando, setComparando] = useState<Comercializadora | null>(null);
+  // Comercializadoras que se han cambiado por otra compañía desde el panel
+  // "Comparar": id de la original → compañía elegida.
+  const [sustitutas, setSustitutas] = useState<Record<string, AlternativaComparar>>(
+    {},
+  );
   // Por defecto, el plan que la propuesta recomienda.
   const [planSeleccionadoId, setPlanSeleccionadoId] = useState(
     () => PLANES.find((p) => p.recomendado)?.id ?? PLANES[0].id,
   );
+  /**
+   * true en cuanto se cambia una comercializadora desde el panel "Comparar".
+   * A partir de ahí la propuesta ya NO es ninguna de las tres tarjetas de
+   * arriba, así que ninguna se queda marcada — aunque se sigan enseñando sus
+   * comercializadoras y sus puntos, que son los que se están tocando. Volver a
+   * pulsar una tarjeta deshace los cambios y vuelve a esa propuesta.
+   */
+  const [eleccionPropia, setEleccionPropia] = useState(false);
   // La barra inferior no aparece hasta que se empieza a bajar: así se nota
   // que hay más planes que ver, en vez de parecer que ya se ve todo.
   const mostrarBarra = useVisibleAlDesplazar();
@@ -206,8 +220,15 @@ export function PantallaAhorroEmpresas({
                       plan={plan}
                       mensual={mensual}
                       puntosConMantenimiento={puntosConMantenimientoDelPlan}
-                      seleccionado={plan.id === planSeleccionadoId}
-                      onSeleccionar={() => setPlanSeleccionadoId(plan.id)}
+                      seleccionado={!eleccionPropia && plan.id === planSeleccionadoId}
+                      onSeleccionar={() => {
+                        setPlanSeleccionadoId(plan.id);
+                        // Elegir una de las tres propuestas deshace los
+                        // cambios de compañía hechos a mano: son dos formas
+                        // distintas de decidir, no se suman.
+                        setEleccionPropia(false);
+                        setSustitutas({});
+                      }}
                     />
                   </div>
                 );
@@ -265,6 +286,7 @@ export function PantallaAhorroEmpresas({
                     excluidos={excluidos}
                     onCambiarMantenimiento={alCambiarMantenimiento}
                     onCambiarIncluido={alCambiarIncluido}
+                    sustituta={sustitutas[c.id]}
                     onComparar={() => setComparando(c)}
                   />
                 ))}
@@ -305,10 +327,17 @@ export function PantallaAhorroEmpresas({
         </div>
       </div>
 
-      <ModalComparar
+      <PanelCompararEmpresas
         abierto={comparando !== null}
         nombreComercializadora={comparando?.nombre}
         onCerrar={() => setComparando(null)}
+        onSeleccionar={(alternativa) => {
+          if (comparando) {
+            setSustitutas((prev) => ({ ...prev, [comparando.id]: alternativa }));
+            setEleccionPropia(true);
+          }
+          setComparando(null);
+        }}
       />
     </div>
   );
@@ -576,6 +605,7 @@ function FlechaPlegar({ abierto }: { abierto: boolean }) {
 
 function FilaComercializadoraEmpresa({
   comercializadora,
+  sustituta,
   mensual,
   mantenimientoIds,
   excluidos,
@@ -584,6 +614,10 @@ function FilaComercializadoraEmpresa({
   onComparar,
 }: {
   comercializadora: Comercializadora;
+  /** Si se ha elegido otra compañía en el panel "Comparar", la fila pasa a
+   * enseñarla a ella: los puntos de suministro son los mismos, lo que cambia
+   * es quién los sirve. */
+  sustituta?: AlternativaComparar;
   mensual: boolean;
   mantenimientoIds: Set<string>;
   excluidos: Set<string>;
@@ -596,42 +630,49 @@ function FilaComercializadoraEmpresa({
   const todosSuministros = suministrosDe(comercializadora);
   const tiposPresentes = Array.from(new Set(todosSuministros.map((s) => s.tipo)));
 
-  const ahorro = todosSuministros
+  const ahorroPropio = todosSuministros
     .filter((s) => !excluidos.has(s.id))
     .reduce(
       (total, s) => total + conMantenimiento(s.ahorro, 1, mantenimientoIds.has(s.id)),
       0,
     );
+  // Con una compañía sustituta manda su ahorro, que es la cifra que se acaba
+  // de comparar en el panel.
+  const ahorro = sustituta ? sustituta.ahorroAnual : ahorroPropio;
   const cifra = mensual ? ahorro / 12 : ahorro;
 
+  const nombre = sustituta ? sustituta.nombre : comercializadora.nombre;
+  const tipos = sustituta ? [sustituta.tipo] : tiposPresentes;
+  const puntos = sustituta ? sustituta.suministros : todosSuministros.length;
+
   return (
-    <article className="overflow-hidden rounded-md border border-border-low bg-background-low">
+    <article
+      className={[
+        "overflow-hidden rounded-md border bg-background-low",
+        "transition-colors motion-micro-states",
+        sustituta ? "border-border-mid" : "border-border-low",
+      ].join(" ")}
+    >
       <div className="flex flex-wrap items-center gap-04 p-04">
-        {tieneLogoComercializadora(comercializadora.nombre) ? (
-          <LogoComercializadora
-            nombre={comercializadora.nombre}
-            className="size-08"
-          />
+        {tieneLogoComercializadora(nombre) ? (
+          <LogoComercializadora nombre={nombre} className="size-08" />
         ) : (
-          <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-highlight-neutral text-highlight-muted">
-            <Icon name="check-circle" />
-          </span>
+          <HuecoLogo nombre={nombre} />
         )}
 
         <span className="flex min-w-0 flex-1 flex-wrap items-center gap-04">
           <Text variant="label-m" as="h3">
-            {comercializadora.nombre}
+            {nombre}
           </Text>
           <span className="flex gap-02">
-            {tiposPresentes.map((tipo) => (
+            {tipos.map((tipo) => (
               <Tag key={tipo} icon={tipo === "Luz" ? "lightbulb" : "fire"}>
                 {tipo}
               </Tag>
             ))}
           </span>
           <Text variant="body-m" color="mid" as="span">
-            {todosSuministros.length}{" "}
-            {todosSuministros.length === 1 ? "punto" : "puntos"} de suministro
+            {puntos} {puntos === 1 ? "punto" : "puntos"} de suministro
           </Text>
         </span>
 
@@ -640,7 +681,7 @@ function FilaComercializadoraEmpresa({
           size="small"
           iconEnd="compare"
           onClick={onComparar}
-          aria-label={`Comparar ofertas de ${comercializadora.nombre}`}
+          aria-label={`Comparar ofertas de ${nombre}`}
         >
           Comparar
         </Button>
@@ -661,7 +702,7 @@ function FilaComercializadoraEmpresa({
             type="button"
             onClick={() => setAbierto((a) => !a)}
             aria-expanded={abierto}
-            aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${comercializadora.nombre}`}
+            aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${nombre}`}
             className="cursor-pointer rounded-md bg-background-low text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
           >
             <FlechaPlegar abierto={abierto} />
