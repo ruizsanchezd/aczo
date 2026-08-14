@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/brand/Logo";
 import { Text } from "@/components/ui/Text";
+import { Revelar } from "./Revelar";
 
 /**
  * Landing — la página de entrada (captación). Es la primera pantalla que ve
@@ -85,14 +86,16 @@ function LandingHero() {
           (80px = alto del Navbar). */}
       <div className="mx-auto flex h-[calc(95vh-80px)] max-w-[1100px] flex-col items-center">
         <div aria-hidden style={{ flexGrow: 179 }} />
-        <Text variant="heading-m" className="max-w-[1100px] shrink-0">
-          Gestionamos tu energía de forma 100% gratuita y automática.
-          <br />
-          La plataforma que realmente puedes activar y olvidar.
-        </Text>
+        <Revelar className="shrink-0">
+          <Text variant="heading-m" className="max-w-[1100px]">
+            Gestionamos tu energía de forma 100% gratuita y automática.
+            <br />
+            La plataforma que realmente puedes activar y olvidar.
+          </Text>
+        </Revelar>
 
         <div aria-hidden style={{ flexGrow: 40 }} />
-        <div className="flex shrink-0 flex-wrap items-center justify-center gap-04">
+        <Revelar orden={1} className="flex shrink-0 flex-wrap items-center justify-center gap-04">
           {calculadoras.map((calculadora) => {
             const contenido = (
               <>
@@ -132,24 +135,29 @@ function LandingHero() {
               </div>
             );
           })}
-        </div>
+        </Revelar>
 
         <div aria-hidden style={{ flexGrow: 163 }} />
-        <div className="flex shrink-0 flex-wrap items-center justify-center border-t border-b border-border-mid opacity-60">
-          {caracteristicas.map((caracteristica, index) => (
-            <div
-              key={caracteristica}
-              className={`flex items-center gap-02 py-03 pl-03 pr-04 ${
-                index > 0 ? "border-l border-border-mid" : ""
-              }`}
-            >
-              <Icon name="check" size={18} className="text-content-high" />
-              <Text variant="body-m" color="mid" as="span">
-                {caracteristica}
-              </Text>
-            </div>
-          ))}
-        </div>
+        {/* opacity-60 va DENTRO, no en el Revelar: la animación maneja la
+            opacidad del envoltorio, así que si el 60% estuviera fuera se lo
+            comería al terminar de entrar. */}
+        <Revelar orden={2} className="shrink-0">
+          <div className="flex flex-wrap items-center justify-center border-t border-b border-border-mid opacity-60">
+            {caracteristicas.map((caracteristica, index) => (
+              <div
+                key={caracteristica}
+                className={`flex items-center gap-02 py-03 pl-03 pr-04 ${
+                  index > 0 ? "border-l border-border-mid" : ""
+                }`}
+              >
+                <Icon name="check" size={18} className="text-content-high" />
+                <Text variant="body-m" color="mid" as="span">
+                  {caracteristica}
+                </Text>
+              </div>
+            ))}
+          </div>
+        </Revelar>
         <div aria-hidden style={{ flexGrow: 100 }} />
       </div>
     </section>
@@ -180,7 +188,7 @@ function LandingWhyAczo() {
           "Ahorro Aczo"): el texto va con los tokens always-*, no con los
           normales, o se volvería invisible el día que se active el oscuro. */}
       <div className="mx-auto flex max-w-[1392px] flex-col items-center gap-[64px] rounded-md bg-highlight-deep px-06 py-[80px] md:p-[140px]">
-        <div className="flex max-w-[800px] flex-col items-center gap-04 text-center">
+        <Revelar className="flex max-w-[800px] flex-col items-center gap-04 text-center">
           <Text variant="label-s-uppercase" color="always-light" className="opacity-60">
             por qué Aczo
           </Text>
@@ -188,10 +196,13 @@ function LandingWhyAczo() {
             Cambiar de compañía es fácil. Que alguien te vigile después, no.
             Con Aczo delegas de verdad.
           </Text>
-        </div>
+        </Revelar>
 
+        {/* Las cuatro tarjetas entran una tras otra, no de golpe: es la misma
+            cascada que las tarjetas de plan de los recorridos. */}
         <div className="flex w-full max-w-[1112px] flex-wrap justify-center gap-04">
           {/* Tarjeta 1 — con la notificación de ahorro extra */}
+          <Revelar orden={1}>
           <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-md bg-background-base p-07">
             <div className="flex flex-col gap-02">
               <Text variant="heading-m">Tu factura, vigilada</Text>
@@ -213,8 +224,10 @@ function LandingWhyAczo() {
               </div>
             </div>
           </div>
+          </Revelar>
 
           {/* Tarjeta 2 — foto, sin recuadro de fondo propio */}
+          <Revelar orden={2}>
           <div className="relative h-[552px] w-[441px] overflow-hidden rounded-md">
             <img
               src="/landing/tarjeta-negociacion.png"
@@ -235,8 +248,10 @@ function LandingWhyAczo() {
               </Text>
             </div>
           </div>
+          </Revelar>
 
           {/* Tarjeta 3 — con la captura del móvil */}
+          <Revelar orden={3}>
           <div className="flex h-[552px] w-[441px] flex-col items-center justify-between overflow-hidden rounded-md bg-highlight-soft pt-07">
             <div className="flex w-full flex-col gap-02 px-07 text-left">
               <Text variant="heading-m">Sin letra pequeña</Text>
@@ -251,8 +266,10 @@ function LandingWhyAczo() {
               className="h-[403px] w-full object-cover"
             />
           </div>
+          </Revelar>
 
           {/* Tarjeta 4 — con el comparador de contratos */}
+          <Revelar orden={4}>
           <div className="flex h-[552px] w-[441px] flex-col justify-between rounded-md bg-background-base p-07">
             <div className="flex flex-col gap-02">
               <Text variant="heading-m">Cero fricciones.</Text>
@@ -275,9 +292,33 @@ function LandingWhyAczo() {
               </div>
             </div>
           </div>
+          </Revelar>
         </div>
       </div>
     </section>
+  );
+}
+
+/** Una pasada de la fila de logos. La cinta pinta dos, seguidas.
+ *
+ *  La separación de la derecha (`pr-08`) es la MISMA que hay entre logos, y va
+ *  como relleno en vez de como hueco a propósito: así cada copia mide justo la
+ *  mitad de la cinta y el bucle empalma sin que se note dónde acaba una y
+ *  empieza la otra. */
+function FilaLogosComparativa(props: { "aria-hidden"?: boolean }) {
+  return (
+    <div className="flex shrink-0 items-center gap-08 pr-08" {...props}>
+      {logosComparativa.map((logo) => (
+        <img
+          key={logo.imagen}
+          src={logo.imagen}
+          alt=""
+          width={logo.width}
+          height={logo.height}
+          className="max-w-none opacity-40 grayscale"
+        />
+      ))}
+    </div>
   );
 }
 
@@ -285,21 +326,19 @@ function LandingComparativa() {
   return (
     <section className="bg-background-base px-06 py-[80px] md:py-[140px]">
       <div className="mx-auto flex max-w-[1102px] flex-col items-center gap-06">
-        <Text variant="body-l" color="low">
-          Comparamos entre las principales compañías del mercado
-        </Text>
-        <div className="relative w-full overflow-hidden">
-          <div className="flex items-center justify-center gap-08 py-03">
-            {logosComparativa.map((logo) => (
-              <img
-                key={logo.imagen}
-                src={logo.imagen}
-                alt=""
-                width={logo.width}
-                height={logo.height}
-                className="opacity-40 grayscale"
-              />
-            ))}
+        <Revelar>
+          <Text variant="body-l" color="low">
+            Comparamos entre las principales compañías del mercado
+          </Text>
+        </Revelar>
+        <Revelar orden={1} className="relative w-full overflow-hidden">
+          {/* La cinta: dos copias iguales de la fila, una detrás de otra, para
+              que el bucle empalme sin que se vea el salto (ver el comentario de
+              `anim-cinta-derecha` en globals.css). La segunda copia es puro
+              decorado, así que se oculta a los lectores de pantalla. */}
+          <div className="flex w-max anim-cinta-derecha py-03">
+            <FilaLogosComparativa />
+            <FilaLogosComparativa aria-hidden />
           </div>
           {/* Desvanecido en los bordes: la fila de logos no se corta en seco. */}
           <div
@@ -310,7 +349,7 @@ function LandingComparativa() {
             aria-hidden
             className="pointer-events-none absolute inset-y-0 right-0 w-[160px] bg-gradient-to-l from-background-base to-transparent"
           />
-        </div>
+        </Revelar>
       </div>
     </section>
   );
@@ -320,7 +359,7 @@ function LandingFooter() {
   return (
     <footer className="bg-background-high px-06 py-[64px] text-content-always-light">
       <div className="mx-auto flex max-w-[1312px] flex-col gap-08">
-        <div className="flex flex-wrap items-start justify-between gap-06">
+        <Revelar className="flex flex-wrap items-start justify-between gap-06">
           <Text variant="heading-m" color="always-light">
             Ahorro energético
             <br />
@@ -356,20 +395,24 @@ function LandingFooter() {
               </a>
             </div>
           </div>
-        </div>
+        </Revelar>
 
-        <div className="flex flex-wrap items-center justify-between gap-04 opacity-50">
-          <Text variant="body-m" color="always-light">
-            © 2026 Aczo all rights reserved.
-          </Text>
-          <div className="flex gap-06">
-            {enlacesFooter.map((enlace) => (
-              <Text key={enlace} variant="body-m" color="always-light">
-                {enlace}
-              </Text>
-            ))}
+        {/* opacity-50 dentro del Revelar, no fuera: la animación se queda con
+            la opacidad del envoltorio al terminar. */}
+        <Revelar orden={1}>
+          <div className="flex flex-wrap items-center justify-between gap-04 opacity-50">
+            <Text variant="body-m" color="always-light">
+              © 2026 Aczo all rights reserved.
+            </Text>
+            <div className="flex gap-06">
+              {enlacesFooter.map((enlace) => (
+                <Text key={enlace} variant="body-m" color="always-light">
+                  {enlace}
+                </Text>
+              ))}
+            </div>
           </div>
-        </div>
+        </Revelar>
       </div>
     </footer>
   );

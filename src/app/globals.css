@@ -425,6 +425,24 @@
   }
 }
 
+/* La fila de logos de la landing, girando sin parar hacia la DERECHA.
+   Dentro hay DOS copias idénticas de la fila, una detrás de otra. El recorrido
+   es exactamente la mitad de esa cinta (el ancho de UNA copia), así que cuando
+   la animación vuelve a empezar la cinta está pintando lo mismo que al acabar:
+   el salto no se ve y parece infinito. Cada copia lleva su separación como
+   relleno por la derecha, para que la costura entre las dos tenga el mismo
+   hueco que el resto y no se note dónde empalman.
+
+   El sentido es de izquierda a derecha, así que se va DESDE -50% HASTA 0. */
+@keyframes aczo-cinta-derecha {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* El tramo "en curso" de una SegmentedProgress con tono="success" y
    animado: se rellena hasta su marca (35 %) y, a partir de ahí, entra en un
    lazo continuo hasta el 100 % y de vuelta — para que se lea "esto sigue
@@ -483,6 +501,19 @@
   animation: aczo-aparece var(--motion-timing-3) var(--ease-2) both;
 }
 
+/* El estado PREVIO de un bloque que va a entrar con `anim-aparece`, para lo que
+   se anima al asomar por la pantalla (la landing) en vez de al montarse.
+   Deja el bloque exactamente en el fotograma inicial de `aczo-aparece`, así que
+   al cambiar a `anim-aparece` la entrada continúa sin ningún salto.
+
+   No es un token de opacidad: no hay ninguno a 0 (los del sistema son 1, 0.6 y
+   0.3, para hover y pressed). Es el fotograma 0 de esta animación, y por eso
+   vive aquí al lado y no como una clase suelta. */
+@utility anim-espera {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
 /* Algo aparece sin moverse. Para velos y fondos. */
 @utility anim-aparece-simple {
   animation: aczo-aparece-simple var(--motion-timing-3) var(--ease-2) both;
@@ -502,6 +533,19 @@
 /* El chispazo de las cruces al completarse el proceso (ver el keyframe). */
 @utility anim-estrella-entra {
   animation: aczo-estrella-entra var(--motion-timing-4) var(--ease-3) both;
+}
+
+/* La cinta de logos de la landing, girando sin parar hacia la derecha.
+
+   Ni la duración (60s) ni la curva (lineal) salen de los tokens de motion:
+   esos seis son para transiciones de un estado a otro, y esto es un lazo
+   ambiental sin fin — el mismo caso que el giro de la pantalla de carga
+   (anim-gira-saltos) o el pulso de la barra de seguimiento. Los 60s salen de
+   probar hasta que el paseo se lee como "ambiente" y no distrae de lo que hay
+   escrito encima; y una cinta TIENE que ir a velocidad constante, cualquier
+   easing haría que acelerase y frenase en cada vuelta, delatando la costura. */
+@utility anim-cinta-derecha {
+  animation: aczo-cinta-derecha 60s linear infinite;
 }
 
 /* Giro a saltos, en cuartos de vuelta: tres tirones por cuarto de vuelta.
