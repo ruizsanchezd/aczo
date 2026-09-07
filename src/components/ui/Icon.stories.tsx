@@ -41,6 +41,7 @@ const nombres: IconName[] = [
   "check",
   "warning",
   "folder",
+  "home",
   "trash",
   "zap",
   "lightbulb",

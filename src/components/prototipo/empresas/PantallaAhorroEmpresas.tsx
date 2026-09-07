@@ -13,7 +13,6 @@ import {
   conMantenimientoMixto,
   COMERCIALIZADORAS_POR_NOMBRE,
   euros,
-  POTENCIA_MANTENIMIENTO_AUTO,
   sociedadDe,
   suministrosDe,
   tieneMantenimientoAutomatico,
@@ -26,6 +25,10 @@ import {
 } from "@/mocks/aczo";
 import { retardo, useAlBajarHasta, useVisibleAlDesplazar } from "@/lib/prototipo";
 import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
+import {
+  fraseMantenimientoAutomatico,
+  ModalSuministrosGrandes,
+} from "./ModalSuministrosGrandes";
 import { PanelCompararEmpresas } from "./PanelCompararEmpresas";
 import { NumeroAnimado } from "../NumeroAnimado";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
@@ -134,6 +137,9 @@ export function PantallaAhorroEmpresas({
    * más: quedaría en aviso plasta, y el mensaje sigue a mano en el icono.
    */
   const [vecesApagado, setVecesApagado] = useState(0);
+  /** El diálogo "Suministros con más de X kW", que se abre desde el contador
+   * subrayado del interruptor de luz. */
+  const [popupAbierto, setPopupAbierto] = useState(false);
 
   const planSeleccionado =
     PLANES.find((p) => p.id === planSeleccionadoId) ?? PLANES[0];
@@ -153,9 +159,10 @@ export function PantallaAhorroEmpresas({
   // Los puntos de luz a los que Aczo le puso el mantenimiento por su cuenta
   // (por potencia). Se recalculan con el plan elegido, porque cada plan
   // reparte los puntos entre otras comercializadoras.
-  const idsLuzAutomaticos = todosLosSuministros
-    .filter(tieneMantenimientoAutomatico)
-    .map((s) => s.id);
+  const suministrosLuzAutomaticos = todosLosSuministros.filter(
+    tieneMantenimientoAutomatico,
+  );
+  const idsLuzAutomaticos = suministrosLuzAutomaticos.map((s) => s.id);
   // Cuántos de esos siguen encendidos: si se apagan todos, ya no hay nada
   // "automático" que avisar y el contador deja de ir subrayado.
   const automaticosActivos = idsLuzAutomaticos.filter((id) =>
@@ -212,7 +219,11 @@ export function PantallaAhorroEmpresas({
     setVecesApagado(veces);
     // La segunda vez el aviso se abre solo (ya con el mensaje de "lo
     // recomendamos"); la primera y de la tercera en adelante, se cierra.
-    setAvisoAbierto(veces === 2);
+    //
+    // Con el diálogo delante, NO: la burbuja saldría detrás del velo, y además
+    // sería repetir palabra por palabra lo que el diálogo ya está diciendo
+    // (comparten la frase, `fraseMantenimientoAutomatico`).
+    setAvisoAbierto(veces === 2 && !popupAbierto);
   }
 
   function alCambiarMantenimiento(id: string, activo: boolean) {
@@ -321,6 +332,12 @@ export function PantallaAhorroEmpresas({
                     // número no lo ha elegido la persona y conviene mirar el
                     // aviso de al lado.
                     subrayado={automaticosActivos > 0}
+                    // Subrayado y enlace van juntos: el subrayado promete que
+                    // ahí se puede pulsar, y solo hay algo que enseñar cuando
+                    // de verdad hay mantenimientos automáticos puestos.
+                    onPulsarContador={
+                      automaticosActivos > 0 ? () => setPopupAbierto(true) : undefined
+                    }
                     ayuda={
                       <AvisoMantenimientoLuz
                         automaticos={idsLuzAutomaticos.length}
@@ -415,6 +432,17 @@ export function PantallaAhorroEmpresas({
           </Button>
         </div>
       </div>
+
+      <ModalSuministrosGrandes
+        abierto={popupAbierto}
+        suministros={suministrosLuzAutomaticos}
+        mantenimientoIds={mantenimientoIds}
+        onCambiarMantenimiento={alCambiarMantenimiento}
+        onDesactivarTodos={() =>
+          alCambiarMantenimientoEnBloque(idsLuzAutomaticos, false)
+        }
+        onCerrar={() => setPopupAbierto(false)}
+      />
 
       <PanelCompararEmpresas
         abierto={comparando !== null}
@@ -519,6 +547,9 @@ function SelectorPeriodo({
  *
  * `subrayado` subraya el contador. Es la pista visual de que ese número no lo
  * ha puesto la persona: hay mantenimientos que se activaron automáticamente.
+ * Y con `onPulsarContador` el contador pasa a ser un ENLACE que abre el diálogo
+ * con esos suministros. Las dos cosas van siempre juntas: subrayar algo que no
+ * se puede pulsar es una promesa que no se cumple.
  */
 function InterruptorMantenimiento({
   icono,
@@ -527,6 +558,7 @@ function InterruptorMantenimiento({
   mantenimientoIds,
   onCambiarTodos,
   subrayado = false,
+  onPulsarContador,
   ayuda,
 }: {
   icono: IconName;
@@ -535,6 +567,7 @@ function InterruptorMantenimiento({
   mantenimientoIds: Set<string>;
   onCambiarTodos: (activo: boolean) => void;
   subrayado?: boolean;
+  onPulsarContador?: () => void;
   ayuda?: ReactNode;
 }) {
   const total = ids.length;
@@ -548,9 +581,26 @@ function InterruptorMantenimiento({
       </span>
       <Text variant="label-m" color="mid" as="span">
         Mantenimiento {etiqueta}{" "}
-        <span className={subrayado ? "underline" : undefined}>
-          ({activos}/{total})
-        </span>
+        {onPulsarContador ? (
+          <button
+            type="button"
+            onClick={onPulsarContador}
+            // Mismo enlace de texto que el resto del prototipo: subrayado, y
+            // se atenúa al pasar por encima y al pulsar.
+            className={[
+              "cursor-pointer rounded-sm transition-opacity motion-micro-states",
+              "hover:opacity-60 active:opacity-30",
+              "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
+              subrayado ? "underline" : "",
+            ].join(" ")}
+          >
+            ({activos}/{total})
+          </button>
+        ) : (
+          <span className={subrayado ? "underline" : undefined}>
+            ({activos}/{total})
+          </span>
+        )}
       </Text>
       <Switch
         checked={total > 0 && activos === total}
@@ -621,16 +671,8 @@ function AvisoMantenimientoLuz({
       }
       content={
         <span className="flex flex-col gap-04">
-          <span>
-            Hemos detectado que tienes {automaticos}{" "}
-            {automaticos === 1 ? "suministro" : "suministros"} con más de{" "}
-            {POTENCIA_MANTENIMIENTO_AUTO} kW. Para estos casos,{" "}
-            {puestos
-              ? "activamos automáticamente el mantenimiento"
-              : "recomendamos activar el mantenimiento"}{" "}
-            ya que en instalaciones de este tamaño una incidencia eléctrica
-            tiene más impacto y cubrirla compensa.
-          </span>
+          {/* La misma frase que el diálogo, de un solo sitio. */}
+          <span>{fraseMantenimientoAutomatico(automaticos, puestos)}</span>
           <span className="flex flex-wrap gap-02">
             {puestos ? (
               <Button size="small" feedback="highlight" onClick={() => onAbrir(false)}>

@@ -47,6 +47,7 @@ export type IconName =
   | "wrench"
   | "warning"
   | "folder"
+  | "home"
   | "trash";
 
 type IconProps = Omit<SVGProps<SVGSVGElement>, "name" | "children"> & {
@@ -135,6 +136,10 @@ const stroked: Partial<Record<IconName, string>> = {
   // Carpeta: la pestaña de arriba y el cuerpo, en un solo trazo.
   folder:
     "M2.5 5.83C2.5 5.09 3.09 4.5 3.83 4.5H7.34C7.71 4.5 8.06 4.65 8.31 4.93L9.19 5.9C9.44 6.18 9.79 6.33 10.16 6.33H16.17C16.91 6.33 17.5 6.92 17.5 7.67V14.17C17.5 14.91 16.91 15.5 16.17 15.5H3.83C3.09 15.5 2.5 14.91 2.5 14.17V5.83Z",
+  // Casa con su puerta, en un solo trazo: tejado, paredes, base y el hueco de
+  // la puerta en el centro. Es el DS Icon / Home2 del Figma, y marca cada punto
+  // de suministro en el diálogo de suministros grandes.
+  home: "M10 2.5L3.25 9.25V16.5H8V11.5H12V16.5H16.75V9.25L10 2.5Z",
   // Llama, a juego con lightbulb (Luz/Gas del mantenimiento).
   fire: "M10 17.5C7.24 17.5 5 15.26 5 12.5C5 9.5 7 7.5 7.5 5C7.5 5 10 6.5 10 9C10 9 11.5 8 11.5 6C13 7.5 15 9.5 15 12.5C15 15.26 12.76 17.5 10 17.5Z",
 };
