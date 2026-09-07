@@ -226,7 +226,9 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   (`PantallaAhorroEmpresas`) — donde el mantenimiento de luz de los puntos de más de 30 kW llega
   ya activado y un aviso con acciones lo explica: se abre solo la primera vez que se baja hasta esa
   fila (nunca al cargar la pantalla) y, si se desactiva por segunda vez, vuelve a salir cambiando
-  el "lo hemos activado" por "te lo recomendamos" — y, al pulsar "Hacer el cambio", "Cambio de compañía"
+  el "lo hemos activado" por "te lo recomendamos"; y el contador subrayado de ese interruptor abre
+  `ModalSuministrosGrandes`, el diálogo que enseña cuáles son esos suministros para decidir uno por
+  uno — y, al pulsar "Hacer el cambio", "Cambio de compañía"
   (`PantallaCambioCompaniaEmpresas`): datos de quien tramita (con nombre y email pre-rellenados
   desde la subida de facturas), IBAN por sociedad, y verificación de identidad + firma — o, si se
   tramita en nombre de otra persona, poderes de representación o enlace de firma en su lugar. Y,

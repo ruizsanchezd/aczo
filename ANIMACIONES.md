@@ -347,19 +347,47 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
      - **2ª vez**: se abre el aviso recomendándolo. Es insistir una vez, no discutir.
      - **3ª y siguientes**: no se insiste más. Sería un aviso plasta, y el mensaje sigue estando a
        mano en el icono.
-   - **El contador de luz va subrayado** mientras haya mantenimientos que Aczo puso por su cuenta
-     (p. ej. `(2/11)`): es la pista de que ese número no lo ha elegido la persona. Al desactivarlos,
-     el subrayado desaparece.
-5. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
+   - **El contador de luz va subrayado Y es un enlace** mientras haya mantenimientos que Aczo puso
+     por su cuenta (p. ej. `(2/11)`): el subrayado es la pista de que ese número no lo ha elegido la
+     persona, y al pulsarlo se abre el diálogo del punto 5. Las dos cosas van SIEMPRE juntas —
+     subrayar algo que no se puede pulsar es una promesa que no se cumple — así que al desactivarlos
+     desaparecen las dos a la vez. Como enlace usa el patrón de texto del resto del prototipo
+     (`underline` + `hover:opacity-60` + `active:opacity-30` en `micro-states`).
+5. **Diálogo "Suministros con más de X kW"** (`ModalSuministrosGrandes.tsx`, Figma node
+   5359:36396). Se abre desde ese contador y enseña CUÁLES son los suministros grandes —nombre,
+   ciudad y potencia— cada uno con su interruptor, para poder decidir de uno en uno en vez de
+   todos a la vez como en el aviso.
+   - **Mismo patrón y mismos motivos que `ModalComparar.tsx`**, que es la otra ventana del
+     prototipo: portal colgado del `<body>` (dentro de la pantalla, su animación de entrada con
+     `transform` rompería el `position: fixed` y la ventana saldría descolocada), velo con
+     `anim-aparece-simple`, ventana que crece desde el 96% con `anim-escala-entrada`, y salida de
+     las dos con `motion-micro-leave` (250 ms: salir siempre es más rápido que entrar). Se cierra
+     con la X, con Escape y pulsando fuera, y bloquea el scroll de la página de detrás.
+   - **Medidas del Figma:** ancho máximo 600 px (`ds/component/dialog/max-width`), radio `lg`,
+     padding `05` (20), 16 de hueco entre cabecera, contenido y pie; tarjeta interior en
+     `background-low` con radio `md` y padding `04`; filas de 56 px separadas por una línea
+     `border-low`; indicador de 28 px en `info-low` con el icono `home` en `info-high` (la casa
+     dice "esto es un punto de suministro"; se añadió al set de iconos para esto).
+   - **Los dos botones del pie:** "Descartar" (`secondary`) cierra sin tocar nada y "Desactivar
+     mantenimiento" (`primary highlight`) los apaga todos. Que la acción destacada sea desactivar
+     es del Figma, y tiene sentido: quien abre este diálogo viene a revisar unos mantenimientos
+     que no pidió. Se desactiva (`disabled`) cuando ya no queda ninguno puesto.
+   - **El texto del diálogo es LA MISMA frase que el aviso** del icono, y vive en un solo sitio
+     (`fraseMantenimientoAutomatico`), con las mismas dos versiones según si el mantenimiento está
+     puesto o no.
+   - **Mientras el diálogo está delante, el aviso del icono NO se abre solo**, ni en la segunda
+     desactivación: saldría detrás del velo y además sería repetir palabra por palabra lo que el
+     diálogo ya está diciendo.
+6. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
    ahorro de su comercializadora y de la tarjeta de su plan — la fila se queda atenuada
    (`opacity-40`) y su interruptor de mantenimiento se desactiva. Los "puntos de suministro" que
    se cuentan en las cabeceras NO cambian: son un dato de inventario, no del cálculo.
-6. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
+7. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
    por sociedad: el CIF de la sociedad a la que pertenece se enseña en la cabecera de su grupo.
    Al desplegar una comercializadora (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el
    resto de desplegables), sus ubicaciones ya se ven abiertas — cada una con su propio desplegable
    independiente, por si se quiere cerrar alguna suelta.
-7. **Cada punto de suministro se despliega a su vez** (el cuarto nivel, misma técnica de rejilla
+8. **Cada punto de suministro se despliega a su vez** (el cuarto nivel, misma técnica de rejilla
    `0fr → 1fr`): CUPS, tarifa contratada, consumo anual, potencia contratada, perfil de consumo
    (Punta/Llano/Valle) y compañía actual — el mismo contenido que `DetalleSuministro` en
    `TablaAhorro.tsx` (recorrido particular). Su flecha es independiente de la casilla y del
@@ -368,7 +396,7 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    avisa si hay permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar
    ahora — el dato sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la
    tienen).
-8. **Botón "Comparar"** de cada comercializadora: abre `PanelCompararEmpresas`, un PANEL LATERAL
+9. **Botón "Comparar"** de cada comercializadora: abre `PanelCompararEmpresas`, un PANEL LATERAL
    (Figma nodes 4096:19503 y 4181:44479). **No es `ModalComparar`**, que es la ventana centrada
    del recorrido particular clásico y se queda como está: este Figma pide otra forma y, sobre
    todo, otra mecánica — allí solo se miran ofertas, y aquí se ELIGE una para sustituir a la
@@ -397,7 +425,7 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
      del Figma— y su logo también es inventado (`public/logos/`). Octopus, que sí es una marca
      real, no tiene todavía archivo de logo: en esta lista enseña su inicial en la misma caja
      cuadrada, para no romper el ritmo.
-9. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
+10. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
    (lleva a "Cambio de compañía", pantalla 5 más abajo), igual patrón que la barra de la
    pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos). No
    aparece hasta que se ha bajado más de un 8 % del recorrido de la página
