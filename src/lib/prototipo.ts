@@ -94,6 +94,93 @@ export function useRevelarAlEntrar<T extends HTMLElement>(parteVisible = 0.15) {
 }
 
 /**
+ * Avisa UNA sola vez, cuando la persona BAJA hasta este bloque.
+ *
+ * Lo usa el aviso del mantenimiento automático de "Tu ahorro potencial"
+ * (empresas), que abre una burbuja junto a su fila. Hacen falta DOS cosas a la
+ * vez, y las dos por un motivo:
+ *
+ *   1. Que el bloque se vea (al menos `parteVisible`, de 0 a 1). Obvio: la
+ *      burbuja sale pegada a él, así que abrirla cuando no se ve es abrirla
+ *      para nadie.
+ *   2. Que la persona ya haya bajado algo (`UMBRAL_DE_SCROLL`). Esto es lo que
+ *      evita que la burbuja salte de golpe nada más cargar la pantalla: en una
+ *      ventana alta el bloque puede verse ya desde el primer momento, y ahí un
+ *      aviso que aparece solo se lee como un susto, no como una explicación.
+ *      Basta con que se empiece a mover para que salga.
+ *
+ * Se parece a `useRevelarAlEntrar`, pero no es lo mismo y por eso van
+ * separadas: aquella es para animaciones de entrada, sí se dispara con lo que
+ * ya se veía al cargar, y además se da por vista si el bloque se ha quedado
+ * POR ENCIMA de la pantalla (para que un salto de golpe no deje el contenido
+ * invisible) — aquí eso abriría la burbuja donde nadie la ve.
+ */
+export function useAlBajarHasta<T extends HTMLElement>(
+  alEntrar: () => void,
+  parteVisible = 0.6,
+) {
+  const ref = useRef<T>(null);
+  // El aviso se dispara desde el propio observador, no desde un estado: es un
+  // aviso de "ha pasado algo ahí fuera", que es justo para lo que sirven los
+  // efectos. El callback se guarda en un ref y se refresca en cada render, así
+  // el observador se monta UNA vez pero siempre llama a la versión al día.
+  const alEntrarRef = useRef(alEntrar);
+  useEffect(() => {
+    alEntrarRef.current = alEntrar;
+  }, [alEntrar]);
+
+  useEffect(() => {
+    const elemento = ref.current;
+    if (!elemento) return;
+
+    // Sin IntersectionObserver no se abre nada por su cuenta: el aviso sigue
+    // estando a mano en su icono, así que no se pierde nada.
+    if (typeof IntersectionObserver === "undefined") return;
+
+    // Los mismos 8 px que usa useDesplazado, y por lo mismo: que no cuente
+    // como "ha bajado" el rebote del scroll de macOS ni un roce del trackpad.
+    const UMBRAL_DE_SCROLL = 8;
+
+    let seVe = false;
+    let haBajado = window.scrollY > UMBRAL_DE_SCROLL;
+    let avisado = false;
+
+    function avisarSiToca() {
+      if (avisado || !seVe || !haBajado) return;
+      avisado = true;
+      // Antes de avisar: una sola vez y se acabó.
+      dejarDeEscuchar();
+      alEntrarRef.current();
+    }
+
+    function alDesplazar() {
+      if (window.scrollY <= UMBRAL_DE_SCROLL) return;
+      haBajado = true;
+      avisarSiToca();
+    }
+
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        seVe = entradas.some((e) => e.isIntersecting);
+        avisarSiToca();
+      },
+      { threshold: parteVisible },
+    );
+
+    function dejarDeEscuchar() {
+      observador.disconnect();
+      window.removeEventListener("scroll", alDesplazar);
+    }
+
+    observador.observe(elemento);
+    window.addEventListener("scroll", alDesplazar, { passive: true });
+    return dejarDeEscuchar;
+  }, [parteVisible]);
+
+  return ref;
+}
+
+/**
  * true en cuanto la página deja de estar arriba del todo.
  *
  * La usa la cabecera de los dos flujos para encogerse mientras se navega y

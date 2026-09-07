@@ -1,15 +1,32 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
 /**
- * Aire mínimo que se deja entre la burbuja y el borde de la ventana. Son los
- * mismos 8 px del token de espaciado 02, pero aquí tienen que ir en JavaScript
- * porque hay que restarlos del ancho de la ventana para saber dónde cabe la
- * burbuja; en CSS no se puede hacer esa cuenta.
+ * Aire mínimo que se deja entre la burbuja y el borde de la ventana: los 8 px
+ * del token de espaciado 02. Va en JavaScript y no en CSS porque hay que
+ * restarlo del tamaño de la ventana para saber dónde cabe la burbuja, y esa
+ * cuenta en CSS no se puede hacer.
  */
 const AIRE_CON_EL_BORDE = 8;
+
+/**
+ * Hueco entre el icono y la burbuja cuando se abre a un lado
+ * (`position="right"`): los 4 px del token de espaciado 01, medidos en el
+ * Figma. Arriba y abajo el hueco lo pone un margen (mb-02 / mt-02); aquí no
+ * puede, porque la posición se calcula a mano y hay que sumarlo en la cuenta.
+ */
+const HUECO_CON_EL_ICONO = 4;
 
 /**
  * Tooltip — burbuja de ayuda que aparece al pasar el ratón o al enfocar con
@@ -33,34 +50,91 @@ const AIRE_CON_EL_BORDE = 8;
  * recolocarla a mano al hacer scroll o al cambiar el tamaño de la ventana
  * (ver el efecto de abajo).
  *
- * `position` decide hacia qué lado se abre: "top" (por defecto) para cuando
- * hay contenido debajo que no se quiere tapar, "bottom" para cuando el
- * disparador está al principio de una tabla y conviene abrir hacia abajo.
+ * COLORES Y TIPOGRAFÍA salen del componente DS Tooltip de la librería, leídos
+ * de una instancia del Figma de UI Design (node 5349:32575): superficie
+ * `background-inverse` con texto `content-inverse` (es una superficie
+ * INVERTIDA, no una superficie oscura fija: el día que se active el modo
+ * oscuro, la burbuja pasa a ser clara con texto oscuro, y así sigue
+ * destacando sobre la página), radio `md`, texto `body-m` y padding 12/8.
+ *
+ * `position` decide hacia qué lado se abre:
+ *   - "top" (por defecto): hacia arriba, anclada por su borde derecho. Para
+ *     cuando hay contenido debajo que no se quiere tapar.
+ *   - "bottom": igual pero hacia abajo, para cuando el disparador está al
+ *     principio de una tabla.
+ *   - "right": a la derecha del icono y CENTRADA con él. Es la que pide el
+ *     Figma para el aviso del mantenimiento (node 5349:32575): así no tapa ni
+ *     las tarjetas de plan de arriba ni las comercializadoras de abajo, que es
+ *     justo lo que pasaba abriéndola hacia arriba.
+ *
+ * DOS MODOS DE COMPORTAMIENTO:
+ *
+ *   - Por defecto es un tooltip de toda la vida: solo informa, se abre al
+ *     pasar por encima y se cierra al salir. No se puede tocar (el ratón le
+ *     pasa por encima sin enterarse).
+ *   - Con `interactive` pasa a ser un aviso con acciones: la burbuja SÍ recibe
+ *     el ratón, para que se puedan pulsar los botones que lleve dentro. Y
+ *     entonces ya no se cierra sola al salir el ratón — sería imposible llegar
+ *     hasta los botones cruzando el hueco que la separa del icono. Se cierra
+ *     con Escape, pulsando fuera, o desde sus propios botones.
+ *
+ * `open` + `onOpenChange` permiten mandar desde fuera (modo controlado): lo
+ * usa la pantalla de ahorro de empresas para abrir el aviso del mantenimiento
+ * automático sola, en cuanto la sección asoma por la pantalla.
  */
 export function Tooltip({
   content,
   children,
   position = "top",
   className = "",
+  interactive = false,
+  open,
+  onOpenChange,
+  label,
 }: {
   content: ReactNode;
   children: ReactNode;
-  position?: "top" | "bottom";
+  position?: "top" | "bottom" | "right";
   className?: string;
+  /** La burbuja recibe el ratón: imprescindible si lleva botones dentro. */
+  interactive?: boolean;
+  /** Modo controlado: manda quien la usa (p. ej. para abrirla sola). */
+  open?: boolean;
+  onOpenChange?: (abierta: boolean) => void;
+  /** Nombre accesible de la burbuja cuando lleva botones (es un diálogo, no
+   * un simple texto de ayuda). */
+  label?: string;
 }) {
   const id = useId();
   const anclaRef = useRef<HTMLSpanElement>(null);
   const burbujaRef = useRef<HTMLSpanElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visibleInterno, setVisibleInterno] = useState(false);
+  // Si llega `open`, manda quien nos usa; si no, nos lo guardamos nosotros.
+  const controlado = open !== undefined;
+  const visible = controlado ? open : visibleInterno;
   /**
-   * Se pone a true la primera vez que alguien pasa por encima y ya no se
-   * quita. Así la burbuja se queda en el DOM y puede animar también la salida,
-   * en vez de desaparecer de golpe; y mientras nadie la haya usado, no se
-   * dibuja nada.
+   * Se pone a true la primera vez que la burbuja se abre y ya no se quita. Así
+   * se queda en el DOM y puede animar también la salida, en vez de desaparecer
+   * de golpe; y mientras nadie la haya abierto, no se dibuja nada.
+   *
+   * Se ajusta durante el render (no desde un efecto): es el patrón que
+   * recomienda React para "cambiar un estado cuando cambia una prop", y
+   * evita el render de más que encadenaría un efecto.
    */
   const [montado, setMontado] = useState(false);
-  /** Dónde va la burbuja, en coordenadas de ventana. */
-  const [caja, setCaja] = useState<{ top: number; right: number } | null>(null);
+  if (visible && !montado) setMontado(true);
+  /** Dónde va la burbuja: el estilo ya calculado, en coordenadas de ventana.
+   * Es un estilo y no unas coordenadas porque cada `position` se ancla por
+   * bordes distintos (arriba por abajo, a la derecha por la izquierda...). */
+  const [estilo, setEstilo] = useState<CSSProperties | null>(null);
+
+  const cambiar = useCallback(
+    (abierta: boolean) => {
+      if (!controlado) setVisibleInterno(abierta);
+      onOpenChange?.(abierta);
+    },
+    [controlado, onOpenChange],
+  );
 
   // useLayoutEffect y no useEffect: coloca la burbuja ANTES de que el
   // navegador pinte, para que no se llegue a ver un fotograma en el sitio
@@ -72,24 +146,43 @@ export function Tooltip({
       const ancla = anclaRef.current;
       if (!ancla) return;
       const r = ancla.getBoundingClientRect();
-
-      // Se ancla por la derecha, creciendo hacia la izquierda: el icono suele
-      // estar pegado al lado derecho de su fila, y centrarla la sacaría por
-      // fuera. Pero si el icono está muy a la izquierda, la burbuja se saldría
-      // por ese lado, así que se separa del borde derecho lo justo para que
-      // quepa entera.
       const ancho = burbujaRef.current?.offsetWidth ?? 0;
+      const alto = burbujaRef.current?.offsetHeight ?? 0;
+
+      if (position === "right") {
+        // A la derecha del icono y centrada con él. Si no cabe a la derecha
+        // (ventana estrecha), se pega al borde con el aire mínimo; y si no cabe
+        // de alto, se sube o se baja lo justo para que quepa entera.
+        const izquierda = Math.min(
+          r.right + HUECO_CON_EL_ICONO,
+          Math.max(AIRE_CON_EL_BORDE, window.innerWidth - ancho - AIRE_CON_EL_BORDE),
+        );
+        const arriba = Math.min(
+          Math.max(AIRE_CON_EL_BORDE, r.top + r.height / 2 - alto / 2),
+          Math.max(AIRE_CON_EL_BORDE, window.innerHeight - alto - AIRE_CON_EL_BORDE),
+        );
+        setEstilo({ position: "fixed", left: `${izquierda}px`, top: `${arriba}px` });
+        return;
+      }
+
+      // Arriba y abajo se anclan por la derecha, creciendo hacia la izquierda:
+      // el icono suele estar pegado al lado derecho de su fila, y centrarla la
+      // sacaría por fuera. Pero si el icono está muy a la izquierda, la burbuja
+      // se saldría por ese lado, así que se separa del borde derecho lo justo
+      // para que quepa entera.
       const derechaMaxima = window.innerWidth - ancho - AIRE_CON_EL_BORDE;
       const derecha = Math.max(
         AIRE_CON_EL_BORDE,
         Math.min(window.innerWidth - r.right, derechaMaxima),
       );
 
-      setCaja({
-        // El borde por el que se ancla: arriba del icono o abajo. La
-        // separación con el icono la pone el margen (mb-02 / mt-02).
-        top: position === "top" ? r.top : r.bottom,
-        right: derecha,
+      // La separación con el icono la pone el margen (mb-02 / mt-02).
+      setEstilo({
+        position: "fixed",
+        right: `${derecha}px`,
+        ...(position === "top"
+          ? { bottom: `${window.innerHeight - r.top}px` }
+          : { top: `${r.bottom}px` }),
       });
     }
 
@@ -104,59 +197,105 @@ export function Tooltip({
     };
   }, [visible, position, montado]);
 
+  // Un aviso con acciones no se cierra al salir el ratón (ver la cabecera),
+  // así que necesita las dos salidas de siempre: Escape y pulsar fuera.
+  useEffect(() => {
+    if (!interactive || !visible) return;
+
+    function alTeclear(e: KeyboardEvent) {
+      if (e.key === "Escape") cambiar(false);
+    }
+    function alPulsarFuera(e: PointerEvent) {
+      const destino = e.target as Node | null;
+      if (!destino) return;
+      if (anclaRef.current?.contains(destino)) return;
+      if (burbujaRef.current?.contains(destino)) return;
+      cambiar(false);
+    }
+
+    document.addEventListener("keydown", alTeclear);
+    document.addEventListener("pointerdown", alPulsarFuera);
+    return () => {
+      document.removeEventListener("keydown", alTeclear);
+      document.removeEventListener("pointerdown", alPulsarFuera);
+    };
+  }, [interactive, visible, cambiar]);
+
   const burbuja = montado && (
     <span
       ref={burbujaRef}
       id={id}
-      role="tooltip"
+      role={interactive ? "dialog" : "tooltip"}
+      aria-label={interactive ? label : undefined}
       style={
-        caja
-          ? {
-              position: "fixed",
-              right: `${caja.right}px`,
-              ...(position === "top"
-                ? { bottom: `${window.innerHeight - caja.top}px` }
-                : { top: `${caja.top}px` }),
-            }
-          : // Todavía sin medir (el fotograma en el que se monta). Se deja
-            // fuera de la vista pero en el documento, que es lo que hace falta
-            // para poder medir su ancho y colocarla bien acto seguido.
-            { position: "fixed", top: 0, right: 0, visibility: "hidden" }
+        estilo ?? {
+          // Todavía sin medir (el fotograma en el que se monta). Se deja fuera
+          // de la vista pero en el documento, que es lo que hace falta para
+          // poder medir su tamaño y colocarla bien acto seguido.
+          position: "fixed",
+          top: 0,
+          right: 0,
+          visibility: "hidden",
+        }
       }
       className={[
-        "pointer-events-none z-50",
-        position === "top" ? "mb-02" : "mt-02",
-        // 28ch no es un token: mide el ancho máximo de la línea de texto,
-        // no un valor de diseño.
-        "w-max max-w-[28ch] rounded-sm bg-background-high px-03 py-02 text-left text-body-s text-content-always-light shadow-md",
+        "z-50",
+        // Cerrada nunca recibe el ratón, ni siquiera en modo interactivo: si
+        // no, taparía lo que hay debajo estando invisible.
+        interactive && visible ? "pointer-events-auto" : "pointer-events-none",
+        // "right" ya lleva el hueco metido en la cuenta de la posición.
+        position === "top" ? "mb-02" : position === "bottom" ? "mt-02" : "",
+        // Con acciones dentro, el ancho es el del componente del Figma
+        // (DS Tooltip, node 5349:32575: 320 px), que es el que deja sitio a los
+        // dos botones en una línea. Sin acciones, se ajusta al texto: 28ch no
+        // es un token, mide el ancho máximo de la línea, no un valor de diseño.
+        interactive ? "w-[320px]" : "w-max max-w-[28ch]",
+        "rounded-md bg-background-inverse px-03 py-02 text-left text-body-m text-content-inverse shadow-md",
         "transition-opacity",
         visible ? "opacity-100 motion-micro-appear" : "opacity-0 motion-micro-leave",
-      ].join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {content}
     </span>
   );
 
+  // Mismos estilos de foco en los dos modos; lo que cambia es la etiqueta
+  // (un botón de verdad cuando se puede abrir y cerrar a voluntad).
+  const clasesAncla =
+    "inline-flex rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high";
+
   return (
-    <span className={`inline-flex ${className}`}>
-      <span
-        ref={anclaRef}
-        tabIndex={0}
-        aria-describedby={id}
-        onMouseEnter={() => {
-          setMontado(true);
-          setVisible(true);
-        }}
-        onMouseLeave={() => setVisible(false)}
-        onFocus={() => {
-          setMontado(true);
-          setVisible(true);
-        }}
-        onBlur={() => setVisible(false)}
-        className="inline-flex rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high"
-      >
-        {children}
-      </span>
+    <span ref={anclaRef} className={`inline-flex ${className}`}>
+      {interactive ? (
+        <button
+          type="button"
+          aria-expanded={visible}
+          aria-controls={id}
+          // Aquí NO se abre al pasar por encima, solo al pulsar: si se abriera
+          // con el ratón, al pulsar el icono se abriría (hover) y se cerraría
+          // (clic) en el mismo gesto, y no habría manera de volver a verla. Es
+          // además lo que se espera de un aviso con botones: se abre y se
+          // cierra a voluntad, no de refilón.
+          onClick={() => cambiar(!visible)}
+          className={`cursor-pointer ${clasesAncla}`}
+        >
+          {children}
+        </button>
+      ) : (
+        <span
+          tabIndex={0}
+          aria-describedby={id}
+          onMouseEnter={() => cambiar(true)}
+          onMouseLeave={() => cambiar(false)}
+          onFocus={() => cambiar(true)}
+          onBlur={() => cambiar(false)}
+          className={clasesAncla}
+        >
+          {children}
+        </span>
+      )}
       {burbuja && createPortal(burbuja, document.body)}
     </span>
   );

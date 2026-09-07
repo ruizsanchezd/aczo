@@ -125,7 +125,7 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
   de diseño están hechos a mano en `src/components/ui/`, uno por archivo, a partir de la
   documentación de la librería de Figma: `Button`, `Input` (con `Textarea`, `Select`,
   `PasswordInput`, `SearchInput`), `Checkbox`, `Radio`, `Switch`, `Tag`, `ProgressBar`
-  (+ `SegmentedProgress`), `Alert`, `Icon` y `Text`.
+  (+ `SegmentedProgress`), `Alert`, `Tooltip`, `Icon` y `Text`.
 - **Animación:** sin librería. Todo con CSS/Tailwind usando las utilidades de motion y unas
   pocas animaciones de una pasada definidas en `globals.css` (`anim-*`). Si alguna interacción
   llega a necesitar gestos o timelines de verdad, valorar añadir `motion` y documentarlo aquí.
@@ -223,7 +223,10 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   varias sociedades (`PantallaSubidaEmpresas`), la pantalla de carga (`PantallaCargaEmpresas`), el
   resultado con errores y alertas (`PantallaResultadoEmpresas` + el panel `PanelAlertasEmpresas`,
   con pestañas "Permanencia"/"Vencidas") y "Tu ahorro potencial" agrupado por sociedad
-  (`PantallaAhorroEmpresas`) y, al pulsar "Hacer el cambio", "Cambio de compañía"
+  (`PantallaAhorroEmpresas`) — donde el mantenimiento de luz de los puntos de más de 30 kW llega
+  ya activado y un aviso con acciones lo explica: se abre solo la primera vez que se baja hasta esa
+  fila (nunca al cargar la pantalla) y, si se desactiva por segunda vez, vuelve a salir cambiando
+  el "lo hemos activado" por "te lo recomendamos" — y, al pulsar "Hacer el cambio", "Cambio de compañía"
   (`PantallaCambioCompaniaEmpresas`): datos de quien tramita (con nombre y email pre-rellenados
   desde la subida de facturas), IBAN por sociedad, y verificación de identidad + firma — o, si se
   tramita en nombre de otra persona, poderes de representación o enlace de firma en su lugar. Y,

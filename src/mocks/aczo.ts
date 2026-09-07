@@ -206,6 +206,23 @@ export function suministro(
   };
 }
 
+/**
+ * Potencia contratada (kW) a partir de la cual Aczo activa el mantenimiento de
+ * luz por su cuenta, sin que haya que pedirlo: por encima de este tamaño de
+ * instalación una incidencia eléctrica tiene bastante más impacto y la cuota
+ * del mantenimiento sale a cuenta. Los puntos que la superan llegan con el
+ * mantenimiento puesto, y la pantalla de ahorro avisa de ello.
+ */
+export const POTENCIA_MANTENIMIENTO_AUTO = 30;
+
+/** true si a este punto le corresponde mantenimiento de luz automático
+ * (ver POTENCIA_MANTENIMIENTO_AUTO). El gas nunca es "automático" en este
+ * sentido: va incluido en la propuesta desde el principio, sea del tamaño
+ * que sea. */
+export function tieneMantenimientoAutomatico(s: Suministro): boolean {
+  return s.tipo === "Luz" && s.detalle.potencia > POTENCIA_MANTENIMIENTO_AUTO;
+}
+
 export const COMERCIALIZADORAS: Comercializadora[] = [
   {
     id: "totalenergies",
@@ -317,7 +334,7 @@ export const COMERCIALIZADORAS: Comercializadora[] = [
           suministro("tc-1", "Restaurante planta calle", "Luz", "3.0TD", 6_900, 700, {
             ciudad: "Sevilla",
             consumoAnual: 72_400,
-            potencia: 31.5,
+            potencia: 26.5,
             perfil: { punta: 38, llano: 37, valle: 25 },
             companiaActual: "Iberdrola",
             permanencia: { hasta: "Septiembre 2026", penalizacion: { min: 480, max: 610 } },
