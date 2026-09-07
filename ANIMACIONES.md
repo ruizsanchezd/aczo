@@ -74,12 +74,35 @@ se comporte igual sobre cualquier superficie.
   (`:focus-within`, no solo `:focus`, así funciona también si el foco cae en un hijo).
 - **Desaparecer:** `micro-leave` sobre `opacity`.
 - **Por qué no es el tooltip nativo del navegador (`title`):** no se puede diseñar (tipografía,
-  color, tiempos) y en la práctica cuesta acertar sobre un icono pequeño. Se dibuja a mano:
-  fondo `background-high` (negro fijo, no cambia entre modos) y texto `content-always-light`,
-  con `shadow-md`.
-- **Posición:** ancla su borde derecho al del icono y crece hacia la izquierda (`position="top"`
-  o `"bottom"` según convenga). Centrarlo sobre el icono lo saca por fuera de la tarjeta cuando el
-  icono está pegado al lado derecho de su fila, que es el caso más habitual.
+  color, tiempos) y en la práctica cuesta acertar sobre un icono pequeño. Se dibuja a mano.
+- **Colores y tipografía** (del componente DS Tooltip, leídos de una instancia en el Figma de UI
+  Design, node 5349:32575): superficie `background-inverse` con texto `content-inverse`, radio
+  `md`, texto `body-m`, padding 12/8 y `shadow-md`. Ojo: es una superficie **invertida**, no una
+  superficie oscura fija — el día que se active el modo oscuro la burbuja pasa a clara con texto
+  oscuro, que es lo correcto para que siga destacando sobre la página.
+- **Posición:**
+  - `"top"` (por defecto) y `"bottom"`: ancla su borde derecho al del icono y crece hacia la
+    izquierda. Centrarlo sobre el icono lo saca por fuera de la tarjeta cuando el icono está
+    pegado al lado derecho de su fila, que es el caso más habitual.
+  - `"right"`: a la derecha del icono y **centrada verticalmente con él**, con 4 px de hueco
+    (medido en el Figma; arriba y abajo el hueco son 8). Si no cabe (ventana estrecha o burbuja
+    más alta que el sitio que queda), se pega al borde dejando el aire mínimo de 8 px. Es la que
+    pide el Figma para el aviso del mantenimiento.
+- **Modo con acciones (`interactive`):** cuando la burbuja lleva botones dentro deja de ser un
+  texto de ayuda y pasa a ser un aviso. Cambian tres cosas:
+  - La burbuja recibe el ratón (`pointer-events-auto`), para poder pulsar los botones. Cerrada
+    nunca lo recibe, ni en este modo: taparía lo que hay debajo estando invisible.
+  - **Ya no se cierra al salir el ratón.** Entre el icono y la burbuja hay 8 px de hueco
+    (`mb-02`/`mt-02`): si se cerrara al salir, sería imposible llegar hasta los botones. Se cierra
+    con Escape, pulsando fuera o desde sus propios botones.
+  - **Se abre al PULSAR el icono, no al pasar por encima.** Si se abriera con el ratón, pulsar el
+    icono la abriría (hover) y la cerraría (clic) en el mismo gesto. El disparador pasa a ser un
+    `<button>` de verdad con `aria-expanded`, y la burbuja un `role="dialog"` con `aria-label`.
+- **Abrir desde fuera (`open` + `onOpenChange`):** modo controlado, para que una pantalla pueda
+  abrir la burbuja sola. Lo usa el aviso del mantenimiento automático de "Tu ahorro potencial"
+  (empresas), y con acciones dentro el ancho pasa a ser el fijo del Figma (320 px), el que deja
+  sitio a los dos botones en una sola línea. Ojo al implementar: el momento de montar la burbuja en el DOM se ajusta DURANTE el
+  render, no desde un efecto — desde un efecto encadena un render de más.
 
 ## Pantalla 1 · Subida masiva de facturas
 
@@ -268,7 +291,8 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    "Ahorro máximo" enseña TotalEnergies + Naturgy + Octopus en vez de TotalEnergies + Repsol.
 3. **Mantenimiento punto por punto:** cada fila de la tabla lleva su propio interruptor — no hay
    un único interruptor por tipo. **El de gas empieza encendido en todos los puntos** (se incluye
-   en la propuesta sin tocar nada); **el de luz empieza apagado** y hay que activarlo si se quiere.
+   en la propuesta sin tocar nada); **el de luz empieza apagado**, salvo en los puntos de más de
+   30 kW (`POTENCIA_MANTENIMIENTO_AUTO` en `mocks/aczo.ts`), donde Aczo lo activa por su cuenta.
    El icono de información junto a "Mantenimiento" (columna de la tabla, un `Tooltip` — ver
    "Componentes del sistema") explica esa diferencia. Los interruptores "Mantenimiento Luz/Gas" de
    la barra de resumen son de bulto: encienden o apagan a la vez todos los puntos de ese tipo, y su
@@ -276,16 +300,66 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    tocado filas sueltas). Cada punto activo descuenta su cuota (2 €/mes, en `mocks/aczo.ts`) del
    ahorro de su fila, de su comercializadora y de la tarjeta de SU plan (cada tarjeta descuenta
    solo los puntos de sus propias comercializadoras, no los de las de otro plan).
-4. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
+4. **Aviso del mantenimiento automático** (`AvisoMantenimientoLuz` en
+   `PantallaAhorroEmpresas.tsx`). Cada interruptor de bulto lleva su propio icono `info` detrás:
+   - **Gas:** un `Tooltip` normal, solo informa (va incluido desde el principio, en todos los
+     puntos).
+   - **Luz:** un `Tooltip` con acciones (ver "Componentes del sistema"), con **dos versiones** que
+     cuentan lo mismo y solo cambian el verbo y lo que se puede hacer. Se elige según cómo esté el
+     mantenimiento en ese momento:
+     - **Puesto** (node 5349:32575): "…**activamos automáticamente** el mantenimiento…", con
+       "Mantener activos" (cierra sin tocar nada) y "Desactivar" (los apaga todos, el contador se
+       queda en 0).
+     - **Apagado** (node 5355:33477): "…**recomendamos activar** el mantenimiento…", con "Activar
+       mantenimiento" (los vuelve a poner) y "Desactivar" (cierra, ya está apagado).
+
+     El botón principal es `primary highlight`. El segundo es un `secondary` con el contorno
+     `border-mid` y el texto forzado a `content-inverse`, tal cual el Figma (node 5349:32585): la
+     librería no tiene un secondary pensado para superficie invertida, su neutral pinta el texto en
+     `content-high` y sobre la burbuja no se vería.
+   - **POSICIÓN: a la derecha del icono y centrada con él** (`position="right"`, ver "Componentes
+     del sistema"), con el ancho fijo de 320 px del componente del Figma. Así el aviso no tapa ni
+     las tarjetas de plan de arriba ni las filas de comercializadora de abajo — abriéndose hacia
+     arriba se comía la tarjeta recomendada, que es justo lo que hay que poder seguir viendo
+     mientras se lee el aviso.
+   - **DISPARADOR 1: se abre SOLA la primera vez que se BAJA hasta la fila de mantenimiento**, con
+     la animación de siempre (`micro-appear` sobre `opacity`). Es una decisión que se ha tomado por
+     la persona, así que no puede quedarse escondida detrás de un icono que a lo mejor no pulsa
+     nunca. Detalles a replicar (`useAlBajarHasta` en `lib/prototipo.ts`):
+     - Hacen falta **dos cosas a la vez**: que la fila se vea (`IntersectionObserver` con umbral
+       0.6) **y** que ya se haya bajado algo (`scrollY > 8`, el mismo umbral antirrebote de
+       `useDesplazado`). Lo segundo es lo que evita que la burbuja salte de golpe al cargar la
+       pantalla: en una ventana alta la fila puede verse desde el primer momento, y ahí un aviso
+       que aparece solo se lee como un susto y no como una explicación.
+     - Se desconecta en cuanto salta: **una vez y se acabó**. Si no, volvería a saltar cada vez que
+       se reactivara a mano uno de esos puntos, y sería un aviso plasta.
+     - **No** vale el `useRevelarAlEntrar` de las animaciones de entrada: ese sí se dispara con lo
+       que ya se veía al cargar, y además se da por visto si el bloque se ha quedado POR ENCIMA de
+       la pantalla (para que no quede invisible tras un salto de golpe). Aquí eso abriría la
+       burbuja donde nadie la ve.
+     - Solo salta si de verdad hay algún mantenimiento automático activo.
+   - **DISPARADOR 2: se abre SOLA la segunda vez que el mantenimiento de esos puntos se queda a
+     cero**, ya con la versión de "lo recomendamos". La lógica está en `aplicarMantenimiento`, que
+     es el único sitio por el que pasan TODOS los cambios de mantenimiento (interruptor de bulto,
+     interruptor de fila y botones del aviso) — está centralizado justo para poder detectar ese
+     momento, que no pertenece a ningún interruptor concreto:
+     - **1ª vez** que se queda a cero: no se dice nada, la persona ha decidido y punto.
+     - **2ª vez**: se abre el aviso recomendándolo. Es insistir una vez, no discutir.
+     - **3ª y siguientes**: no se insiste más. Sería un aviso plasta, y el mensaje sigue estando a
+       mano en el icono.
+   - **El contador de luz va subrayado** mientras haya mantenimientos que Aczo puso por su cuenta
+     (p. ej. `(2/11)`): es la pista de que ese número no lo ha elegido la persona. Al desactivarlos,
+     el subrayado desaparece.
+5. **Casilla por fila:** desmarcarla saca ese punto del cálculo (como si no existiera) en el
    ahorro de su comercializadora y de la tarjeta de su plan — la fila se queda atenuada
    (`opacity-40`) y su interruptor de mantenimiento se desactiva. Los "puntos de suministro" que
    se cuentan en las cabeceras NO cambian: son un dato de inventario, no del cálculo.
-5. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
+6. **Tabla agrupada por UBICACIÓN** (cada dirección es ya una ubicación en `mocks/aczo.ts`), no
    por sociedad: el CIF de la sociedad a la que pertenece se enseña en la cabecera de su grupo.
    Al desplegar una comercializadora (`macro-levelup`, misma técnica de rejilla `0fr → 1fr` que el
    resto de desplegables), sus ubicaciones ya se ven abiertas — cada una con su propio desplegable
    independiente, por si se quiere cerrar alguna suelta.
-6. **Cada punto de suministro se despliega a su vez** (el cuarto nivel, misma técnica de rejilla
+7. **Cada punto de suministro se despliega a su vez** (el cuarto nivel, misma técnica de rejilla
    `0fr → 1fr`): CUPS, tarifa contratada, consumo anual, potencia contratada, perfil de consumo
    (Punta/Llano/Valle) y compañía actual — el mismo contenido que `DetalleSuministro` en
    `TablaAhorro.tsx` (recorrido particular). Su flecha es independiente de la casilla y del
@@ -294,7 +368,7 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
    avisa si hay permanencia con esa compañía: hasta cuándo y qué penalización tendría cambiar
    ahora — el dato sale de `detalle.permanencia` en `mocks/aczo.ts` (no todos los puntos la
    tienen).
-7. **Botón "Comparar"** de cada comercializadora: abre `PanelCompararEmpresas`, un PANEL LATERAL
+8. **Botón "Comparar"** de cada comercializadora: abre `PanelCompararEmpresas`, un PANEL LATERAL
    (Figma nodes 4096:19503 y 4181:44479). **No es `ModalComparar`**, que es la ventana centrada
    del recorrido particular clásico y se queda como está: este Figma pide otra forma y, sobre
    todo, otra mecánica — allí solo se miran ofertas, y aquí se ELIGE una para sustituir a la
@@ -323,7 +397,7 @@ con diferencias de fondo porque aquí hay varias sociedades y ubicaciones a la v
      del Figma— y su logo también es inventado (`public/logos/`). Octopus, que sí es una marca
      real, no tiene todavía archivo de logo: en esta lista enseña su inicial en la misma caja
      cuadrada, para no romper el ritmo.
-8. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
+9. **Barra inferior fija** con "Atrás" (vuelve a la pantalla de resultado) y "Hacer el cambio"
    (lleva a "Cambio de compañía", pantalla 5 más abajo), igual patrón que la barra de la
    pantalla de firma del recorrido particular (`sticky`, botones alineados a los extremos). No
    aparece hasta que se ha bajado más de un 8 % del recorrido de la página

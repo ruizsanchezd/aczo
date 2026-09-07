@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon, type IconName } from "@/components/ui/Icon";
@@ -13,8 +13,10 @@ import {
   conMantenimientoMixto,
   COMERCIALIZADORAS_POR_NOMBRE,
   euros,
+  POTENCIA_MANTENIMIENTO_AUTO,
   sociedadDe,
   suministrosDe,
+  tieneMantenimientoAutomatico,
   PLANES,
   type AlternativaComparar,
   type Comercializadora,
@@ -22,7 +24,7 @@ import {
   type Plan,
   type Suministro,
 } from "@/mocks/aczo";
-import { retardo, useVisibleAlDesplazar } from "@/lib/prototipo";
+import { retardo, useAlBajarHasta, useVisibleAlDesplazar } from "@/lib/prototipo";
 import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
 import { PanelCompararEmpresas } from "./PanelCompararEmpresas";
 import { NumeroAnimado } from "../NumeroAnimado";
@@ -83,16 +85,19 @@ export function PantallaAhorroEmpresas({
   onContinuar: (resumen: ResumenCambioEmpresas) => void;
 }) {
   const [mensual, setMensual] = useState(false);
-  // Ids de los puntos de suministro con mantenimiento activado. El de gas
-  // viene activado por defecto en todos los puntos (se incluye en la
-  // propuesta sin que haga falta tocar nada); el de luz empieza apagado y
-  // hay que activarlo punto por punto si se quiere.
+  // Ids de los puntos de suministro con mantenimiento activado. Vienen
+  // activados de fábrica dos grupos:
+  //   - Todo el gas: se incluye en la propuesta sin que haya que tocar nada.
+  //   - La luz de los puntos de más de POTENCIA_MANTENIMIENTO_AUTO kW: en
+  //     instalaciones así, Aczo lo activa por su cuenta (y lo avisa con la
+  //     burbuja de abajo).
+  // El resto de la luz empieza apagado y hay que activarlo punto por punto.
   const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
     () =>
       new Set(
         Object.values(COMERCIALIZADORAS_POR_NOMBRE)
           .flatMap(suministrosDe)
-          .filter((s) => s.tipo === "Gas")
+          .filter((s) => s.tipo === "Gas" || tieneMantenimientoAutomatico(s))
           .map((s) => s.id),
       ),
   );
@@ -119,6 +124,16 @@ export function PantallaAhorroEmpresas({
   // La barra inferior no aparece hasta que se empieza a bajar: así se nota
   // que hay más planes que ver, en vez de parecer que ya se ve todo.
   const mostrarBarra = useVisibleAlDesplazar();
+  const [avisoAbierto, setAvisoAbierto] = useState(false);
+  /**
+   * Cuántas veces se ha dejado a cero el mantenimiento de los puntos grandes.
+   * La PRIMERA vez se acepta sin más (la persona ha dicho que no y ya está).
+   * La SEGUNDA, el aviso vuelve a salir solo para recomendarlo — el Figma
+   * tiene esa variante justo para esto (node 5355:33893): ya no dice "lo hemos
+   * activado", dice "lo recomendamos". A partir de la tercera no se insiste
+   * más: quedaría en aviso plasta, y el mensaje sigue a mano en el icono.
+   */
+  const [vecesApagado, setVecesApagado] = useState(0);
 
   const planSeleccionado =
     PLANES.find((p) => p.id === planSeleccionadoId) ?? PLANES[0];
@@ -135,6 +150,17 @@ export function PantallaAhorroEmpresas({
   const idsGas = todosLosSuministros
     .filter((s) => s.tipo === "Gas")
     .map((s) => s.id);
+  // Los puntos de luz a los que Aczo le puso el mantenimiento por su cuenta
+  // (por potencia). Se recalculan con el plan elegido, porque cada plan
+  // reparte los puntos entre otras comercializadoras.
+  const idsLuzAutomaticos = todosLosSuministros
+    .filter(tieneMantenimientoAutomatico)
+    .map((s) => s.id);
+  // Cuántos de esos siguen encendidos: si se apagan todos, ya no hay nada
+  // "automático" que avisar y el contador deja de ir subrayado.
+  const automaticosActivos = idsLuzAutomaticos.filter((id) =>
+    mantenimientoIds.has(id),
+  ).length;
   const sociedadesIds = Array.from(
     new Set(comercializadorasDelPlan.flatMap((c) => c.direcciones.map((d) => d.sociedadId))),
   );
@@ -155,21 +181,51 @@ export function PantallaAhorroEmpresas({
     puntosConMantenimientoSeleccionado,
   );
 
+  /**
+   * El aviso del mantenimiento automático se abre SOLO la primera vez que se
+   * baja hasta la fila de mantenimiento: es una decisión que se ha tomado por
+   * la persona, así que no se le puede dejar escondida detrás de un icono que
+   * a lo mejor no pulsa nunca — pero tampoco puede saltar nada más cargar la
+   * pantalla (ver `useAlBajarHasta`). A partir de ahí ya manda ella: se cierra
+   * con los botones, con Escape o pulsando fuera, y se vuelve a abrir desde el
+   * icono.
+   */
+  const filaMantenimientoRef = useAlBajarHasta<HTMLDivElement>(() => {
+    // Solo si de verdad hay algo automático que contar.
+    if (automaticosActivos > 0) setAvisoAbierto(true);
+  });
+
+  /**
+   * Único sitio por el que pasan TODOS los cambios de mantenimiento (el
+   * interruptor de bulto, el de cada fila y los botones del aviso). Está
+   * centralizado porque hay que enterarse de una cosa que no se ve en ningún
+   * interruptor concreto: el momento en que el mantenimiento de los puntos
+   * grandes se queda a cero, da igual desde dónde se haya apagado.
+   */
+  function aplicarMantenimiento(next: Set<string>) {
+    const habiaAlguno = idsLuzAutomaticos.some((id) => mantenimientoIds.has(id));
+    const quedaAlguno = idsLuzAutomaticos.some((id) => next.has(id));
+    setMantenimientoIds(next);
+
+    if (!habiaAlguno || quedaAlguno) return;
+    const veces = vecesApagado + 1;
+    setVecesApagado(veces);
+    // La segunda vez el aviso se abre solo (ya con el mensaje de "lo
+    // recomendamos"); la primera y de la tercera en adelante, se cierra.
+    setAvisoAbierto(veces === 2);
+  }
+
   function alCambiarMantenimiento(id: string, activo: boolean) {
-    setMantenimientoIds((prev) => {
-      const next = new Set(prev);
-      if (activo) next.add(id);
-      else next.delete(id);
-      return next;
-    });
+    const next = new Set(mantenimientoIds);
+    if (activo) next.add(id);
+    else next.delete(id);
+    aplicarMantenimiento(next);
   }
 
   function alCambiarMantenimientoEnBloque(ids: string[], activo: boolean) {
-    setMantenimientoIds((prev) => {
-      const next = new Set(prev);
-      ids.forEach((id) => (activo ? next.add(id) : next.delete(id)));
-      return next;
-    });
+    const next = new Set(mantenimientoIds);
+    ids.forEach((id) => (activo ? next.add(id) : next.delete(id)));
+    aplicarMantenimiento(next);
   }
 
   function alCambiarIncluido(id: string, incluido: boolean) {
@@ -248,7 +304,10 @@ export function PantallaAhorroEmpresas({
                   {totalPuntos} puntos de suministro
                 </Text>
 
-                <div className="flex flex-wrap items-center gap-04">
+                <div
+                  ref={filaMantenimientoRef}
+                  className="flex flex-wrap items-center gap-04"
+                >
                   <InterruptorMantenimiento
                     etiqueta="Luz"
                     icono="lightbulb"
@@ -256,6 +315,29 @@ export function PantallaAhorroEmpresas({
                     mantenimientoIds={mantenimientoIds}
                     onCambiarTodos={(activo) =>
                       alCambiarMantenimientoEnBloque(idsLuz, activo)
+                    }
+                    // El contador va subrayado mientras haya mantenimientos
+                    // que Aczo puso por su cuenta: es la pista de que ese
+                    // número no lo ha elegido la persona y conviene mirar el
+                    // aviso de al lado.
+                    subrayado={automaticosActivos > 0}
+                    ayuda={
+                      <AvisoMantenimientoLuz
+                        automaticos={idsLuzAutomaticos.length}
+                        activos={automaticosActivos}
+                        abierto={avisoAbierto}
+                        onAbrir={setAvisoAbierto}
+                        // Ojo: quién cierra el aviso al desactivar es
+                        // `aplicarMantenimiento`, que es el que sabe si toca
+                        // cerrarlo o volver a abrirlo con el otro mensaje.
+                        onDesactivar={() =>
+                          alCambiarMantenimientoEnBloque(idsLuzAutomaticos, false)
+                        }
+                        onActivar={() => {
+                          alCambiarMantenimientoEnBloque(idsLuzAutomaticos, true);
+                          setAvisoAbierto(false);
+                        }}
+                      />
                     }
                   />
                   <Text variant="label-m" color="mid" as="span">
@@ -268,6 +350,13 @@ export function PantallaAhorroEmpresas({
                     mantenimientoIds={mantenimientoIds}
                     onCambiarTodos={(activo) =>
                       alCambiarMantenimientoEnBloque(idsGas, activo)
+                    }
+                    ayuda={
+                      <Tooltip content="El mantenimiento de gas va incluido en la propuesta desde el principio, en todos los puntos. Cuesta una cuota fija por punto y ya está descontada del ahorro estimado.">
+                        <span className="text-content-mid">
+                          <Icon name="info" size={20} />
+                        </span>
+                      </Tooltip>
                     }
                   />
                 </div>
@@ -423,7 +512,13 @@ function SelectorPeriodo({
  *
  * Lleva DOS iconos delante de la etiqueta: la llave (mantenimiento, genérico)
  * y el tipo de suministro (Luz/Gas) — igual que en el Figma, con 2 px de
- * hueco entre los dos.
+ * hueco entre los dos. Y detrás del interruptor, su burbuja de ayuda
+ * (`ayuda`), que se le pasa hecha desde fuera porque la de luz y la de gas no
+ * se parecen en nada: la de gas solo informa, la de luz es un aviso con
+ * acciones que además se abre solo.
+ *
+ * `subrayado` subraya el contador. Es la pista visual de que ese número no lo
+ * ha puesto la persona: hay mantenimientos que se activaron automáticamente.
  */
 function InterruptorMantenimiento({
   icono,
@@ -431,12 +526,16 @@ function InterruptorMantenimiento({
   ids,
   mantenimientoIds,
   onCambiarTodos,
+  subrayado = false,
+  ayuda,
 }: {
   icono: IconName;
   etiqueta: string;
   ids: string[];
   mantenimientoIds: Set<string>;
   onCambiarTodos: (activo: boolean) => void;
+  subrayado?: boolean;
+  ayuda?: ReactNode;
 }) {
   const total = ids.length;
   const activos = ids.filter((id) => mantenimientoIds.has(id)).length;
@@ -448,14 +547,123 @@ function InterruptorMantenimiento({
         <Icon name={icono} size={20} />
       </span>
       <Text variant="label-m" color="mid" as="span">
-        Mantenimiento {etiqueta} ({activos}/{total})
+        Mantenimiento {etiqueta}{" "}
+        <span className={subrayado ? "underline" : undefined}>
+          ({activos}/{total})
+        </span>
       </Text>
       <Switch
         checked={total > 0 && activos === total}
         onChange={onCambiarTodos}
         label={`Añadir mantenimiento a todos los puntos de ${etiqueta}`}
       />
+      {ayuda}
     </span>
+  );
+}
+
+/**
+ * La burbuja del mantenimiento de luz de los puntos grandes (los de más de
+ * POTENCIA_MANTENIMIENTO_AUTO kW).
+ *
+ * Siempre lleva acciones dentro, y el mensaje cambia según cómo esté el
+ * mantenimiento en ese momento — son las dos variantes del Figma, y las dos
+ * cuentan lo mismo, solo cambia el verbo y qué se puede hacer:
+ *
+ *   - ACTIVADO (node 5349:32575): "activamos automáticamente el
+ *     mantenimiento". Botones "Mantener activos" (cierra sin tocar nada) y
+ *     "Desactivar" (los apaga todos).
+ *   - APAGADO (node 5355:33893): "recomendamos activar el mantenimiento".
+ *     Botones "Activar mantenimiento" (los vuelve a encender) y "Desactivar"
+ *     (cierra dejándolo apagado, que es como ya está).
+ *
+ * Se abre sola en dos momentos, los dos decididos desde la pantalla: la
+ * primera vez que se baja hasta la fila (`useAlBajarHasta`) y la segunda vez
+ * que se deja el mantenimiento a cero (`aplicarMantenimiento`). El resto del
+ * tiempo se abre y se cierra pulsando el icono.
+ *
+ * Nunca se abre al pasar el ratón por encima, solo al pulsar: lleva botones
+ * dentro (ver la cabecera de `Tooltip`).
+ */
+function AvisoMantenimientoLuz({
+  automaticos,
+  activos,
+  abierto,
+  onAbrir,
+  onActivar,
+  onDesactivar,
+}: {
+  /** Cuántos puntos de luz superan el umbral de potencia. Es un dato de
+   * inventario: no cambia al encender o apagar, y es el número del que habla
+   * el mensaje ("tienes N suministros con más de X kW"). */
+  automaticos: number;
+  /** De esos, cuántos tienen ahora mismo el mantenimiento puesto. */
+  activos: number;
+  abierto: boolean;
+  onAbrir: (abierto: boolean) => void;
+  onActivar: () => void;
+  onDesactivar: () => void;
+}) {
+  const puestos = activos > 0;
+
+  return (
+    <Tooltip
+      // A la derecha del icono y centrada con él, como en el Figma: abriéndose
+      // hacia arriba tapaba las tarjetas de plan.
+      position="right"
+      open={abierto}
+      onOpenChange={onAbrir}
+      interactive
+      label={
+        puestos
+          ? "Mantenimiento de luz activado automáticamente"
+          : "Mantenimiento de luz recomendado"
+      }
+      content={
+        <span className="flex flex-col gap-04">
+          <span>
+            Hemos detectado que tienes {automaticos}{" "}
+            {automaticos === 1 ? "suministro" : "suministros"} con más de{" "}
+            {POTENCIA_MANTENIMIENTO_AUTO} kW. Para estos casos,{" "}
+            {puestos
+              ? "activamos automáticamente el mantenimiento"
+              : "recomendamos activar el mantenimiento"}{" "}
+            ya que en instalaciones de este tamaño una incidencia eléctrica
+            tiene más impacto y cubrirla compensa.
+          </span>
+          <span className="flex flex-wrap gap-02">
+            {puestos ? (
+              <Button size="small" feedback="highlight" onClick={() => onAbrir(false)}>
+                Mantener activos
+              </Button>
+            ) : (
+              <Button size="small" feedback="highlight" onClick={onActivar}>
+                Activar mantenimiento
+              </Button>
+            )}
+            {/* Contorno `border-mid` y texto `content-inverse`, tal cual el
+                Figma (node 5349:32585). La librería no tiene un secondary
+                "para superficie invertida" — su neutral pinta el texto en
+                `content-high`, que sobre la burbuja no se vería — así que se
+                fuerza el token que sí corresponde. El `!` es necesario: son
+                dos utilidades del mismo color y sin él no se sabe cuál gana. */}
+            <Button
+              size="small"
+              variant="secondary"
+              className="text-content-inverse!"
+              // Estando ya apagado no hay nada que apagar: solo cierra.
+              onClick={puestos ? onDesactivar : () => onAbrir(false)}
+            >
+              Desactivar
+            </Button>
+          </span>
+        </span>
+      }
+    >
+      <span className="text-content-mid">
+        <Icon name="info" size={20} />
+      </span>
+    </Tooltip>
   );
 }
 
