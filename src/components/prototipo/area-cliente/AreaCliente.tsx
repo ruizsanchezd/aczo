@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
-import { FiltroSelect } from "@/components/ui/FiltroSelect";
 import { GrupoSegmentado } from "@/components/ui/GrupoSegmentado";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
@@ -15,16 +14,20 @@ import {
   ESTADOS_CARTERA,
   FILTROS_VACIOS,
   MODOS_AGRUPACION,
+  listaDeInmuebles,
   OPCIONES_FILTROS,
   RESUMEN_CARTERA,
   type CategoriaInmueble,
+  type EstadoCartera,
   type FiltrosCartera,
   type ModoAgrupacion,
+  type TipoCartera,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
 import { MAPA_ALTO } from "@/mocks/provincias-espana";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { FilaGrupo } from "./FilaGrupo";
+import { OrganizaTuCartera } from "./OrganizaTuCartera";
 import { MapaProvincias } from "./MapaProvincias";
 
 /**
@@ -58,6 +61,12 @@ export function AreaCliente() {
     null,
   );
   const [categorizando, setCategorizando] = useState<string | null>(null);
+  // Solo puede haber un filtro abierto a la vez, así que quién está abierto lo
+  // lleva la pantalla y no cada filtro por su cuenta. Es también lo que permite
+  // que "Filtrar por ubicación" salte del filtro de Inmueble al de Dirección.
+  const [filtroAbierto, setFiltroAbierto] = useState<
+    keyof FiltrosCartera | null
+  >(null);
 
   // Las categorías que se han puesto durante la sesión. Los datos de mentira no
   // se tocan: se guarda aparte lo que ha cambiado la persona y se aplica encima
@@ -79,6 +88,25 @@ export function AreaCliente() {
     }));
   }, [agrupacion, filtros, categorias]);
 
+  // Los inmuebles que YA están clasificados y los que no. Se calculan sobre la
+  // cartera entera (no sobre lo filtrado): "te quedan 5 sin clasificar" habla de
+  // toda la cartera, no de lo que se esté viendo en ese momento.
+  const { inmueblesClasificados, sinClasificar } = useMemo(() => {
+    const todos = listaDeInmuebles().map((i) => ({
+      ...i,
+      categoria: categorias[i.id] ?? i.categoria,
+    }));
+    return {
+      inmueblesClasificados: todos
+        .filter((i) => i.categoria)
+        .map((i) => ({
+          value: i.id,
+          label: i.nombre ?? `${i.categoria} · ${i.ciudad}`,
+        })),
+      sinClasificar: todos.filter((i) => !i.categoria).map((i) => i.id),
+    };
+  }, [categorias]);
+
   // Si lo que estaba marcado ya no está en la lista (porque un filtro lo ha
   // dejado fuera), se desmarca: si no, el mapa seguiría encendido por algo que
   // ya no se ve.
@@ -93,11 +121,6 @@ export function AreaCliente() {
     setDesplegado(null);
     setInmuebleDesplegado(null);
     setCategorizando(null);
-  }
-
-  function cambiarFiltro<C extends keyof FiltrosCartera>(campo: C) {
-    return (valor: string) =>
-      setFiltros((f) => ({ ...f, [campo]: valor }) as FiltrosCartera);
   }
 
   const puntosVisibles = grupos.reduce((t, g) => t + g.puntos, 0);
@@ -199,37 +222,89 @@ export function AreaCliente() {
             </div>
 
             <div className="flex flex-wrap items-center gap-02">
-              <FiltroSelect
+              <FiltroCasillas
                 nombre="Sociedad"
-                valor={filtros.sociedad}
-                onChange={cambiarFiltro("sociedad")}
-                opciones={OPCIONES_FILTROS.sociedad.map((s) => ({
-                  value: s,
-                  label: s,
-                }))}
+                abierto={filtroAbierto === "sociedades"}
+                onAbrir={(abrir) =>
+                  setFiltroAbierto(abrir ? "sociedades" : null)
+                }
+                seleccion={filtros.sociedades}
+                onChange={(sociedades) =>
+                  setFiltros((f) => ({ ...f, sociedades }))
+                }
+                grupos={[
+                  {
+                    opciones: OPCIONES_FILTROS.sociedades.map((s) => ({
+                      value: s,
+                      label: s,
+                    })),
+                  },
+                ]}
               />
-              <FiltroSelect
+              <FiltroCasillas
                 nombre="Tipo de suministro"
-                valor={filtros.tipo}
-                onChange={cambiarFiltro("tipo")}
-                opciones={OPCIONES_FILTROS.tipo}
+                abierto={filtroAbierto === "tipos"}
+                onAbrir={(abrir) => setFiltroAbierto(abrir ? "tipos" : null)}
+                seleccion={filtros.tipos}
+                onChange={(tipos) =>
+                  setFiltros((f) => ({ ...f, tipos: tipos as TipoCartera[] }))
+                }
+                grupos={[{ opciones: OPCIONES_FILTROS.tipos }]}
+              />
+              <FiltroCasillas
+                nombre="Inmueble"
+                abierto={filtroAbierto === "inmuebles"}
+                onAbrir={(abrir) =>
+                  setFiltroAbierto(abrir ? "inmuebles" : null)
+                }
+                seleccion={filtros.inmuebles}
+                onChange={(inmuebles) =>
+                  setFiltros((f) => ({ ...f, inmuebles }))
+                }
+                grupos={[{ opciones: inmueblesClasificados }]}
+                pie={
+                  sinClasificar.length > 0 ? (
+                    <OrganizaTuCartera
+                      sinClasificar={sinClasificar.length}
+                      hayClasificados={inmueblesClasificados.length > 0}
+                      onOrganizar={() => {
+                        setFiltros((f) => ({ ...f, inmuebles: sinClasificar }));
+                        setFiltroAbierto(null);
+                      }}
+                      onFiltrarPorUbicacion={() =>
+                        setFiltroAbierto("direcciones")
+                      }
+                    />
+                  ) : undefined
+                }
               />
               <FiltroCasillas
                 nombre="Dirección"
+                abierto={filtroAbierto === "direcciones"}
+                onAbrir={(abrir) =>
+                  setFiltroAbierto(abrir ? "direcciones" : null)
+                }
                 seleccion={filtros.direcciones}
                 onChange={(direcciones) =>
                   setFiltros((f) => ({ ...f, direcciones }))
                 }
                 grupos={OPCIONES_FILTROS.direcciones.map((g) => ({
                   rotulo: g.provincia,
-                  opciones: g.direcciones,
+                  opciones: g.direcciones.map((d) => ({ value: d, label: d })),
                 }))}
               />
-              <FiltroSelect
+              <FiltroCasillas
                 nombre="Estado"
-                valor={filtros.estado}
-                onChange={cambiarFiltro("estado")}
-                opciones={OPCIONES_FILTROS.estado}
+                abierto={filtroAbierto === "estados"}
+                onAbrir={(abrir) => setFiltroAbierto(abrir ? "estados" : null)}
+                seleccion={filtros.estados}
+                onChange={(estados) =>
+                  setFiltros((f) => ({
+                    ...f,
+                    estados: estados as EstadoCartera[],
+                  }))
+                }
+                grupos={[{ opciones: OPCIONES_FILTROS.estados }]}
               />
             </div>
           </div>

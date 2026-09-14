@@ -825,15 +825,20 @@ inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
 
 ### Filtros
 
-Los cuatro filtros recortan la cartera **antes** de agruparla, así que la lista, el mapa, la
-leyenda y sus porcentajes cambian juntos y siempre cuadran. Un filtro puesto se marca oscureciendo
-borde y texto (`micro-states`), para ver de un vistazo cuáles están activos. Si los filtros no
-dejan nada, la lista enseña su mensaje y **el mapa se apaga entero**.
+Los **cinco** filtros recortan la cartera **antes** de agruparla, así que la lista, el mapa, la
+leyenda y sus porcentajes cambian juntos y siempre cuadran. Si los filtros no dejan nada, la lista
+enseña su mensaje y **el mapa se apaga entero**.
 
-Tres de ellos (Sociedad, Tipo de suministro, Estado) son de una sola respuesta: `FiltroSelect`.
+Los cinco son iguales por dentro (`FiltroCasillas`): un botón que abre una lista de casillas, y se
+puede elegir **más de una**. No elegir ninguna quiere decir "todas".
 
-**Dirección es de varias** y tiene su propia lista desplegable (`FiltroCasillas`): todas las
-direcciones de la cartera, agrupadas por provincia, cada una con su casilla.
+| Filtro | Qué lleva dentro |
+| --- | --- |
+| Sociedad | las cuatro sociedades |
+| Tipo de suministro | Luz y Gas |
+| Inmueble | los inmuebles ya clasificados + el bloque "Organiza tu cartera" |
+| Dirección | todas las direcciones, agrupadas por provincia |
+| Estado | Activo, En trámite, En revisión y Por activar |
 
 | Qué | Cuándo | Token |
 | --- | --- | --- |
@@ -841,13 +846,41 @@ direcciones de la cartera, agrupadas por provincia, cada una con su casilla.
 | La flecha gira media vuelta | al abrir y al cerrar | `micro-states` |
 | El botón se oscurece y lleva la cuenta: "Dirección (3)" | al elegir | `micro-states` |
 
+- **Solo puede haber uno abierto.** Quién está abierto lo lleva la pantalla, no cada filtro por su
+  cuenta: es lo que permite que "Filtrar por ubicación" salte del filtro de Inmueble al de
+  Dirección de un gesto.
 - **Se cierra** pulsando fuera, con `Escape`, o volviendo a pulsar el botón.
-- **Encabezados a medias.** Si de una provincia hay unas direcciones elegidas y otras no, su
-  casilla se queda en **indeterminado** (la rayita en vez del check). Es lo que evita tener que
-  bajar la lista para saber si ahí dentro hay algo marcado.
-- **El degradado del final.** Cuando quedan direcciones por debajo del borde, la última se
-  difumina; al llegar al final desaparece. No es decoración: es lo que avisa de que la lista sigue,
-  y su ausencia dice "ya está".
+- **Encabezados a medias.** En el de Dirección, si de una provincia hay unas direcciones elegidas y
+  otras no, su casilla se queda en **indeterminado** (la rayita en vez del check). Es lo que evita
+  tener que bajar la lista para saber si ahí dentro hay algo marcado.
+- **El degradado del final.** Cuando quedan opciones por debajo del borde, la última se difumina;
+  al llegar al final desaparece. No es decoración: es lo que avisa de que la lista sigue, y su
+  ausencia dice "ya está".
+
+### El filtro de Inmueble y "Organiza tu cartera"
+
+Un inmueble solo se puede elegir por su nombre si **está clasificado**. Los que llegaron de una
+factura y nadie ha tocado no tienen nombre, así que el filtro no puede ofrecerlos — y en vez de
+disimularlo, lo cuenta:
+
+- **Ninguno clasificado:** el desplegable es solo el bloque, con "Tienes 6 inmuebles sin
+  clasificar".
+- **Algunos sí y otros no:** primero los que ya se pueden elegir, una línea de separación, y debajo
+  el mismo bloque con "**Todavía** tienes 5 inmuebles sin clasificar". Ese "todavía" es lo que hace
+  que se lea como "vas por la mitad" y no como "esto está vacío".
+
+La cuenta baja sola según se van categorizando inmuebles desde su fila.
+
+Las dos acciones del bloque:
+
+- **Organizar cartera** deja la lista con SOLO los inmuebles sin clasificar, para ir poniéndoles
+  categoría uno a uno desde su propia fila.
+- **Filtrar por ubicación** cierra este filtro y abre el de Dirección, que sí sabe agrupar por
+  provincia aunque no haya nombres.
+
+> ⚠️ En el Figma "Organizar cartera" es un botón sin destino: el flujo de organizar la cartera en
+> bloque no está diseñado todavía. En el prototipo hace lo único que se puede hacer hoy con lo que
+> existe. Cuando haya diseño de ese flujo, se cambia.
 
 ## Transición entre pantallas
 
