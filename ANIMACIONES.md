@@ -796,7 +796,12 @@ encima solo las provincias encendidas.
 ### Desplegar una fila → los inmuebles
 
 La flecha de una fila abre **la lista de sus inmuebles**, uno por tarjeta. Cada inmueble se lee de
-izquierda a derecha: casa · nombre · categoría · dirección … CUPS · flecha.
+izquierda a derecha: casa · nombre · dirección … CUPS · flecha.
+
+La **categoría** (Oficinas, Almacén…) no se enseña en la fila: la fila sirve para localizar el
+inmueble, y para eso mandan el nombre y la dirección. La categoría sigue en el dato, porque es lo
+que decide si un inmueble está catalogado y, por tanto, si se puede elegir en el filtro de
+"Inmueble".
 
 La técnica de despliegue es la misma que en el resto del prototipo: rejilla de una fila de `0fr` a
 `1fr` con `macro-levelup` (350 ms, ease out), y la flecha gira 180° con `micro-states` (200 ms),

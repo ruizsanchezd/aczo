@@ -15,9 +15,14 @@ import {
 /**
  * FilaInmueble — un inmueble dentro de una sociedad desplegada, en "Mi cartera".
  *
- * Lee de izquierda a derecha: casa · nombre · categoría · dirección … CUPS · flecha.
+ * Lee de izquierda a derecha: casa · nombre · dirección … CUPS · flecha.
  *
- *   🏠 Edificio Oficinas Madrid   Oficinas  ·  Calle Velázquez nº 10…   7 CUPS  ⌄
+ *   🏠 Edificio Oficinas Madrid  ·  Calle Velázquez nº 10…   7 CUPS  ⌄
+ *
+ * La categoría (Oficinas, Almacén…) NO se enseña en la fila: la fila es para
+ * localizar el inmueble, y para eso mandan el nombre y la dirección. La
+ * categoría sigue estando en el dato — es lo que decide si un inmueble está
+ * catalogado y, por tanto, si se puede elegir en el filtro de "Inmueble".
  *
  * EL NOMBRE VA SUBRAYADO a propósito: en el Figma es un DS Button terciario, no
  * un texto. El subrayado es lo que avisa de que ese trozo se puede tocar. Y
@@ -63,12 +68,10 @@ export function FilaInmueble({
   onElegirCategoria: (categoria: CategoriaInmueble) => void;
 }) {
   const sinClasificar = !linea.categoria;
-  // Qué dice el botón: el nombre si lo tiene; si no, su categoría; y si no
-  // tiene ninguna de las dos, la llamada a categorizarlo.
+  // Qué dice el botón: el nombre si lo tiene; si no, su categoría (es lo único
+  // que se sabe de él); y si no tiene ninguna de las dos, la llamada a
+  // catalogarlo.
   const rotulo = linea.nombre ?? linea.categoria ?? "Categoriza este inmueble";
-  // La etiqueta solo tiene sentido cuando NO es ya el rótulo del botón: si no,
-  // se leería "Oficinas · Oficinas".
-  const etiqueta = linea.nombre ? linea.categoria : undefined;
 
   return (
     <li className="rounded-md border border-border-low bg-background-base">
@@ -106,8 +109,6 @@ export function FilaInmueble({
                 {rotulo}
               </Button>
             )}
-
-            {etiqueta && <Tag>{etiqueta}</Tag>}
 
             <Text variant="label-m" color="mid" as="span">
               ·
