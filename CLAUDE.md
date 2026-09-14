@@ -269,8 +269,10 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   una factura sin clasificar enseñan "Categoriza este inmueble" y se les puede poner categoría ahí
   mismo. Los cinco filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
   selección múltiple y se abren como listas de casillas; el de Dirección va agrupado por provincia,
-  con encabezados que marcan toda la provincia de una vez, y el de Inmueble lleva debajo el bloque
-  "Organiza tu cartera", que cuenta cuántos quedan sin clasificar. "Agrupar por" rehace la lista de
+  con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece SOLO los inmuebles ya
+  catalogados (son los únicos que tienen nombre por el que elegirlos) y lleva debajo el bloque
+  "Organiza tu cartera", que cuenta cuántos quedan sin clasificar y deja verlos en un modo aparte,
+  con su aviso y su salida. "Agrupar por" rehace la lista de
   tres maneras
   (sociedad, ubicación o comercializadora) y los cuatro filtros recortan la cartera antes de
   agruparla, así que lista, mapa, leyenda y porcentajes siempre cuadran. Componentes en

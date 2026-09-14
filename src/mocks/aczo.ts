@@ -1603,10 +1603,19 @@ function todosLosInmuebles() {
 export type FiltrosCartera = {
   sociedades: string[];
   tipos: TipoCartera[];
-  /** Inmuebles elegidos, por su dirección (que es su clave). */
+  /**
+   * Inmuebles elegidos, por su dirección (que es su clave).
+   *
+   * Aquí SOLO pueden entrar inmuebles catalogados: son los únicos que el
+   * desplegable ofrece, porque los demás no tienen nombre por el que elegirlos.
+   * Para mirar los que faltan por catalogar está `soloSinClasificar`, que es
+   * otra cosa y por eso va aparte.
+   */
   inmuebles: string[];
   direcciones: string[];
   estados: EstadoCartera[];
+  /** Deja a la vista únicamente los inmuebles que aún no están catalogados. */
+  soloSinClasificar: boolean;
 };
 
 export const FILTROS_VACIOS: FiltrosCartera = {
@@ -1615,6 +1624,7 @@ export const FILTROS_VACIOS: FiltrosCartera = {
   inmuebles: [],
   direcciones: [],
   estados: [],
+  soloSinClasificar: false,
 };
 
 /** Un encabezado del desplegable de direcciones y las direcciones que cuelgan. */
@@ -1642,7 +1652,10 @@ function agruparDirecciones(): GrupoDirecciones[] {
  * rótulo que usan los filtros. La clave es la dirección: no se repite en toda
  * la cartera.
  */
-export function listaDeInmuebles(): {
+export function listaDeInmuebles(
+  /** Las categorías puestas durante la sesión, igual que en `agruparCartera`. */
+  categorias: Record<string, CategoriaInmueble> = {},
+): {
   id: string;
   nombre?: string;
   categoria?: CategoriaInmueble;
@@ -1655,7 +1668,7 @@ export function listaDeInmuebles(): {
       sede.inmuebles.map((inmueble) => ({
         id: inmueble.direccion,
         nombre: inmueble.nombre,
-        categoria: inmueble.categoria,
+        categoria: categorias[inmueble.direccion] ?? inmueble.categoria,
         direccion: inmueble.direccion,
         provincia: sede.provincia,
         ciudad: sede.ciudad,
@@ -1699,7 +1712,16 @@ export const OPCIONES_FILTROS = {
 export function agruparCartera(
   modo: ModoAgrupacion,
   filtros: FiltrosCartera = FILTROS_VACIOS,
+  /**
+   * Las categorías que se han puesto durante la sesión, por dirección. Los
+   * datos de mentira no se tocan nunca: lo que cambia la persona se guarda
+   * aparte y se aplica aquí, que es el único sitio por el que pasa todo.
+   */
+  categorias: Record<string, CategoriaInmueble> = {},
 ): GrupoCartera[] {
+  const categoriaDe = (i: InmuebleCartera) =>
+    categorias[i.direccion] ?? i.categoria;
+
   const clave = {
     ubicacion: (_s: SociedadCartera, sede: SedeCartera) => sede.provincia,
     sociedad: (s: SociedadCartera) => s.nombre,
@@ -1725,7 +1747,8 @@ export function agruparCartera(
     (filtros.direcciones.length === 0 ||
       filtros.direcciones.includes(inmueble.direccion)) &&
     (filtros.estados.length === 0 ||
-      filtros.estados.some((e) => inmueble.puntos[e] > 0));
+      filtros.estados.some((e) => inmueble.puntos[e] > 0)) &&
+    (!filtros.soloSinClasificar || !categoriaDe(inmueble));
 
   for (const fila of todosLosInmuebles().filter(pasaFiltros)) {
     const k = clave(fila.sociedad, fila.sede);
@@ -1762,7 +1785,7 @@ export function agruparCartera(
         provincia: sede.provincia,
         ciudad: sede.ciudad,
         nombre: inmueble.nombre,
-        categoria: inmueble.categoria,
+        categoria: categoriaDe(inmueble),
         direccion: inmueble.direccion,
         tipos: inmueble.tipos,
         puntos: puntosDeInmueble(inmueble),

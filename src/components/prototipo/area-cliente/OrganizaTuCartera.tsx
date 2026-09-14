@@ -20,9 +20,12 @@ import { Text } from "@/components/ui/Text";
  * mitad" y no como "esto está vacío".
  *
  * Las dos acciones:
- *   Organizar cartera     deja la lista con SOLO los inmuebles sin clasificar,
- *                         para ir poniéndoles categoría uno a uno desde la
- *                         propia fila.
+ *   Organizar cartera     deja la pantalla con SOLO los inmuebles sin
+ *                         clasificar, para ir poniéndoles categoría uno a uno
+ *                         desde su propia fila. NO toca el filtro de Inmueble:
+ *                         ese solo puede contener inmuebles catalogados, que
+ *                         son los únicos que ofrece. Es un modo aparte, y
+ *                         mientras dura lo explica un aviso encima de la lista.
  *   Filtrar por ubicación cierra este filtro y abre el de Dirección, que sí
  *                         sabe agrupar por provincia aunque no haya nombres.
  *

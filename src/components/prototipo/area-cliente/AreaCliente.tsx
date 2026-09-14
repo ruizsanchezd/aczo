@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
 import { GrupoSegmentado } from "@/components/ui/GrupoSegmentado";
@@ -75,27 +76,16 @@ export function AreaCliente() {
     Record<string, CategoriaInmueble>
   >({});
 
-  const grupos = useMemo(() => {
-    const agrupados = agruparCartera(agrupacion, filtros);
-    if (Object.keys(categorias).length === 0) return agrupados;
-    return agrupados.map((grupo) => ({
-      ...grupo,
-      detalle: grupo.detalle.map((linea) =>
-        categorias[linea.id]
-          ? { ...linea, categoria: categorias[linea.id] }
-          : linea,
-      ),
-    }));
-  }, [agrupacion, filtros, categorias]);
+  const grupos = useMemo(
+    () => agruparCartera(agrupacion, filtros, categorias),
+    [agrupacion, filtros, categorias],
+  );
 
   // Los inmuebles que YA están clasificados y los que no. Se calculan sobre la
   // cartera entera (no sobre lo filtrado): "te quedan 5 sin clasificar" habla de
   // toda la cartera, no de lo que se esté viendo en ese momento.
   const { inmueblesClasificados, sinClasificar } = useMemo(() => {
-    const todos = listaDeInmuebles().map((i) => ({
-      ...i,
-      categoria: categorias[i.id] ?? i.categoria,
-    }));
+    const todos = listaDeInmuebles(categorias);
     return {
       inmueblesClasificados: todos
         .filter((i) => i.categoria)
@@ -268,7 +258,10 @@ export function AreaCliente() {
                       sinClasificar={sinClasificar.length}
                       hayClasificados={inmueblesClasificados.length > 0}
                       onOrganizar={() => {
-                        setFiltros((f) => ({ ...f, inmuebles: sinClasificar }));
+                        // OJO: esto NO toca el filtro de Inmueble. Ese filtro
+                        // solo puede contener inmuebles catalogados, porque son
+                        // los únicos que ofrece. Ver `soloSinClasificar`.
+                        setFiltros((f) => ({ ...f, soloSinClasificar: true }));
                         setFiltroAbierto(null);
                       }}
                       onFiltrarPorUbicacion={() =>
@@ -308,6 +301,28 @@ export function AreaCliente() {
               />
             </div>
           </div>
+
+          {/* Mientras dura el modo "organizar", un aviso dice qué se está
+              viendo y da la salida. Sin él, la lista parecería rota: faltarían
+              inmuebles sin que nada lo explique. */}
+          {filtros.soloSinClasificar && (
+            <Alert tone="subtle" icon="folder" className="anim-aparece mt-04">
+              <div className="flex flex-wrap items-center justify-between gap-03">
+                <Text variant="body-m" color="mid" as="span">
+                  Estás viendo solo los inmuebles que faltan por catalogar.
+                </Text>
+                <Button
+                  variant="tertiary"
+                  size="small"
+                  onClick={() =>
+                    setFiltros((f) => ({ ...f, soloSinClasificar: false }))
+                  }
+                >
+                  Ver toda la cartera
+                </Button>
+              </div>
+            </Alert>
+          )}
 
           <div className="mt-04 flex flex-col gap-04 lg:flex-row">
             {/* La lista */}

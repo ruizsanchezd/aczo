@@ -873,8 +873,12 @@ La cuenta baja sola según se van categorizando inmuebles desde su fila.
 
 Las dos acciones del bloque:
 
-- **Organizar cartera** deja la lista con SOLO los inmuebles sin clasificar, para ir poniéndoles
-  categoría uno a uno desde su propia fila.
+- **Organizar cartera** deja la pantalla con SOLO los inmuebles sin clasificar, para ir poniéndoles
+  categoría uno a uno desde su propia fila. **No toca el filtro de Inmueble**: ese filtro solo
+  puede contener inmuebles catalogados, porque son los únicos que ofrece, y meterle los otros sería
+  contradecir su propia regla. Es un modo aparte, y mientras dura lo explica un aviso encima de la
+  lista con su salida ("Ver toda la cartera"). Sin ese aviso, la lista parecería rota: faltarían
+  inmuebles sin que nada lo explicase.
 - **Filtrar por ubicación** cierra este filtro y abre el de Dirección, que sí sabe agrupar por
   provincia aunque no haya nombres.
 
