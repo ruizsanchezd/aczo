@@ -264,7 +264,10 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   navegación sobre superficie oscura, cinco tarjetas de resumen, y un panel con la lista de la
   cartera y un **mapa de España interactivo**. Marcar una fila (o una entrada de la leyenda) apaga
   el mapa y enciende solo SUS provincias, de norte a sur y con un marcador que late encima de la
-  principal; volver a pulsarla lo desmarca. "Agrupar por" rehace la lista de tres maneras
+  principal; volver a pulsarla lo desmarca. La flecha de cada fila abre sus **inmuebles**, con su
+  nombre (subrayado, porque se toca), su categoría, su dirección y sus CUPS; los que llegaron de
+  una factura sin clasificar enseñan "Categoriza este inmueble" y se les puede poner categoría ahí
+  mismo. "Agrupar por" rehace la lista de tres maneras
   (sociedad, ubicación o comercializadora) y los cuatro filtros recortan la cartera antes de
   agruparla, así que lista, mapa, leyenda y porcentajes siempre cuadran. Componentes en
   `src/components/prototipo/area-cliente/`.

@@ -16,6 +16,7 @@ import {
   MODOS_AGRUPACION,
   OPCIONES_FILTROS,
   RESUMEN_CARTERA,
+  type CategoriaInmueble,
   type FiltrosCartera,
   type ModoAgrupacion,
 } from "@/mocks/aczo";
@@ -52,11 +53,30 @@ export function AreaCliente() {
   const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
   const [marcado, setMarcado] = useState<string | null>(null);
   const [desplegado, setDesplegado] = useState<string | null>(null);
-
-  const grupos = useMemo(
-    () => agruparCartera(agrupacion, filtros),
-    [agrupacion, filtros],
+  const [inmuebleDesplegado, setInmuebleDesplegado] = useState<string | null>(
+    null,
   );
+  const [categorizando, setCategorizando] = useState<string | null>(null);
+
+  // Las categorías que se han puesto durante la sesión. Los datos de mentira no
+  // se tocan: se guarda aparte lo que ha cambiado la persona y se aplica encima
+  // al agrupar. Así basta con recargar para volver al punto de partida.
+  const [categorias, setCategorias] = useState<
+    Record<string, CategoriaInmueble>
+  >({});
+
+  const grupos = useMemo(() => {
+    const agrupados = agruparCartera(agrupacion, filtros);
+    if (Object.keys(categorias).length === 0) return agrupados;
+    return agrupados.map((grupo) => ({
+      ...grupo,
+      detalle: grupo.detalle.map((linea) =>
+        categorias[linea.id]
+          ? { ...linea, categoria: categorias[linea.id] }
+          : linea,
+      ),
+    }));
+  }, [agrupacion, filtros, categorias]);
 
   // Si lo que estaba marcado ya no está en la lista (porque un filtro lo ha
   // dejado fuera), se desmarca: si no, el mapa seguiría encendido por algo que
@@ -70,6 +90,8 @@ export function AreaCliente() {
     setAgrupacion(modo);
     setMarcado(null);
     setDesplegado(null);
+    setInmuebleDesplegado(null);
+    setCategorizando(null);
   }
 
   function cambiarFiltro<C extends keyof FiltrosCartera>(campo: C) {
@@ -248,6 +270,20 @@ export function AreaCliente() {
                             desplegado === grupo.id ? null : grupo.id,
                           )
                         }
+                        inmuebleDesplegado={inmuebleDesplegado}
+                        onDesplegarInmueble={(id) =>
+                          setInmuebleDesplegado(
+                            inmuebleDesplegado === id ? null : id,
+                          )
+                        }
+                        inmuebleCategorizando={categorizando}
+                        onCategorizarInmueble={(id) =>
+                          setCategorizando(categorizando === id ? null : id)
+                        }
+                        onElegirCategoria={(id, categoria) => {
+                          setCategorias((c) => ({ ...c, [id]: categoria }));
+                          setCategorizando(null);
+                        }}
                       />
                     </li>
                   ))}

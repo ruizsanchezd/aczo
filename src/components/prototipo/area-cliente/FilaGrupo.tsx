@@ -3,7 +3,12 @@
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
-import { ESTADOS_CARTERA, type GrupoCartera } from "@/mocks/aczo";
+import {
+  ESTADOS_CARTERA,
+  type CategoriaInmueble,
+  type GrupoCartera,
+} from "@/mocks/aczo";
+import { FilaInmueble } from "./FilaInmueble";
 
 /**
  * FilaGrupo — una fila de la lista de "Mi cartera".
@@ -37,12 +42,24 @@ export function FilaGrupo({
   desplegado,
   onMarcar,
   onDesplegar,
+  inmuebleDesplegado,
+  onDesplegarInmueble,
+  inmuebleCategorizando,
+  onCategorizarInmueble,
+  onElegirCategoria,
 }: {
   grupo: GrupoCartera;
   marcado: boolean;
   desplegado: boolean;
   onMarcar: () => void;
   onDesplegar: () => void;
+  /** id del inmueble que tiene abierto su detalle, o null. */
+  inmuebleDesplegado: string | null;
+  onDesplegarInmueble: (id: string) => void;
+  /** id del inmueble que tiene abierto el desplegable de categorías, o null. */
+  inmuebleCategorizando: string | null;
+  onCategorizarInmueble: (id: string) => void;
+  onElegirCategoria: (id: string, categoria: CategoriaInmueble) => void;
 }) {
   return (
     <div
@@ -128,69 +145,24 @@ export function FilaGrupo({
         aria-hidden={!desplegado}
       >
         <div className="overflow-hidden">
-          <div className="overflow-x-auto border-t border-border-low px-04 pb-04">
-            <table className="w-full min-w-[520px]">
-              <thead>
-                <tr>
-                  {[
-                    "Sociedad",
-                    "Provincia",
-                    "Ciudad",
-                    "Inmuebles",
-                    "Suministro",
-                    "Puntos",
-                  ].map((columna) => (
-                    <th key={columna} className="py-03 text-left">
-                      <Text variant="label-s" color="low" as="span">
-                        {columna}
-                      </Text>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {grupo.detalle.map((linea) => (
-                  <tr
-                    key={`${linea.sociedad}-${linea.ciudad}`}
-                    className="border-t border-border-low"
-                  >
-                    <td className="py-03 pr-03">
-                      <Text variant="label-s" as="span">
-                        {linea.sociedad}
-                      </Text>
-                    </td>
-                    <td className="py-03 pr-03">
-                      <Text variant="body-s" color="mid" as="span">
-                        {linea.provincia}
-                      </Text>
-                    </td>
-                    <td className="py-03 pr-03">
-                      <Text variant="body-s" color="mid" as="span">
-                        {linea.ciudad}
-                      </Text>
-                    </td>
-                    <td className="py-03 pr-03">
-                      <Text variant="body-s" color="mid" as="span">
-                        {linea.inmuebles}
-                      </Text>
-                    </td>
-                    <td className="py-03 pr-03">
-                      <Text variant="body-s" color="mid" as="span">
-                        {linea.tipos
-                          .map((t) => (t === "luz" ? "Luz" : "Gas"))
-                          .join(" y ")}
-                      </Text>
-                    </td>
-                    <td className="py-03">
-                      <Text variant="body-s" color="mid" as="span">
-                        {linea.puntos}
-                      </Text>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Los inmuebles del grupo, uno por fila. Agrupando por sociedad son
+              los suyos; agrupando por ubicación o comercializadora, los que
+              caen en esa provincia o en esa compañía. */}
+          <ul className="flex flex-col gap-03 px-04 pb-04">
+            {grupo.detalle.map((linea) => (
+              <FilaInmueble
+                key={linea.id}
+                linea={linea}
+                desplegado={inmuebleDesplegado === linea.id}
+                onDesplegar={() => onDesplegarInmueble(linea.id)}
+                categorizando={inmuebleCategorizando === linea.id}
+                onCategorizar={() => onCategorizarInmueble(linea.id)}
+                onElegirCategoria={(categoria) =>
+                  onElegirCategoria(linea.id, categoria)
+                }
+              />
+            ))}
+          </ul>
         </div>
       </div>
     </div>

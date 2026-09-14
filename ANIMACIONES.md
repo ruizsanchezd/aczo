@@ -793,11 +793,35 @@ encima solo las provincias encendidas.
 5. **El globo de información** aparece con `anim-aparece` (`micro-appear`) y desaparece de golpe al
    salir: si tardase en irse estorbaría al mirar la provincia de al lado.
 
-### Desplegar el detalle de una fila
+### Desplegar una fila → los inmuebles
 
-La misma técnica que el resto del prototipo: rejilla de una fila de `0fr` a `1fr` con
-`macro-levelup` (350 ms, ease out), y la flecha gira 180° con `micro-states` (200 ms), acabando
-antes que el panel para que se lea como "esto lo ha provocado la flecha".
+La flecha de una fila abre **la lista de sus inmuebles**, uno por tarjeta. Cada inmueble se lee de
+izquierda a derecha: casa · nombre · categoría · dirección … CUPS · flecha.
+
+La técnica de despliegue es la misma que en el resto del prototipo: rejilla de una fila de `0fr` a
+`1fr` con `macro-levelup` (350 ms, ease out), y la flecha gira 180° con `micro-states` (200 ms),
+acabando antes que el panel para que se lea como "esto lo ha provocado la flecha". Vale para los
+dos niveles: sociedad → inmuebles, e inmueble → sus suministros.
+
+**El nombre del inmueble va subrayado** porque en el Figma no es un texto: es un DS Button
+terciario. El subrayado es lo que avisa de que ese trozo se toca. Cuando el inmueble aún no está
+clasificado, ese mismo botón pasa a decir **"Categoriza este inmueble"**: la fila no cambia de
+forma, solo cambia lo que pide.
+
+> ⚠️ El `Button` del sistema **no** subraya su etiqueta y el DS Button terciario del Figma **sí**.
+> En el prototipo el subrayado se añade con una clase suelta en `FilaInmueble`, para no cambiar el
+> componente compartido que ya usan otras diez pantallas. Si se confirma que el terciario debe ir
+> siempre subrayado, hay que arreglarlo en `Button.tsx` y esa clase sobra.
+
+**Categorizar.** Al pulsar el nombre sale en su sitio un desplegable con las categorías. Al elegir
+una, la fila vuelve a su forma normal ya clasificada, sin mover nada de alrededor
+(`micro-states`). Si el inmueble no tenía nombre, la categoría pasa a hacer de rótulo — no se le
+inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
+
+> ⚠️ En el Figma la flecha de cada inmueble aparece solo cerrada: **lo que hay debajo no está
+> diseñado todavía**. El prototipo abre ahí lo que ya se sabe del inmueble (luz/gas y en qué estado
+> están sus puntos) para que el control no quede muerto. Cuando exista ese nivel en Figma, se
+> sustituye.
 
 ### Filtros
 
@@ -848,8 +872,9 @@ src/
                                     las dos pantallas del paso 03
       empresas/                 pantallas y navbar propios del flujo de empresas
       particulares/             pantallas y navbar propios del flujo de particulares
-      area-cliente/             la pantalla "Mi cartera": barra lateral, lista y
-                                el mapa interactivo de provincias
+      area-cliente/             la pantalla "Mi cartera": barra lateral, lista
+                                de sociedades, sus inmuebles y el mapa
+                                interactivo de provincias
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript
