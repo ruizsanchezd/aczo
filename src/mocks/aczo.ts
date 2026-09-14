@@ -1145,3 +1145,353 @@ export function kwh(valor: number): string {
     valor,
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — "Mi cartera"                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * La cartera de una clienta que ya es de Aczo (pantalla "Dashboard / Mi
+ * cartera"). Es otro momento distinto al del recorrido de alta: aquí ya hay
+ * sociedades contratadas, repartidas por España, y lo que se mira es el estado
+ * de cada una.
+ *
+ * La clave de todo es `provincia`: tiene que escribirse EXACTAMENTE igual que
+ * en `provincias-espana.ts` (son los nombres del INE, con sus dos idiomas
+ * donde los hay: "Alacant/Alicante", "Illes Balears", "A Coruña"...). Es lo
+ * que usa el mapa para saber qué pintar.
+ */
+
+export type EstadoCartera = "activa" | "tramite" | "revision";
+export type TipoCartera = "luz" | "gas";
+
+/** Los tres estados, con su rótulo y el token de color de su puntito. */
+export const ESTADOS_CARTERA: {
+  id: EstadoCartera;
+  rotulo: string;
+  /** Clase de color del punto. Tokens de feedback del sistema. */
+  color: string;
+}[] = [
+  { id: "activa", rotulo: "Activas", color: "bg-success-high" },
+  { id: "tramite", rotulo: "En trámite", color: "bg-info-high" },
+  { id: "revision", rotulo: "En revisión", color: "bg-warning-high" },
+];
+
+export type SedeCartera = {
+  /** Nombre de provincia del INE. Debe coincidir con `provincias-espana.ts`. */
+  provincia: string;
+  ciudad: string;
+  inmuebles: number;
+  tipos: TipoCartera[];
+  /** Puntos de suministro (CUPS) de esta sede, repartidos por estado. */
+  puntos: Record<EstadoCartera, number>;
+};
+
+export type SociedadCartera = {
+  id: string;
+  nombre: string;
+  /**
+   * El color con el que esta sociedad se pinta en el mapa y en la leyenda.
+   *
+   * EXCEPCIÓN al principio de "tokens siempre": estos cuatro colores están a
+   * pelo porque el Figma los pone a pelo — solo el primero (#20270f) coincide
+   * con un token (highlight-deep). Los otros tres no existen en la librería.
+   * Se ha decidido calcar el Figma en vez de aproximarlos con la paleta
+   * `extended`. Si algún día entran en la librería, se cambian aquí y ya.
+   */
+  color: string;
+  comercializadora: string;
+  sedes: SedeCartera[];
+};
+
+export const SOCIEDADES_CARTERA: SociedadCartera[] = [
+  {
+    id: "mendesaltaren",
+    nombre: "mendesaltaren SL",
+    color: "#20270F",
+    comercializadora: "Repsol",
+    sedes: [
+      { provincia: "Madrid", ciudad: "Madrid", inmuebles: 5, tipos: ["luz", "gas"], puntos: { activa: 13, tramite: 2, revision: 0 } },
+      { provincia: "Barcelona", ciudad: "Barcelona", inmuebles: 4, tipos: ["luz", "gas"], puntos: { activa: 8, tramite: 1, revision: 0 } },
+      { provincia: "València/Valencia", ciudad: "València", inmuebles: 3, tipos: ["luz"], puntos: { activa: 4, tramite: 0, revision: 1 } },
+      { provincia: "Sevilla", ciudad: "Sevilla", inmuebles: 2, tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 0 } },
+      { provincia: "Bizkaia", ciudad: "Bilbao", inmuebles: 2, tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 1, revision: 0 } },
+    ],
+  },
+  {
+    id: "still",
+    nombre: "Still SL",
+    color: "#898A35",
+    comercializadora: "TotalEnergies",
+    sedes: [
+      { provincia: "Madrid", ciudad: "Alcobendas", inmuebles: 3, tipos: ["luz", "gas"], puntos: { activa: 8, tramite: 1, revision: 0 } },
+      { provincia: "Málaga", ciudad: "Málaga", inmuebles: 3, tipos: ["luz"], puntos: { activa: 4, tramite: 1, revision: 0 } },
+      { provincia: "Illes Balears", ciudad: "Palma", inmuebles: 3, tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 1 } },
+      { provincia: "A Coruña", ciudad: "A Coruña", inmuebles: 2, tipos: ["luz", "gas"], puntos: { activa: 3, tramite: 0, revision: 0 } },
+    ],
+  },
+  {
+    id: "nocodehackers",
+    nombre: "Nocodehackers SL",
+    color: "#7B6EEB",
+    comercializadora: "Ahorra Energía",
+    sedes: [
+      { provincia: "Zaragoza", ciudad: "Zaragoza", inmuebles: 4, tipos: ["luz", "gas"], puntos: { activa: 7, tramite: 1, revision: 0 } },
+      { provincia: "Valladolid", ciudad: "Valladolid", inmuebles: 3, tipos: ["luz"], puntos: { activa: 4, tramite: 0, revision: 0 } },
+      { provincia: "Alacant/Alicante", ciudad: "Alacant", inmuebles: 3, tipos: ["luz"], puntos: { activa: 3, tramite: 1, revision: 0 } },
+      { provincia: "Murcia", ciudad: "Murcia", inmuebles: 2, tipos: ["luz", "gas"], puntos: { activa: 3, tramite: 0, revision: 0 } },
+      { provincia: "Las Palmas", ciudad: "Las Palmas de Gran Canaria", inmuebles: 2, tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0 } },
+    ],
+  },
+  {
+    id: "tailorhub",
+    nombre: "Tailor Hub SL",
+    color: "#E85AB0",
+    comercializadora: "Repsol",
+    sedes: [
+      { provincia: "Madrid", ciudad: "Pozuelo de Alarcón", inmuebles: 3, tipos: ["luz", "gas"], puntos: { activa: 7, tramite: 1, revision: 0 } },
+      { provincia: "Granada", ciudad: "Granada", inmuebles: 2, tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 0 } },
+      { provincia: "Asturias", ciudad: "Gijón", inmuebles: 2, tipos: ["luz", "gas"], puntos: { activa: 3, tramite: 0, revision: 0 } },
+      { provincia: "Navarra", ciudad: "Pamplona", inmuebles: 2, tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0 } },
+      { provincia: "Girona", ciudad: "Girona", inmuebles: 2, tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 1 } },
+      { provincia: "Cantabria", ciudad: "Santander", inmuebles: 2, tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0 } },
+    ],
+  },
+];
+
+/* --- Cuentas derivadas (NADA de esto está escrito a mano) ------------------ */
+
+/** Puntos de suministro de una sede, sumando sus tres estados. */
+export function puntosDeSede(sede: SedeCartera): number {
+  return sede.puntos.activa + sede.puntos.tramite + sede.puntos.revision;
+}
+
+/** Inmuebles de una sociedad. */
+export function inmueblesDeSociedad(s: SociedadCartera): number {
+  return s.sedes.reduce((total, sede) => total + sede.inmuebles, 0);
+}
+
+/** Puntos de suministro de una sociedad. */
+export function puntosDeSociedad(s: SociedadCartera): number {
+  return s.sedes.reduce((total, sede) => total + puntosDeSede(sede), 0);
+}
+
+/** Cuántos puntos tiene una sociedad en cada estado. */
+export function estadosDeSociedad(
+  s: SociedadCartera,
+): Record<EstadoCartera, number> {
+  return s.sedes.reduce(
+    (total, sede) => ({
+      activa: total.activa + sede.puntos.activa,
+      tramite: total.tramite + sede.puntos.tramite,
+      revision: total.revision + sede.puntos.revision,
+    }),
+    { activa: 0, tramite: 0, revision: 0 },
+  );
+}
+
+/** Los números de las cinco tarjetas de arriba. */
+export const RESUMEN_CARTERA = {
+  sociedades: SOCIEDADES_CARTERA.length,
+  inmuebles: SOCIEDADES_CARTERA.reduce(
+    (t, s) => t + inmueblesDeSociedad(s),
+    0,
+  ),
+  puntos: SOCIEDADES_CARTERA.reduce((t, s) => t + puntosDeSociedad(s), 0),
+  comercializadoras: [
+    ...new Set(SOCIEDADES_CARTERA.map((s) => s.comercializadora)),
+  ],
+  estados: SOCIEDADES_CARTERA.reduce(
+    (total, s) => {
+      const e = estadosDeSociedad(s);
+      return {
+        activa: total.activa + e.activa,
+        tramite: total.tramite + e.tramite,
+        revision: total.revision + e.revision,
+      };
+    },
+    { activa: 0, tramite: 0, revision: 0 },
+  ),
+};
+
+/** Fecha que se enseña arriba del todo ("última actualización"). */
+export const ACTUALIZACION_CARTERA = "06 de julio 2026";
+
+/* --- Agrupar la cartera de tres maneras ------------------------------------ */
+
+/** Las tres formas de agrupar la lista de "Mi cartera". */
+export type ModoAgrupacion = "ubicacion" | "sociedad" | "comercializadora";
+
+export const MODOS_AGRUPACION: { id: ModoAgrupacion; rotulo: string }[] = [
+  { id: "ubicacion", rotulo: "Ubicación" },
+  { id: "sociedad", rotulo: "Sociedad" },
+  { id: "comercializadora", rotulo: "Comercializadora" },
+];
+
+/** Una línea del detalle que se ve al desplegar un grupo. */
+export type LineaDetalle = {
+  sociedad: string;
+  provincia: string;
+  ciudad: string;
+  inmuebles: number;
+  tipos: TipoCartera[];
+  puntos: number;
+};
+
+/**
+ * Un grupo de la lista, sea lo que sea que se esté agrupando. Las tres
+ * agrupaciones producen la MISMA forma, así que la fila de la lista y el mapa
+ * no necesitan saber por cuál de las tres se ha agrupado.
+ */
+export type GrupoCartera = {
+  id: string;
+  nombre: string;
+  /**
+   * El color con el que se pinta en el mapa. Siempre sale de una sociedad: la
+   * que más puntos aporta al grupo. Así, agrupes por lo que agrupes, un mismo
+   * color significa siempre la misma sociedad.
+   */
+  color: string;
+  /** Provincias que enciende este grupo en el mapa. */
+  provincias: string[];
+  inmuebles: number;
+  puntos: number;
+  estados: Record<EstadoCartera, number>;
+  detalle: LineaDetalle[];
+};
+
+function sumaEstados(lineas: { estados: Record<EstadoCartera, number> }[]) {
+  return lineas.reduce(
+    (t, l) => ({
+      activa: t.activa + l.estados.activa,
+      tramite: t.tramite + l.estados.tramite,
+      revision: t.revision + l.estados.revision,
+    }),
+    { activa: 0, tramite: 0, revision: 0 },
+  );
+}
+
+/** Todas las sedes de la cartera, aplanadas y con su sociedad al lado. */
+function todasLasSedes() {
+  return SOCIEDADES_CARTERA.flatMap((sociedad) =>
+    sociedad.sedes.map((sede) => ({ sociedad, sede })),
+  );
+}
+
+/**
+ * Los cuatro filtros de la barra de "Mi cartera". Cada uno vacío ("") quiere
+ * decir "todos".
+ */
+export type FiltrosCartera = {
+  sociedad: string;
+  tipo: "" | TipoCartera;
+  provincia: string;
+  estado: "" | EstadoCartera;
+};
+
+export const FILTROS_VACIOS: FiltrosCartera = {
+  sociedad: "",
+  tipo: "",
+  provincia: "",
+  estado: "",
+};
+
+/** Las opciones de cada filtro, sacadas de los propios datos. */
+export const OPCIONES_FILTROS = {
+  sociedad: SOCIEDADES_CARTERA.map((s) => s.nombre),
+  tipo: [
+    { value: "luz", label: "Luz" },
+    { value: "gas", label: "Gas" },
+  ],
+  provincia: [
+    ...new Set(SOCIEDADES_CARTERA.flatMap((s) => s.sedes.map((x) => x.provincia))),
+  ].sort((a, b) => a.localeCompare(b, "es")),
+  estado: ESTADOS_CARTERA.map((e) => ({ value: e.id, label: e.rotulo })),
+};
+
+/**
+ * Agrupa la cartera por ubicación, por sociedad o por comercializadora, y de
+ * paso aplica los filtros de la barra.
+ *
+ * Sobre el filtro de estado: deja pasar las sedes que TIENEN algún punto en ese
+ * estado, sin recortar sus cifras. Es decir, "En trámite" enseña dónde hay algo
+ * en trámite, no cuántos puntos en trámite hay — para eso está la cifra que ya
+ * sale a la derecha de cada fila.
+ *
+ * Nada de esto está escrito a mano: todo se calcula a partir de
+ * SOCIEDADES_CARTERA, así que al tocar un dato las tres agrupaciones siguen
+ * cuadrando entre ellas.
+ */
+export function agruparCartera(
+  modo: ModoAgrupacion,
+  filtros: FiltrosCartera = FILTROS_VACIOS,
+): GrupoCartera[] {
+  const clave = {
+    ubicacion: (s: (typeof SOCIEDADES_CARTERA)[number], sede: SedeCartera) =>
+      sede.provincia,
+    sociedad: (s: (typeof SOCIEDADES_CARTERA)[number]) => s.nombre,
+    comercializadora: (s: (typeof SOCIEDADES_CARTERA)[number]) =>
+      s.comercializadora,
+  }[modo];
+
+  const cajones = new Map<
+    string,
+    { sociedad: SociedadCartera; sede: SedeCartera }[]
+  >();
+
+  const pasaFiltros = ({
+    sociedad,
+    sede,
+  }: {
+    sociedad: SociedadCartera;
+    sede: SedeCartera;
+  }) =>
+    (!filtros.sociedad || sociedad.nombre === filtros.sociedad) &&
+    (!filtros.tipo || sede.tipos.includes(filtros.tipo)) &&
+    (!filtros.provincia || sede.provincia === filtros.provincia) &&
+    (!filtros.estado || sede.puntos[filtros.estado] > 0);
+
+  for (const fila of todasLasSedes().filter(pasaFiltros)) {
+    const k = clave(fila.sociedad, fila.sede);
+    cajones.set(k, [...(cajones.get(k) ?? []), fila]);
+  }
+
+  const grupos = [...cajones].map(([nombre, filas]) => {
+    // El color lo pone la sociedad que más puntos aporta al grupo.
+    const porSociedad = new Map<string, { color: string; puntos: number }>();
+    for (const { sociedad, sede } of filas) {
+      const actual = porSociedad.get(sociedad.id);
+      porSociedad.set(sociedad.id, {
+        color: sociedad.color,
+        puntos: (actual?.puntos ?? 0) + puntosDeSede(sede),
+      });
+    }
+    const dominante = [...porSociedad.values()].sort(
+      (a, b) => b.puntos - a.puntos,
+    )[0];
+
+    return {
+      id: nombre,
+      nombre,
+      color: dominante.color,
+      provincias: [...new Set(filas.map(({ sede }) => sede.provincia))],
+      inmuebles: filas.reduce((t, { sede }) => t + sede.inmuebles, 0),
+      puntos: filas.reduce((t, { sede }) => t + puntosDeSede(sede), 0),
+      estados: sumaEstados(filas.map(({ sede }) => ({ estados: sede.puntos }))),
+      detalle: filas.map(({ sociedad, sede }) => ({
+        sociedad: sociedad.nombre,
+        provincia: sede.provincia,
+        ciudad: sede.ciudad,
+        inmuebles: sede.inmuebles,
+        tipos: sede.tipos,
+        puntos: puntosDeSede(sede),
+      })),
+    };
+  });
+
+  // Por sociedad se respeta el orden en que están escritas (es el del Figma);
+  // en los otros dos casos, de más puntos a menos.
+  return modo === "sociedad"
+    ? grupos
+    : grupos.sort((a, b) => b.puntos - a.puntos);
+}

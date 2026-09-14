@@ -720,6 +720,92 @@ Está en `useRevelarAlEntrar` (`src/lib/prototipo.ts`) y en el componente que lo
 > tienen que ir por dentro**, no en el propio `Revelar`. La animación termina fijando la opacidad
 > a 1 (`animation-fill-mode: both`) y se las comería.
 
+## Área de cliente (`/area-cliente`) · "Mi cartera"
+
+Esta pantalla **no es parte del alta**: es lo que ve alguien que YA es cliente y entra a vigilar
+sus sociedades. Por eso tiene barra lateral de navegación en lugar del indicador de pasos.
+
+### Entrada de la pantalla
+
+Las cinco tarjetas de resumen entran en cascada de izquierda a derecha con `anim-aparece`
+(`micro-appear`, 350 ms, ease in) y el paso de siempre, `PASO_CASCADA` (60 ms). Las filas de la
+lista hacen lo mismo, y **vuelven a entrar** cada vez que cambia la agrupación o un filtro: así se
+lee "la lista se ha rehecho" en vez de "han desaparecido cosas".
+
+### Barra lateral
+
+La sección activa se marca en amarillo de marca y con una barrita a la izquierda que **se estira
+desde el centro** (`anim-marca-activa`, `macro-levelup`: 350 ms, ease out). Es un gesto diminuto,
+pero hace que cambiar de sección se lea como "la marca se ha movido" y no como "se ha encendido
+otra luz". El resto de secciones se aclaran al pasar por encima con `opacity-60`, la misma
+opacidad de hover que usan los botones del sistema.
+
+### "Agrupar por" (GrupoSegmentado)
+
+La pastilla oscura **no salta** de una opción a otra: se **desliza**, animando a la vez su posición
+y su ancho con `micro-states` (200 ms, lineal). Es lo que hace que el control se lea como una sola
+pieza que se mueve, y no como tres botones que se encienden por turnos.
+
+La pastilla se **mide en tiempo real** (`offsetLeft` / `offsetWidth` del botón activo en un
+`useLayoutEffect`): no hay anchos escritos a mano, así que funciona con rótulos de cualquier largo
+y en cualquier idioma. Teclado: flechas izquierda/derecha, patrón `tablist`.
+
+### Marcar una fila → el mapa
+
+**Es la interacción principal de la pantalla.** Pulsar una fila la marca; volver a pulsarla la
+desmarca. Un solo gesto para las dos cosas: nunca hace falta buscar un botón de "quitar filtro".
+
+| Qué | Cuándo | Token |
+| --- | --- | --- |
+| Borde de la fila y cuadrado del icono toman el color del grupo | al marcar | `micro-states` |
+| Las provincias del grupo se encienden en el mapa | al marcar | `micro-appear`, escalonado |
+| Las demás filas de la leyenda bajan a `opacity-30` | al marcar | `micro-states` |
+
+El **color es la pieza clave**: la fila, su cuadrado y sus provincias del mapa se pintan del mismo
+color. Ese color compartido es lo que ata la lista y el mapa; sin él serían dos cosas que cambian a
+la vez sin que se entienda por qué.
+
+### El mapa (MapaProvincias)
+
+Es un SVG de las 53 provincias, en dos capas: abajo España entera en gris (no se mueve nunca) y
+encima solo las provincias encendidas.
+
+1. **Encendido escalonado.** Las provincias no aparecen a la vez: se encienden **de norte a sur**,
+   con **40 ms** entre una y la siguiente (`anim-aparece-simple`, `micro-appear`). Son 40 y no los
+   60 ms de `PASO_CASCADA` porque aquí puede haber hasta 18 piezas: a 60 ms la última llegaría más
+   de un segundo tarde. Con 40, seis provincias son 240 ms de punta a punta.
+   El escalonado se relanza dando al grupo `<g>` una `key` que incluye lo marcado: React rehace los
+   trazados y la animación arranca de cero. Sin eso, el navegador reutilizaría los nodos y no se
+   animaría nada.
+2. **Apagado.** Al desmarcar, todo vuelve a la vez, sin escalonar (`micro-states`): deshacer tiene
+   que ser más rápido y más simple que hacer.
+3. **Al pasar por encima.** La provincia señalada se queda a plena intensidad y las demás bajan a
+   **55 %** de opacidad (`micro-states`). **No se mueve nada**: el mapa es un dato, no un botón, y
+   moverlo lo haría parecer pulsable.
+4. **Latido del marcador.** Sobre la provincia principal del grupo marcado laten **tres aros**
+   con el mismo lazo y el arranque escalonado (0, 800 y 1600 ms), así que siempre hay uno saliendo
+   (`anim-pulso-mapa`, 2400 ms, ease out, infinito). Sale del Figma, donde está dibujado como tres
+   círculos concéntricos sobre Madrid; aquí se pone en movimiento y sigue a lo que se marque.
+   Los 2400 ms **no son un token**: como el giro de la pantalla de carga o el pulso de la barra de
+   seguimiento, es un lazo ambiental sin fin, no una transición de un estado a otro.
+   El aro crece con `transform: scale()` y no con el radio `r`, para que funcione en cualquier
+   navegador; `transform-box: fill-box` es lo que hace que crezca desde su propio centro.
+5. **El globo de información** aparece con `anim-aparece` (`micro-appear`) y desaparece de golpe al
+   salir: si tardase en irse estorbaría al mirar la provincia de al lado.
+
+### Desplegar el detalle de una fila
+
+La misma técnica que el resto del prototipo: rejilla de una fila de `0fr` a `1fr` con
+`macro-levelup` (350 ms, ease out), y la flecha gira 180° con `micro-states` (200 ms), acabando
+antes que el panel para que se lea como "esto lo ha provocado la flecha".
+
+### Filtros
+
+Los cuatro desplegables (`FiltroSelect`) recortan la cartera **antes** de agruparla, así que la
+lista, el mapa, la leyenda y sus porcentajes cambian juntos y siempre cuadran. Un filtro puesto se
+marca oscureciendo borde y texto (`micro-states`), para ver de un vistazo cuáles están activos.
+Si los filtros no dejan nada, la lista enseña su mensaje y **el mapa se apaga entero**.
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -748,7 +834,8 @@ src/
     globals.css                tokens + utilidades de motion y de animación
     recorrido/page.tsx          la ruta del recorrido particular clásico
     empresas/page.tsx           la ruta del flujo de empresas
-    particulares/page.tsx       la ruta del flujo de particulares (nuevo)
+    particulares/page.tsx       la ruta del flujo de particulares
+    area-cliente/page.tsx       la ruta del área de cliente ("Mi cartera")
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
@@ -761,10 +848,14 @@ src/
                                     las dos pantallas del paso 03
       empresas/                 pantallas y navbar propios del flujo de empresas
       particulares/             pantallas y navbar propios del flujo de particulares
+      area-cliente/             la pantalla "Mi cartera": barra lateral, lista y
+                                el mapa interactivo de provincias
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript
     prototipo.ts                utilidades pequeñas (cascada, formato)
   mocks/
     aczo.ts                     TODOS los datos de mentira, en un solo archivo
+    provincias-espana.ts        los trazados SVG de las provincias, generados
+                                una vez desde el TopoJSON del INE
 ```

@@ -260,6 +260,23 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   `PASOS_PARTICULARES` en `mocks/aczo.ts`): sube tu factura → ahorro y recomendación → confirma
   tus datos → seguimiento. Y su cabecera se queda pegada arriba, encogiéndose de 80 a 64 px
   mientras se navega y recuperando su altura completa al volver arriba.
+- **`/area-cliente`** — "Mi cartera": lo que ve quien YA es cliente, no el alta. Barra lateral de
+  navegación sobre superficie oscura, cinco tarjetas de resumen, y un panel con la lista de la
+  cartera y un **mapa de España interactivo**. Marcar una fila (o una entrada de la leyenda) apaga
+  el mapa y enciende solo SUS provincias, de norte a sur y con un marcador que late encima de la
+  principal; volver a pulsarla lo desmarca. "Agrupar por" rehace la lista de tres maneras
+  (sociedad, ubicación o comercializadora) y los cuatro filtros recortan la cartera antes de
+  agruparla, así que lista, mapa, leyenda y porcentajes siempre cuadran. Componentes en
+  `src/components/prototipo/area-cliente/`.
+
+  El mapa NO es la imagen del Figma: las provincias son trazados SVG de verdad, en
+  `src/mocks/provincias-espana.ts`, generados **una sola vez** desde el TopoJSON público de
+  `es-atlas` (datos del INE) y proyectados con `d3-geo`. Esos paquetes se usaron para generar el
+  archivo y se quitaron: el prototipo no depende de nada nuevo. Canarias va en un recuadro aparte
+  abajo a la izquierda, como es costumbre en los mapas de España (en el Figma el mapa es una
+  imagen de la península y Canarias no sale; el recuadro se añade para que esas dos provincias
+  también se puedan pintar).
+
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una
