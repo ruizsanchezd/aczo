@@ -825,10 +825,29 @@ inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
 
 ### Filtros
 
-Los cuatro desplegables (`FiltroSelect`) recortan la cartera **antes** de agruparla, así que la
-lista, el mapa, la leyenda y sus porcentajes cambian juntos y siempre cuadran. Un filtro puesto se
-marca oscureciendo borde y texto (`micro-states`), para ver de un vistazo cuáles están activos.
-Si los filtros no dejan nada, la lista enseña su mensaje y **el mapa se apaga entero**.
+Los cuatro filtros recortan la cartera **antes** de agruparla, así que la lista, el mapa, la
+leyenda y sus porcentajes cambian juntos y siempre cuadran. Un filtro puesto se marca oscureciendo
+borde y texto (`micro-states`), para ver de un vistazo cuáles están activos. Si los filtros no
+dejan nada, la lista enseña su mensaje y **el mapa se apaga entero**.
+
+Tres de ellos (Sociedad, Tipo de suministro, Estado) son de una sola respuesta: `FiltroSelect`.
+
+**Dirección es de varias** y tiene su propia lista desplegable (`FiltroCasillas`): todas las
+direcciones de la cartera, agrupadas por provincia, cada una con su casilla.
+
+| Qué | Cuándo | Token |
+| --- | --- | --- |
+| La lista aparece pegada al botón | al abrir | `micro-appear` (`anim-aparece`) |
+| La flecha gira media vuelta | al abrir y al cerrar | `micro-states` |
+| El botón se oscurece y lleva la cuenta: "Dirección (3)" | al elegir | `micro-states` |
+
+- **Se cierra** pulsando fuera, con `Escape`, o volviendo a pulsar el botón.
+- **Encabezados a medias.** Si de una provincia hay unas direcciones elegidas y otras no, su
+  casilla se queda en **indeterminado** (la rayita en vez del check). Es lo que evita tener que
+  bajar la lista para saber si ahí dentro hay algo marcado.
+- **El degradado del final.** Cuando quedan direcciones por debajo del borde, la última se
+  difumina; al llegar al final desaparece. No es decoración: es lo que avisa de que la lista sigue,
+  y su ausencia dice "ya está".
 
 ## Transición entre pantallas
 

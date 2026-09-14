@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
 import { FiltroSelect } from "@/components/ui/FiltroSelect";
 import { GrupoSegmentado } from "@/components/ui/GrupoSegmentado";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
@@ -213,13 +214,15 @@ export function AreaCliente() {
                 onChange={cambiarFiltro("tipo")}
                 opciones={OPCIONES_FILTROS.tipo}
               />
-              <FiltroSelect
+              <FiltroCasillas
                 nombre="Dirección"
-                valor={filtros.provincia}
-                onChange={cambiarFiltro("provincia")}
-                opciones={OPCIONES_FILTROS.provincia.map((p) => ({
-                  value: p,
-                  label: p,
+                seleccion={filtros.direcciones}
+                onChange={(direcciones) =>
+                  setFiltros((f) => ({ ...f, direcciones }))
+                }
+                grupos={OPCIONES_FILTROS.direcciones.map((g) => ({
+                  rotulo: g.provincia,
+                  opciones: g.direcciones,
                 }))}
               />
               <FiltroSelect

@@ -1581,16 +1581,37 @@ function todosLosInmuebles() {
 export type FiltrosCartera = {
   sociedad: string;
   tipo: "" | TipoCartera;
-  provincia: string;
+  /** Direcciones elegidas. Lista vacía = todas. */
+  direcciones: string[];
   estado: "" | EstadoCartera;
 };
 
 export const FILTROS_VACIOS: FiltrosCartera = {
   sociedad: "",
   tipo: "",
-  provincia: "",
+  direcciones: [],
   estado: "",
 };
+
+/** Un encabezado del desplegable de direcciones y las direcciones que cuelgan. */
+export type GrupoDirecciones = { provincia: string; direcciones: string[] };
+
+function agruparDirecciones(): GrupoDirecciones[] {
+  const mapa = new Map<string, Set<string>>();
+  for (const sociedad of SOCIEDADES_CARTERA) {
+    for (const sede of sociedad.sedes) {
+      const set = mapa.get(sede.provincia) ?? new Set<string>();
+      for (const inmueble of sede.inmuebles) set.add(inmueble.direccion);
+      mapa.set(sede.provincia, set);
+    }
+  }
+  return [...mapa]
+    .map(([provincia, set]) => ({
+      provincia,
+      direcciones: [...set].sort((a, b) => a.localeCompare(b, "es")),
+    }))
+    .sort((a, b) => a.provincia.localeCompare(b.provincia, "es"));
+}
 
 /** Las opciones de cada filtro, sacadas de los propios datos. */
 export const OPCIONES_FILTROS = {
@@ -1599,11 +1620,12 @@ export const OPCIONES_FILTROS = {
     { value: "luz", label: "Luz" },
     { value: "gas", label: "Gas" },
   ],
-  provincia: [
-    ...new Set(
-      SOCIEDADES_CARTERA.flatMap((s) => s.sedes.map((x) => x.provincia)),
-    ),
-  ].sort((a, b) => a.localeCompare(b, "es")),
+  /**
+   * Las direcciones de la cartera, agrupadas por provincia y ordenadas — es
+   * como las enseña el desplegable de "Dirección": un encabezado por provincia
+   * y debajo sus direcciones, cada una con su casilla.
+   */
+  direcciones: agruparDirecciones(),
   estado: ESTADOS_CARTERA.map((e) => ({ value: e.id, label: e.rotulo })),
 };
 
@@ -1641,7 +1663,8 @@ export function agruparCartera(
   const pasaFiltros = ({ sociedad, sede, inmueble }: Fila) =>
     (!filtros.sociedad || sociedad.nombre === filtros.sociedad) &&
     (!filtros.tipo || inmueble.tipos.includes(filtros.tipo)) &&
-    (!filtros.provincia || sede.provincia === filtros.provincia) &&
+    (filtros.direcciones.length === 0 ||
+      filtros.direcciones.includes(inmueble.direccion)) &&
     (!filtros.estado || inmueble.puntos[filtros.estado] > 0);
 
   for (const fila of todosLosInmuebles().filter(pasaFiltros)) {

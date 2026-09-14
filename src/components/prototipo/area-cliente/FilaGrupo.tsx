@@ -94,13 +94,17 @@ export function FilaGrupo({
             </Text>
             <span className="flex items-center gap-02">
               <Text variant="body-m" color="low" as="span">
-                {grupo.inmuebles} inmuebles
+                {grupo.inmuebles}{" "}
+                {grupo.inmuebles === 1 ? "inmueble" : "inmuebles"}
               </Text>
               <Text variant="body-m" color="low" as="span">
                 ·
               </Text>
               <Text variant="body-m" color="low" as="span">
-                {grupo.puntos} puntos de suministro
+                {grupo.puntos}{" "}
+                {grupo.puntos === 1
+                  ? "punto de suministro"
+                  : "puntos de suministro"}
               </Text>
             </span>
           </span>
