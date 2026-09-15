@@ -275,9 +275,8 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   y deja verlos en un modo aparte, con su aviso y su salida. Qué filtros salen depende de la
   agrupación (`FILTROS_POR_AGRUPACION`): con Ubicación, por ejemplo, el de Sociedad sobra.
   "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
-  tipo de inmueble — las mismas siete categorías generales que ofrece el filtro; los que
-  nadie ha clasificado no salen en ninguna fila y se avisan con el bloque "Organiza tu cartera" al
-  final de la lista) y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
+  tipo de inmueble — las mismas siete categorías generales que ofrece el filtro, más un
+  grupo "Sin catalogar" que va siempre el último) y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
   porcentajes siempre cuadran. **El mapa solo sale agrupando por Ubicación**; en las otras tres
   agrupaciones ocupa su sitio una **gráfica de anillo** (`GraficaAnillo`), porque ahí lo que se
   compara no es dónde está cada cosa sino cuánto pesa. Agrupando por Ubicación, además, el mapa se

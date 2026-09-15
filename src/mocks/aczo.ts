@@ -1224,6 +1224,9 @@ export const CATEGORIAS_INMUEBLE = [
 
 export type CategoriaInmueble = (typeof CATEGORIAS_INMUEBLE)[number];
 
+/** El cajón de los inmuebles que nadie ha clasificado todavía. */
+export const SIN_CATALOGAR = "Sin catalogar";
+
 export type InmuebleCartera = {
   /**
    * El nombre que le ha puesto la clienta y su categoría. Los dos pueden faltar
@@ -1764,11 +1767,11 @@ export function agruparCartera(
     // categorías generales que ofrece el filtro "Inmueble". Con 54 inmuebles,
     // una fila por cada uno no se puede ni leer ni comparar.
     //
-    // Los que nadie ha catalogado no salen aquí (ver `pasaFiltros`): no tienen
-    // tipo, así que no hay grupo al que pertenezcan. La pantalla lo avisa con
-    // un mensaje al final de la lista en vez de inventarles una categoría.
+    // Los que nadie ha catalogado van todos juntos a SIN_CATALOGAR, que se
+    // queda siempre en último lugar (ver el orden, al final de la función):
+    // es lo que falta por hacer, no una categoría más que comparar.
     inmueble: (_s: SociedadCartera, _sede: SedeCartera, i: InmuebleCartera) =>
-      categoriaDe(i) ?? "",
+      categoriaDe(i) ?? SIN_CATALOGAR,
   }[modo];
 
   type Fila = {
@@ -1794,11 +1797,7 @@ export function agruparCartera(
       filtros.direcciones.includes(inmueble.direccion)) &&
     (filtros.estados.length === 0 ||
       filtros.estados.some((e) => inmueble.puntos[e] > 0)) &&
-    (!filtros.soloSinClasificar || !categoriaDe(inmueble)) &&
-    // Agrupando por tipo de inmueble, los que no tienen tipo se quedan fuera:
-    // no hay grupo al que pertenezcan. La pantalla lo avisa al final de la
-    // lista, que es mejor que inventarles una categoría de pega.
-    (modo !== "inmueble" || !!categoriaDe(inmueble));
+    (!filtros.soloSinClasificar || !categoriaDe(inmueble));
 
   for (const fila of todosLosInmuebles().filter(pasaFiltros)) {
     const k = clave(fila.sociedad, fila.sede, fila.inmueble);
@@ -1849,8 +1848,13 @@ export function agruparCartera(
   });
 
   // Por sociedad se respeta el orden en que están escritas (es el del Figma);
-  // en los otros dos casos, de más puntos a menos.
-  return modo === "sociedad"
-    ? grupos
-    : grupos.sort((a, b) => b.puntos - a.puntos);
+  // en el resto, de más puntos a menos. "Sin catalogar" es la excepción: va
+  // SIEMPRE al final, pese los puntos que pese. No es una categoría más con la
+  // que compararse, es lo que queda por ordenar.
+  if (modo === "sociedad") return grupos;
+  return grupos.sort((a, b) => {
+    if (a.id === SIN_CATALOGAR) return 1;
+    if (b.id === SIN_CATALOGAR) return -1;
+    return b.puntos - a.puntos;
+  });
 }
