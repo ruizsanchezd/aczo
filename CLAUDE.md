@@ -296,7 +296,8 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   A Coruña y Murcia). Con más, ni la lista ni la leyenda se podían leer de un vistazo. Componentes en
   `src/components/prototipo/area-cliente/`.
 
-  El mapa NO es la imagen del Figma: las provincias son trazados SVG de verdad, en
+  El mapa NO es la imagen del Figma ni una captura: es un dibujo vectorial, sin mar, con la base en
+  tokens del sistema y las provincias separadas por una línea blanca. Los trazados están en
   `src/mocks/provincias-espana.ts`, generados **una sola vez** desde el TopoJSON público de
   `es-atlas` (datos del INE) y proyectados con `d3-geo`. Esos paquetes se usaron para generar el
   archivo y se quitaron: el prototipo no depende de nada nuevo. Canarias va en un recuadro aparte

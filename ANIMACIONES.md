@@ -839,8 +839,15 @@ espera de una pantalla larga. En móvil las dos columnas se apilan.
 
 ### El mapa (MapaProvincias)
 
-Es un SVG de las 53 provincias, en dos capas: abajo España entera en gris (no se mueve nunca) y
+Es un SVG de las 53 provincias, en dos capas: abajo España entera apagada (no se mueve nunca) y
 encima solo las provincias encendidas.
+
+**Es un dibujo, no una foto de un mapa.** No hay mar: las provincias se separan con una línea
+blanca —el mismo blanco de la tarjeta que hay detrás— y lo de fuera simplemente no se pinta. Al
+principio llevaba un azul de mar y un gris de tierra calcados de la imagen del Figma, y el
+resultado parecía una captura de una aplicación de mapas metida dentro de la pantalla. Ahora la
+base va con tokens (`background-mid` la tierra, `background-base` las fronteras) y el color queda
+libre para lo único que tiene que decir: dónde hay cartera y cuánta.
 
 **La escala de verdes (solo agrupando por Ubicación).** Cada provincia se pinta de un verde más
 oscuro cuanta más cantidad tiene. Es el único caso en el que el color significa "cuánto hay" en vez

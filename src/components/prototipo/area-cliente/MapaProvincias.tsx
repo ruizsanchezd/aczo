@@ -43,18 +43,25 @@ import { Text } from "@/components/ui/Text";
  *      información: si tardase en irse, estorbaría al mirar la provincia de al
  *      lado.
  *
- * COLORES — excepción consciente a "tokens siempre":
- *   El mar, la tierra y las fronteras son colores de cartografía, no de
- *   interfaz: no hay (ni tiene mucho sentido que haya) un token del sistema
- *   para "mar". Están muestreados de la imagen del mapa del Figma. El color de
- *   cada provincia encendida tampoco es un token: viene del dato (ver el
- *   comentario de `color` en SOCIEDADES_CARTERA, en mocks/aczo.ts).
+ * COLORES
+ *   La base del mapa va con tokens del sistema (ver más abajo). El color de
+ *   cada provincia encendida no lo es: viene del dato, de `PALETA_CARTERA` o de
+ *   la escala de verdes, según la agrupación.
  */
 
-/** Colores de la base del mapa, muestreados de la imagen del Figma. */
-const MAR = "#B8D6EF";
-const TIERRA = "#D2D2D2";
-const FRONTERA = "#B5B5B5";
+/**
+ * Los colores de la base del mapa, todos del sistema.
+ *
+ * Aquí NO hay mar. El mapa es un dibujo, no una foto de un mapa: las provincias
+ * se separan con una línea blanca —el mismo blanco de la tarjeta que hay
+ * detrás— y lo de fuera simplemente no se pinta. Antes iban un azul y un gris
+ * calcados de la imagen del Figma, y el resultado parecía una captura de una
+ * aplicación de mapas metida dentro de la pantalla.
+ */
+const TIERRA = "var(--color-background-mid)";
+const FRONTERA = "var(--color-background-base)";
+/** Grosor de la línea que separa provincias. */
+const FRONTERA_GROSOR = 0.7;
 
 /** Cuánto espera cada provincia respecto a la anterior al encenderse. */
 const ESCALONADO_MS = 40;
@@ -306,9 +313,7 @@ export function MapaProvincias({
               : "Mapa de España con las provincias donde la cartera tiene suministros"
           }
         >
-          <rect width={MAPA_ANCHO} height={MAPA_ALTO} fill={MAR} />
-
-          {/* Capa de abajo: España entera en gris. No se mueve nunca. */}
+          {/* Capa de abajo: España entera, apagada. No se mueve nunca. */}
           <g>
             {PROVINCIAS.map((p) => (
               <path
@@ -316,7 +321,7 @@ export function MapaProvincias({
                 d={p.d}
                 fill={TIERRA}
                 stroke={FRONTERA}
-                strokeWidth={0.4}
+                strokeWidth={FRONTERA_GROSOR}
               />
             ))}
           </g>
@@ -335,7 +340,7 @@ export function MapaProvincias({
                 d={p.d}
                 fill={colores.get(p.nombre)}
                 stroke={FRONTERA}
-                strokeWidth={0.4}
+                strokeWidth={FRONTERA_GROSOR}
                 className="anim-aparece-simple transition-opacity motion-micro-states"
                 style={{
                   animationDelay: `${i * ESCALONADO_MS}ms`,
