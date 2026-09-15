@@ -276,7 +276,10 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   agrupación (`FILTROS_POR_AGRUPACION`): con Ubicación, por ejemplo, el de Sociedad sobra.
   "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
   tipo de inmueble — las mismas siete categorías generales que ofrece el filtro, más un
-  grupo "Sin catalogar" que va siempre el último) y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
+  grupo "Sin catalogar" que va siempre el último). Los colores del gráfico salen todos de
+  una sola lista (`PALETA_CARTERA`), así que sociedades, comercializadoras y tipos de inmueble se
+  leen igual; la única agrupación donde el color significa cantidad en vez de identidad es la de
+  ubicación, con su escala de verdes y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
   porcentajes siempre cuadran. **El mapa solo sale agrupando por Ubicación**; en las otras tres
   agrupaciones ocupa su sitio una **gráfica de anillo** (`GraficaAnillo`), porque ahí lo que se
   compara no es dónde está cada cosa sino cuánto pesa. Agrupando por Ubicación, además, el mapa se

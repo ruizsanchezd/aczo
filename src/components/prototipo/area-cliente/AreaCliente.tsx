@@ -20,6 +20,7 @@ import {
   MODOS_AGRUPACION,
   listaDeInmuebles,
   OPCIONES_FILTROS,
+  PALETA_CARTERA,
   RESUMEN_CARTERA,
   type CategoriaInmueble,
   type EstadoCartera,
@@ -104,20 +105,31 @@ export function AreaCliente() {
     const agrupados = agruparCartera(agrupacion, filtros, categorias);
 
     /*
-     * Cuándo el color significa "cuánto hay" en vez de "quién es".
+     * De qué color va cada fila, y por qué cambia con la agrupación.
      *
-     * Por sociedad y por comercializadora, cada fila ES alguien: el color es su
-     * identidad, y es lo que ata la lista con el gráfico.
+     * Por SOCIEDAD el color viene ya del dato: cada sociedad tiene el suyo. Por
+     * COMERCIALIZADORA lo hereda de la sociedad que más pesa dentro, y como hay
+     * una por sociedad, salen distintos.
      *
-     * Por ubicación y por tipo de inmueble no hay identidad que respetar, y
-     * heredar el color de "la sociedad que más pesa ahí" sale mal: cuatro tipos
-     * distintos acabarían del mismo verde oscuro solo porque en todos manda la
-     * misma sociedad. Así que ahí el color pasa a contar la cantidad, con la
-     * escala de verdes: cuanto más oscuro, más.
+     * Por TIPO DE INMUEBLE ese apaño no vale: en casi todos los tipos manda la
+     * misma sociedad, así que media lista acabaría del mismo color. Se reparte
+     * la paleta por orden — el mismo color que tendría la primera sociedad para
+     * el primer tipo, y así. Es lo que hace que el gráfico se lea igual
+     * agrupes por lo que agrupes.
+     *
+     * Por UBICACIÓN el color deja de ser identidad y pasa a contar CANTIDAD,
+     * con la escala de verdes: cuanto más oscuro, más. Ahí el mapa ya dice
+     * quién es cada cual (su forma y su sitio), así que el color puede dedicarse
+     * a lo otro.
      */
-    if (agrupacion !== "ubicacion" && agrupacion !== "inmueble") {
-      return agrupados;
+    if (agrupacion === "inmueble") {
+      return agrupados.map((g, i) => ({
+        ...g,
+        color: PALETA_CARTERA[i % PALETA_CARTERA.length],
+      }));
     }
+
+    if (agrupacion !== "ubicacion") return agrupados;
 
     const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
     return agrupados.map((g) => ({ ...g, color: verde(g.puntos / mayor) }));

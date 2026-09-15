@@ -1227,6 +1227,31 @@ export type CategoriaInmueble = (typeof CATEGORIAS_INMUEBLE)[number];
 /** El cajón de los inmuebles que nadie ha clasificado todavía. */
 export const SIN_CATALOGAR = "Sin catalogar";
 
+/**
+ * La paleta con la que se pinta la cartera: sociedades, comercializadoras y
+ * tipos de inmueble tiran todos de aquí, en este orden. Que sea LA MISMA lista
+ * es lo que hace que el gráfico se lea igual agrupes por lo que agrupes.
+ *
+ * EXCEPCIÓN al principio de "tokens siempre": los cuatro primeros están a pelo
+ * porque el Figma los pone a pelo — solo #20270f coincide con un token
+ * (highlight-deep). Se decidió calcar el Figma en vez de aproximarlos.
+ *
+ * Los cuatro últimos SÍ son tokens: el Figma solo define cuatro colores (tiene
+ * cuatro sociedades) y los tipos de inmueble son ocho, así que para el resto se
+ * tira de la paleta `extended` del sistema, que es justo la que existe para
+ * gráficas. Están elegidos para que dos tonos parecidos no caigan seguidos.
+ */
+export const PALETA_CARTERA = [
+  "#20270F",
+  "#898A35",
+  "#7B6EEB",
+  "#E85AB0",
+  "var(--color-extended-four-mid)",
+  "var(--color-extended-three-mid)",
+  "var(--color-extended-five-dark)",
+  "var(--color-extended-two-dark)",
+];
+
 export type InmuebleCartera = {
   /**
    * El nombre que le ha puesto la clienta y su categoría. Los dos pueden faltar
@@ -1253,15 +1278,7 @@ export type SedeCartera = {
 export type SociedadCartera = {
   id: string;
   nombre: string;
-  /**
-   * El color con el que esta sociedad se pinta en el mapa y en la leyenda.
-   *
-   * EXCEPCIÓN al principio de "tokens siempre": estos cuatro colores están a
-   * pelo porque el Figma los pone a pelo — solo el primero (#20270f) coincide
-   * con un token (highlight-deep). Los otros tres no existen en la librería.
-   * Se ha decidido calcar el Figma en vez de aproximarlos con la paleta
-   * `extended`. Si algún día entran en la librería, se cambian aquí y ya.
-   */
+  /** Su color en el gráfico y en la leyenda. Sale de `PALETA_CARTERA`. */
   color: string;
   comercializadora: string;
   sedes: SedeCartera[];
@@ -1271,7 +1288,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
   {
     id: "mendesaltaren",
     nombre: "mendesaltaren SL",
-    color: "#20270F",
+    color: PALETA_CARTERA[0],
     comercializadora: "Repsol",
     sedes: [
       {
@@ -1325,7 +1342,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
   {
     id: "still",
     nombre: "Still SL",
-    color: "#898A35",
+    color: PALETA_CARTERA[1],
     comercializadora: "TotalEnergies",
     sedes: [
       {
@@ -1367,7 +1384,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
   {
     id: "nocodehackers",
     nombre: "Nocodehackers SL",
-    color: "#7B6EEB",
+    color: PALETA_CARTERA[2],
     comercializadora: "Ahorra Energía",
     sedes: [
       {
@@ -1419,7 +1436,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
   {
     id: "tailorhub",
     nombre: "Tailor Hub SL",
-    color: "#E85AB0",
+    color: PALETA_CARTERA[3],
     comercializadora: "Repsol",
     sedes: [
       {

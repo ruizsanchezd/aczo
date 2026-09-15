@@ -751,11 +751,23 @@ agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto 
 | Leyenda | "% ahorro", en euros | puntos de suministro |
 | Estado en la fila | debajo del nombre | a la derecha |
 
-**Qué significa el color.** Por sociedad y por comercializadora, cada fila ES alguien: el color es
-su identidad, y es lo que ata la lista con el gráfico. Por ubicación y por tipo de inmueble no hay
-identidad que respetar, y heredar el color de "quien más pesa ahí" sale mal — cuatro tipos
-distintos acabarían del mismo verde oscuro solo porque en todos manda la misma sociedad. Así que en
-esas dos el color pasa a contar la **cantidad**, con la escala de verdes: cuanto más oscuro, más.
+**Qué significa el color.** En tres de las cuatro agrupaciones el color es una **identidad**, y
+sale de una sola lista compartida (`PALETA_CARTERA`): es lo que hace que el gráfico se lea igual
+agrupes por lo que agrupes.
+
+| Agrupación | De dónde sale el color |
+| --- | --- |
+| Sociedad | del dato: cada sociedad tiene el suyo |
+| Comercializadora | de la sociedad que más pesa dentro (hay una por sociedad, así que salen distintos) |
+| Tipo de inmueble | la paleta repartida por orden — ese apaño no vale aquí, porque en casi todos los tipos manda la misma sociedad y media lista acabaría del mismo color |
+| Ubicación | **escala de verdes por cantidad**: cuanto más oscuro, más |
+
+La excepción es Ubicación, y por un motivo concreto: ahí el mapa ya dice quién es cada cual (su
+forma y su sitio en España), así que el color queda libre para contar otra cosa.
+
+La paleta tiene ocho colores. Los cuatro primeros son los del Figma, a pelo (ver el comentario en
+`PALETA_CARTERA`); los cuatro últimos SÍ son tokens de la paleta `extended` del sistema, porque el
+Figma solo define cuatro colores —tiene cuatro sociedades— y los tipos de inmueble son ocho.
 
 **El mapa solo sale agrupando por ubicación.** En las demás lo que se quiere comparar no es DÓNDE
 está cada cosa sino CUÁNTO pesa, y para eso un anillo dice en un vistazo lo que un mapa no puede
