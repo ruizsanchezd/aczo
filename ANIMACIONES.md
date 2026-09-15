@@ -829,6 +829,24 @@ provincia.
 5. **El globo de información** aparece con `anim-aparece` (`micro-appear`) y desaparece de golpe al
    salir: si tardase en irse estorbaría al mirar la provincia de al lado.
 
+   **El globo responde al filtro que tengas puesto.** Si has filtrado por algo, te cuenta ESE algo:
+   con "Inmueble: local comercial", al pasar por encima de una provincia sale "Local comercial ·
+   3 inmuebles", no el reparto por sociedades. Es la diferencia entre un globo que repite siempre lo
+   mismo y uno que contesta a la pregunta que acabas de hacer.
+
+   | Filtro puesto | Qué desglosa el globo |
+   | --- | --- |
+   | Inmueble | las categorías: "Local comercial · 3 inmuebles" |
+   | Estado | solo los estados marcados: "En trámite · 5 pts." |
+   | Tipo de suministro | solo lo marcado: "Gas · 2 inmuebles" |
+   | Sociedad, Dirección o ninguno | el reparto por sociedades: "Still SL · 4 pts." |
+
+   Solo cambia el EJE, no lo que se cuenta: la lista que llega al mapa ya viene filtrada. En
+   "Estado" y "Tipo" sí hace falta recortar además el desglose, porque un inmueble en trámite casi
+   siempre tiene también puntos activos y sacarlos sería responder a una pregunta que no se ha
+   hecho. "Dirección" no entra en la tabla a propósito: filtrar por direcciones no añade nada
+   dentro de una provincia, que ya es la ubicación.
+
 ### Desplegar una fila → los inmuebles
 
 La flecha de una fila abre **la lista de sus inmuebles**, uno por tarjeta. Cada inmueble se lee de

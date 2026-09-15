@@ -397,7 +397,11 @@ export function AreaCliente() {
               }`}
             >
               <div className="flex justify-center lg:min-h-0 lg:flex-1">
-                <MapaProvincias grupos={grupos} seleccionado={marcadoVigente} />
+                <MapaProvincias
+                  grupos={grupos}
+                  seleccionado={marcadoVigente}
+                  filtros={filtros}
+                />
               </div>
 
               {/* Agrupando por ubicación la leyenda deja de contar puntos y

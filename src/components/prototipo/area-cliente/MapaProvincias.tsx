@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { MAPA_ALTO, MAPA_ANCHO, PROVINCIAS } from "@/mocks/provincias-espana";
-import type { GrupoCartera } from "@/mocks/aczo";
+import {
+  ESTADOS_CARTERA,
+  type FiltrosCartera,
+  type GrupoCartera,
+} from "@/mocks/aczo";
 import { Text } from "@/components/ui/Text";
 
 /**
@@ -58,17 +62,54 @@ const ESCALONADO_MS = 40;
 /** Opacidad de las provincias que NO están señaladas con el ratón. */
 const ATENUADA = 0.55;
 
+/**
+ * Por qué eje se desglosa el globo de información, según lo que haya filtrado.
+ *
+ * La idea: si has filtrado por algo, el globo te cuenta ESE algo. Si has puesto
+ * "Inmueble: local comercial", al pasar por encima de una provincia lo que
+ * quieres saber es cuántos locales comerciales hay ahí — no cuántas sociedades.
+ *
+ * Solo hace falta cambiar el EJE, no lo que se cuenta: la lista que llega ya
+ * viene filtrada, así que en un desglose por categoría solo pueden salir las
+ * categorías que has elegido.
+ *
+ * "Dirección" no está en la lista a propósito: filtrar por direcciones no añade
+ * nada dentro de una provincia, que ya es la ubicación.
+ */
+function ejeDelGlobo(filtros: FiltrosCartera) {
+  if (filtros.tiposDeInmueble.length > 0) return "categoria" as const;
+  if (filtros.estados.length > 0) return "estado" as const;
+  if (filtros.tipos.length > 0) return "tipo" as const;
+  // Sin filtros (o filtrando por sociedad), el reparto por sociedades.
+  return "sociedad" as const;
+}
+
+/** Una línea del globo: "Local comercial · 3 inmuebles". */
+type LineaGlobo = { etiqueta: string; cantidad: number; unidad: Unidad };
+
+type Unidad = "inmuebles" | "pts.";
+
+/** "1 inmueble" / "3 inmuebles"; los puntos no cambian. */
+function enUnidades(cantidad: number, unidad: Unidad): string {
+  if (unidad !== "inmuebles") return `${cantidad} ${unidad}`;
+  return `${cantidad} ${cantidad === 1 ? "inmueble" : "inmuebles"}`;
+}
+
 export function MapaProvincias({
   grupos,
   seleccionado,
+  filtros,
 }: {
   grupos: GrupoCartera[];
   /** id del grupo marcado en la lista, o null si no hay ninguno. */
   seleccionado: string | null;
+  /** Lo que hay filtrado. Decide por qué eje desglosa el globo. */
+  filtros: FiltrosCartera;
 }) {
   const [encima, setEncima] = useState<string | null>(null);
 
   const grupoMarcado = grupos.find((g) => g.id === seleccionado);
+  const eje = ejeDelGlobo(filtros);
 
   /**
    * Qué hay en cada provincia, SOLO de lo que se ve en la lista.
@@ -76,30 +117,64 @@ export function MapaProvincias({
    * Es importante que salga de `grupos` y no de todos los datos: así, si los
    * filtros dejan la lista vacía, el mapa se apaga entero en vez de seguir
    * enseñando una cartera que no está a la vista.
+   *
+   * De cada provincia se guardan dos cosas: su color (el de quien más puntos
+   * tiene allí) y el desglose que enseña el globo, por el eje que toque.
    */
   const porProvincia = useMemo(() => {
     const mapa = new Map<
       string,
-      { sociedad: string; color: string; puntos: number }[]
+      { color: string; puntosDelColor: number; lineas: Map<string, LineaGlobo> }
     >();
+
     for (const grupo of grupos) {
       for (const linea of grupo.detalle) {
-        const lista = mapa.get(linea.provincia) ?? [];
-        const ya = lista.find((x) => x.sociedad === linea.sociedad);
-        if (ya) ya.puntos += linea.puntos;
-        else
-          lista.push({
-            sociedad: linea.sociedad,
-            color: grupo.color,
-            puntos: linea.puntos,
-          });
-        mapa.set(linea.provincia, lista);
+        const provincia = mapa.get(linea.provincia) ?? {
+          color: grupo.color,
+          puntosDelColor: 0,
+          lineas: new Map<string, LineaGlobo>(),
+        };
+
+        // El color de la provincia lo pone quien más puntos aporta.
+        if (linea.puntos > provincia.puntosDelColor) {
+          provincia.color = grupo.color;
+          provincia.puntosDelColor = linea.puntos;
+        }
+
+        const suma = (etiqueta: string, cantidad: number, unidad: Unidad) => {
+          const ya = provincia.lineas.get(etiqueta);
+          if (ya) ya.cantidad += cantidad;
+          else provincia.lineas.set(etiqueta, { etiqueta, cantidad, unidad });
+        };
+
+        if (eje === "categoria") {
+          suma(linea.categoria ?? "Sin catalogar", 1, "inmuebles");
+        } else if (eje === "estado") {
+          // Solo los estados marcados. Un inmueble "en trámite" casi siempre
+          // tiene también puntos activos, y sacarlos aquí sería responder a una
+          // pregunta que no se ha hecho.
+          for (const id of filtros.estados) {
+            if (linea.estados[id] > 0) {
+              const estado = ESTADOS_CARTERA.find((e) => e.id === id);
+              if (estado) suma(estado.rotulo, linea.estados[id], "pts.");
+            }
+          }
+        } else if (eje === "tipo") {
+          // Igual: solo luz o solo gas si es lo que se ha marcado.
+          for (const tipo of linea.tipos) {
+            if (filtros.tipos.includes(tipo)) {
+              suma(tipo === "luz" ? "Luz" : "Gas", 1, "inmuebles");
+            }
+          }
+        } else {
+          suma(linea.sociedad, linea.puntos, "pts.");
+        }
+
+        mapa.set(linea.provincia, provincia);
       }
     }
-    for (const lista of mapa.values())
-      lista.sort((a, b) => b.puntos - a.puntos);
     return mapa;
-  }, [grupos]);
+  }, [grupos, eje, filtros]);
 
   // De qué color va cada provincia:
   //   sin nada marcado → el de quien más puntos tiene allí
@@ -111,8 +186,8 @@ export function MapaProvincias({
         mapa.set(provincia, grupoMarcado.color);
       }
     } else {
-      for (const [provincia, lista] of porProvincia) {
-        mapa.set(provincia, lista[0].color);
+      for (const [provincia, datos] of porProvincia) {
+        mapa.set(provincia, datos.color);
       }
     }
     return mapa;
@@ -143,7 +218,12 @@ export function MapaProvincias({
     return provincia && { provincia, color: grupoMarcado.color };
   }, [grupoMarcado]);
 
-  const detalleGlobo = encima ? porProvincia.get(encima) : undefined;
+  // Las líneas del globo, de mayor a menor.
+  const detalleGlobo = encima
+    ? [...(porProvincia.get(encima)?.lineas.values() ?? [])].sort(
+        (a, b) => b.cantidad - a.cantidad,
+      )
+    : undefined;
   const provinciaEncima = encima
     ? PROVINCIAS.find((p) => p.nombre === encima)
     : undefined;
@@ -257,15 +337,15 @@ export function MapaProvincias({
           <Text variant="label-s" color="inverse" as="p">
             {provinciaEncima.nombre}
           </Text>
-          {detalleGlobo.map((p) => (
+          {detalleGlobo.map((linea) => (
             <Text
-              key={p.sociedad}
+              key={linea.etiqueta}
               variant="body-s"
               color="inverse"
               as="p"
               className="whitespace-nowrap opacity-60"
             >
-              {p.sociedad} · {p.puntos} pts.
+              {linea.etiqueta} · {enUnidades(linea.cantidad, linea.unidad)}
             </Text>
           ))}
         </div>
