@@ -13,6 +13,8 @@ import {
   ACTUALIZACION_CARTERA,
   agruparCartera,
   ESTADOS_CARTERA,
+  euros,
+  FILTROS_POR_AGRUPACION,
   FILTROS_VACIOS,
   MODOS_AGRUPACION,
   listaDeInmuebles,
@@ -53,6 +55,28 @@ import { MapaProvincias } from "./MapaProvincias";
  *   Las dos usan anim-aparece (motion-micro-appear, 350 ms, ease in).
  */
 
+/**
+ * El verde de una provincia según su peso (0 a 1): cuanta más cantidad, más
+ * oscuro. Se mezclan los DOS extremos de la familia verde del sistema
+ * (`extended-five`), que es la paleta pensada para gráficas — así los bordes de
+ * la escala son tokens de verdad y solo los pasos intermedios son mezcla, que
+ * es lo que pide por fuerza una escala continua.
+ *
+ * Dos ajustes, y los dos por lo mismo (que el mapa se pueda leer):
+ *
+ *   La raíz cuadrada. Madrid tiene un tercio de toda la cartera, así que en una
+ *   escala recta el resto de provincias caerían todas juntas abajo del todo y
+ *   el mapa sería "Madrid y un montón de pálidos iguales". La raíz separa la
+ *   parte baja de la escala, que es donde está casi todo.
+ *
+ *   El suelo del 25 %. Por debajo de ahí el verde se confunde con el gris de la
+ *   tierra y una provincia con datos parecería no tener ninguno.
+ */
+function verde(peso: number): string {
+  const porcentaje = Math.round(25 + 75 * Math.sqrt(peso));
+  return `color-mix(in oklab, var(--color-extended-five-dark) ${porcentaje}%, var(--color-extended-five-light))`;
+}
+
 export function AreaCliente() {
   const [agrupacion, setAgrupacion] = useState<ModoAgrupacion>("sociedad");
   const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
@@ -76,26 +100,27 @@ export function AreaCliente() {
     Record<string, CategoriaInmueble>
   >({});
 
-  const grupos = useMemo(
-    () => agruparCartera(agrupacion, filtros, categorias),
-    [agrupacion, filtros, categorias],
-  );
+  const grupos = useMemo(() => {
+    const agrupados = agruparCartera(agrupacion, filtros, categorias);
 
-  // Los inmuebles que YA están clasificados y los que no. Se calculan sobre la
-  // cartera entera (no sobre lo filtrado): "te quedan 5 sin clasificar" habla de
-  // toda la cartera, no de lo que se esté viendo en ese momento.
-  const { inmueblesClasificados, sinClasificar } = useMemo(() => {
-    const todos = listaDeInmuebles(categorias);
-    return {
-      inmueblesClasificados: todos
-        .filter((i) => i.categoria)
-        .map((i) => ({
-          value: i.id,
-          label: i.nombre ?? `${i.categoria} · ${i.ciudad}`,
-        })),
-      sinClasificar: todos.filter((i) => !i.categoria).map((i) => i.id),
-    };
-  }, [categorias]);
+    // Agrupando por UBICACIÓN, el color deja de significar "quién es" y pasa a
+    // significar "cuánto hay": cada provincia se pinta de un verde más oscuro
+    // cuantos más puntos de suministro tiene. Con las otras agrupaciones el
+    // color sigue siendo la identidad de la sociedad, que es lo que ata la
+    // lista con el mapa.
+    if (agrupacion !== "ubicacion") return agrupados;
+
+    const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
+    return agrupados.map((g) => ({ ...g, color: verde(g.puntos / mayor) }));
+  }, [agrupacion, filtros, categorias]);
+
+  // Cuántos inmuebles faltan por catalogar. Se cuenta sobre la cartera entera
+  // (no sobre lo filtrado): "te quedan 5 sin clasificar" habla de toda la
+  // cartera, no de lo que se esté viendo en ese momento.
+  const sinClasificar = useMemo(
+    () => listaDeInmuebles(categorias).filter((i) => !i.categoria).length,
+    [categorias],
+  );
 
   // Si lo que estaba marcado ya no está en la lista (porque un filtro lo ha
   // dejado fuera), se desmarca: si no, el mapa seguiría encendido por algo que
@@ -114,6 +139,8 @@ export function AreaCliente() {
   }
 
   const puntosVisibles = grupos.reduce((t, g) => t + g.puntos, 0);
+  const ahorroVisible = grupos.reduce((t, g) => t + g.ahorro, 0);
+  const porUbicacion = agrupacion === "ubicacion";
 
   return (
     <div className="flex min-h-screen bg-background-mid">
@@ -212,93 +239,128 @@ export function AreaCliente() {
             </div>
 
             <div className="flex flex-wrap items-center gap-02">
-              <FiltroCasillas
-                nombre="Sociedad"
-                abierto={filtroAbierto === "sociedades"}
-                onAbrir={(abrir) =>
-                  setFiltroAbierto(abrir ? "sociedades" : null)
-                }
-                seleccion={filtros.sociedades}
-                onChange={(sociedades) =>
-                  setFiltros((f) => ({ ...f, sociedades }))
-                }
-                grupos={[
-                  {
-                    opciones: OPCIONES_FILTROS.sociedades.map((s) => ({
-                      value: s,
-                      label: s,
-                    })),
-                  },
-                ]}
-              />
-              <FiltroCasillas
-                nombre="Tipo de suministro"
-                abierto={filtroAbierto === "tipos"}
-                onAbrir={(abrir) => setFiltroAbierto(abrir ? "tipos" : null)}
-                seleccion={filtros.tipos}
-                onChange={(tipos) =>
-                  setFiltros((f) => ({ ...f, tipos: tipos as TipoCartera[] }))
-                }
-                grupos={[{ opciones: OPCIONES_FILTROS.tipos }]}
-              />
-              <FiltroCasillas
-                nombre="Inmueble"
-                abierto={filtroAbierto === "inmuebles"}
-                onAbrir={(abrir) =>
-                  setFiltroAbierto(abrir ? "inmuebles" : null)
-                }
-                seleccion={filtros.inmuebles}
-                onChange={(inmuebles) =>
-                  setFiltros((f) => ({ ...f, inmuebles }))
-                }
-                grupos={[{ opciones: inmueblesClasificados }]}
-                pie={
-                  sinClasificar.length > 0 ? (
-                    <OrganizaTuCartera
-                      sinClasificar={sinClasificar.length}
-                      hayClasificados={inmueblesClasificados.length > 0}
-                      onOrganizar={() => {
-                        // OJO: esto NO toca el filtro de Inmueble. Ese filtro
-                        // solo puede contener inmuebles catalogados, porque son
-                        // los únicos que ofrece. Ver `soloSinClasificar`.
-                        setFiltros((f) => ({ ...f, soloSinClasificar: true }));
-                        setFiltroAbierto(null);
-                      }}
-                      onFiltrarPorUbicacion={() =>
-                        setFiltroAbierto("direcciones")
+              {/* Qué filtros salen depende de la agrupación: agrupando por
+                  ubicación, por ejemplo, el de "Sociedad" sobra. Ver
+                  FILTROS_POR_AGRUPACION en mocks. */}
+              {FILTROS_POR_AGRUPACION[agrupacion].map((campo) => {
+                const comun = {
+                  abierto: filtroAbierto === campo,
+                  onAbrir: (abrir: boolean) =>
+                    setFiltroAbierto(abrir ? campo : null),
+                };
+
+                if (campo === "sociedades")
+                  return (
+                    <FiltroCasillas
+                      key={campo}
+                      nombre="Sociedad"
+                      {...comun}
+                      seleccion={filtros.sociedades}
+                      onChange={(sociedades) =>
+                        setFiltros((f) => ({ ...f, sociedades }))
+                      }
+                      grupos={[
+                        {
+                          opciones: OPCIONES_FILTROS.sociedades.map((x) => ({
+                            value: x,
+                            label: x,
+                          })),
+                        },
+                      ]}
+                    />
+                  );
+
+                if (campo === "tipos")
+                  return (
+                    <FiltroCasillas
+                      key={campo}
+                      nombre="Tipo de suministro"
+                      {...comun}
+                      seleccion={filtros.tipos}
+                      onChange={(tipos) =>
+                        setFiltros((f) => ({
+                          ...f,
+                          tipos: tipos as TipoCartera[],
+                        }))
+                      }
+                      grupos={[{ opciones: OPCIONES_FILTROS.tipos }]}
+                    />
+                  );
+
+                if (campo === "tiposDeInmueble")
+                  return (
+                    <FiltroCasillas
+                      key={campo}
+                      nombre="Inmueble"
+                      {...comun}
+                      seleccion={filtros.tiposDeInmueble}
+                      onChange={(tiposDeInmueble) =>
+                        setFiltros((f) => ({
+                          ...f,
+                          tiposDeInmueble:
+                            tiposDeInmueble as CategoriaInmueble[],
+                        }))
+                      }
+                      grupos={[{ opciones: OPCIONES_FILTROS.tiposDeInmueble }]}
+                      pie={
+                        sinClasificar > 0 ? (
+                          <OrganizaTuCartera
+                            sinClasificar={sinClasificar}
+                            hayClasificados={
+                              sinClasificar < RESUMEN_CARTERA.inmuebles
+                            }
+                            onOrganizar={() => {
+                              setFiltros((f) => ({
+                                ...f,
+                                soloSinClasificar: true,
+                              }));
+                              setFiltroAbierto(null);
+                            }}
+                            onFiltrarPorUbicacion={() =>
+                              setFiltroAbierto("direcciones")
+                            }
+                          />
+                        ) : undefined
                       }
                     />
-                  ) : undefined
-                }
-              />
-              <FiltroCasillas
-                nombre="Dirección"
-                abierto={filtroAbierto === "direcciones"}
-                onAbrir={(abrir) =>
-                  setFiltroAbierto(abrir ? "direcciones" : null)
-                }
-                seleccion={filtros.direcciones}
-                onChange={(direcciones) =>
-                  setFiltros((f) => ({ ...f, direcciones }))
-                }
-                grupos={OPCIONES_FILTROS.direcciones.map((g) => ({
-                  rotulo: g.provincia,
-                  opciones: g.direcciones.map((d) => ({ value: d, label: d })),
-                }))}
-              />
-              <FiltroCasillas
-                nombre="Estado"
-                abierto={filtroAbierto === "estados"}
-                onAbrir={(abrir) => setFiltroAbierto(abrir ? "estados" : null)}
-                seleccion={filtros.estados}
-                onChange={(estados) =>
-                  setFiltros((f) => ({
-                    ...f,
-                    estados: estados as EstadoCartera[],
-                  }))
-                }
-                grupos={[{ opciones: OPCIONES_FILTROS.estados }]}
-              />
+                  );
+
+                if (campo === "direcciones")
+                  return (
+                    <FiltroCasillas
+                      key={campo}
+                      nombre="Dirección"
+                      {...comun}
+                      seleccion={filtros.direcciones}
+                      onChange={(direcciones) =>
+                        setFiltros((f) => ({ ...f, direcciones }))
+                      }
+                      grupos={OPCIONES_FILTROS.direcciones.map((g) => ({
+                        rotulo: g.provincia,
+                        opciones: g.direcciones.map((d) => ({
+                          value: d,
+                          label: d,
+                        })),
+                      }))}
+                    />
+                  );
+
+                return (
+                  <FiltroCasillas
+                    key={campo}
+                    nombre="Estado"
+                    {...comun}
+                    seleccion={filtros.estados}
+                    onChange={(estados) =>
+                      setFiltros((f) => ({
+                        ...f,
+                        estados: estados as EstadoCartera[],
+                      }))
+                    }
+                    grupos={[{ opciones: OPCIONES_FILTROS.estados }]}
+                  />
+                );
+              })}
             </div>
           </div>
 
@@ -351,6 +413,7 @@ export function AreaCliente() {
                     >
                       <FilaGrupo
                         grupo={grupo}
+                        apilado={porUbicacion}
                         marcado={marcadoVigente === grupo.id}
                         desplegado={desplegado === grupo.id}
                         onMarcar={() =>
@@ -385,19 +448,42 @@ export function AreaCliente() {
             </div>
 
             {/* El mapa y su leyenda */}
-            <div className="flex w-full shrink-0 flex-col gap-04 rounded-md border border-border-low p-04 lg:w-[365px]">
+            {/* Agrupando por ubicación el mapa manda, y se lleva el ancho que
+                le reserva el Figma en ese estado: 588 px en vez de 365. Son
+                medidas del Figma, no tokens de espaciado. */}
+            <div
+              className={`flex w-full shrink-0 flex-col gap-04 rounded-md border border-border-low p-04 ${
+                porUbicacion ? "lg:w-[588px]" : "lg:w-[365px]"
+              }`}
+            >
               <MapaProvincias grupos={grupos} seleccionado={marcadoVigente} />
 
               {/* La leyenda no crece sin fin: se queda como mucho tan alta
                   como el mapa y a partir de ahí rueda. Agrupando por ubicación
                   hay casi veinte filas, y sin tope el panel se descuadraría. */}
+              {/* Agrupando por ubicación la leyenda deja de contar puntos y
+                  pasa a contar dinero: es lo que se quiere comparar entre
+                  provincias. Sale así del Figma. */}
+              {porUbicacion && (
+                <Text
+                  variant="label-s"
+                  color="mid"
+                  as="p"
+                  className="-mb-02 text-right"
+                >
+                  Ahorro estimado
+                </Text>
+              )}
+
               <ul
                 className="flex flex-col gap-01 overflow-y-auto"
                 style={{ maxHeight: MAPA_ALTO }}
               >
                 {grupos.map((grupo) => {
-                  const porcentaje = puntosVisibles
-                    ? Math.round((grupo.puntos / puntosVisibles) * 100)
+                  const total = porUbicacion ? ahorroVisible : puntosVisibles;
+                  const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
+                  const porcentaje = total
+                    ? Math.round((parte / total) * 100)
                     : 0;
                   const esteMarcado = marcadoVigente === grupo.id;
                   return (
@@ -428,7 +514,9 @@ export function AreaCliente() {
                         </span>
                         <span className="flex shrink-0 items-center gap-01">
                           <Text variant="label-s" as="span">
-                            {grupo.puntos}
+                            {porUbicacion
+                              ? `${euros(grupo.ahorro)} €`
+                              : grupo.puntos}
                           </Text>
                           <Text variant="body-s" color="low" as="span">
                             {porcentaje}%

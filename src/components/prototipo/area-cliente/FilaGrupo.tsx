@@ -13,9 +13,14 @@ import { FilaInmueble } from "./FilaInmueble";
 /**
  * FilaGrupo — una fila de la lista de "Mi cartera".
  *
- * Vale para las tres agrupaciones (sociedad, ubicación y comercializadora)
- * porque las tres producen la misma forma de dato: un `GrupoCartera` con sus
- * provincias, sus inmuebles y sus puntos. Ver `agruparCartera` en mocks.
+ * Vale para las cuatro agrupaciones (ubicación, sociedad, comercializadora e
+ * inmueble) porque las cuatro producen la misma forma de dato: un
+ * `GrupoCartera` con sus provincias, sus inmuebles y sus puntos. Ver
+ * `agruparCartera` en mocks.
+ *
+ * Tiene dos formas, y la elige quien la usa con `apilado`: con el estado a la
+ * derecha (lista ancha) o debajo del nombre (lista estrecha, que es como queda
+ * agrupando por ubicación porque ahí el mapa se lleva más sitio).
  *
  * INTERACCIÓN — esto es lo que hay que replicar en producto:
  *
@@ -36,12 +41,37 @@ import { FilaInmueble } from "./FilaInmueble";
  *   vuelta a la vez.
  */
 
+/**
+ * Los puntitos de estado de un grupo.
+ *
+ * "Activas" no se enseña: en una cartera sana son casi todas, y lo que interesa
+ * de un vistazo es lo que NO está ya resuelto.
+ */
+function Estados({ grupo }: { grupo: GrupoCartera }) {
+  return (
+    <span className="flex flex-wrap items-center gap-03">
+      {ESTADOS_CARTERA.filter(
+        (e) => e.id !== "activa" && grupo.estados[e.id] > 0,
+      ).map((estado) => (
+        <PuntoEstado
+          key={estado.id}
+          color={estado.color}
+          rotulo={estado.rotulo}
+          cantidad={grupo.estados[estado.id]}
+          estirado={false}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function FilaGrupo({
   grupo,
   marcado,
   desplegado,
   onMarcar,
   onDesplegar,
+  apilado = false,
   inmuebleDesplegado,
   onDesplegarInmueble,
   inmuebleCategorizando,
@@ -53,6 +83,12 @@ export function FilaGrupo({
   desplegado: boolean;
   onMarcar: () => void;
   onDesplegar: () => void;
+  /**
+   * Apila el estado DEBAJO del nombre en vez de mandarlo a la derecha. Es la
+   * forma de la fila cuando la lista va estrecha — agrupando por ubicación, el
+   * mapa se lleva más ancho y la fila ya no tiene sitio para una sola línea.
+   */
+  apilado?: boolean;
   /** id del inmueble que tiene abierto su detalle, o null. */
   inmuebleDesplegado: string | null;
   onDesplegarInmueble: (id: string) => void;
@@ -88,42 +124,35 @@ export function FilaGrupo({
             <Icon name="building-office" />
           </span>
 
-          <span className="flex min-w-0 flex-wrap items-center gap-04">
-            <Text variant="label-m" as="span">
-              {grupo.nombre}
-            </Text>
-            <span className="flex items-center gap-02">
-              <Text variant="body-m" color="low" as="span">
-                {grupo.inmuebles}{" "}
-                {grupo.inmuebles === 1 ? "inmueble" : "inmuebles"}
+          <span className="flex min-w-0 flex-col gap-01">
+            <span className="flex min-w-0 flex-wrap items-center gap-04">
+              <Text variant="label-m" as="span">
+                {grupo.nombre}
               </Text>
-              <Text variant="body-m" color="low" as="span">
-                ·
-              </Text>
-              <Text variant="body-m" color="low" as="span">
-                {grupo.puntos}{" "}
-                {grupo.puntos === 1
-                  ? "punto de suministro"
-                  : "puntos de suministro"}
-              </Text>
+              <span className="flex items-center gap-02">
+                <Text variant="body-m" color="low" as="span">
+                  {grupo.inmuebles}{" "}
+                  {grupo.inmuebles === 1 ? "inmueble" : "inmuebles"}
+                </Text>
+                <Text variant="body-m" color="low" as="span">
+                  ·
+                </Text>
+                <Text variant="body-m" color="low" as="span">
+                  {grupo.puntos}{" "}
+                  {grupo.puntos === 1
+                    ? "punto de suministro"
+                    : "puntos de suministro"}
+                </Text>
+              </span>
             </span>
+
+            {/* Apilado: el estado baja a su propia línea, debajo del nombre. */}
+            {apilado && <Estados grupo={grupo} />}
           </span>
         </button>
 
         <div className="flex shrink-0 items-center gap-03">
-          {/* "Activas" no se enseña aquí: en una cartera sana son casi todas, y
-              lo que interesa de un vistazo es lo que NO está ya resuelto. */}
-          {ESTADOS_CARTERA.filter(
-            (e) => e.id !== "activa" && grupo.estados[e.id] > 0,
-          ).map((estado) => (
-            <PuntoEstado
-              key={estado.id}
-              color={estado.color}
-              rotulo={estado.rotulo}
-              cantidad={grupo.estados[estado.id]}
-              estirado={false}
-            />
-          ))}
+          {!apilado && <Estados grupo={grupo} />}
 
           <button
             type="button"

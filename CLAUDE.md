@@ -267,15 +267,18 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   principal; volver a pulsarla lo desmarca. La flecha de cada fila abre sus **inmuebles**, con su
   nombre (subrayado, porque se toca), su categoría, su dirección y sus CUPS; los que llegaron de
   una factura sin clasificar enseñan "Categoriza este inmueble" y se les puede poner categoría ahí
-  mismo. Los cinco filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
+  mismo. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
   selección múltiple y se abren como listas de casillas; el de Dirección va agrupado por provincia,
-  con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece SOLO los inmuebles ya
-  catalogados (son los únicos que tienen nombre por el que elegirlos) y lleva debajo el bloque
-  "Organiza tu cartera", que cuenta cuántos quedan sin clasificar y deja verlos en un modo aparte,
-  con su aviso y su salida. "Agrupar por" rehace la lista de
-  tres maneras
-  (sociedad, ubicación o comercializadora) y los cuatro filtros recortan la cartera antes de
-  agruparla, así que lista, mapa, leyenda y porcentajes siempre cuadran. Componentes en
+  con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece las **categorías
+  generales** (oficinas, local comercial, nave industrial, almacén, centro logístico, hotel,
+  vivienda) y lleva debajo el bloque "Organiza tu cartera", que cuenta cuántos quedan sin clasificar
+  y deja verlos en un modo aparte, con su aviso y su salida. Qué filtros salen depende de la
+  agrupación (`FILTROS_POR_AGRUPACION`): con Ubicación, por ejemplo, el de Sociedad sobra.
+  "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
+  inmueble) y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
+  porcentajes siempre cuadran. Agrupando por **Ubicación** la pantalla cambia de cara: el mapa se
+  lleva más ancho, se pinta con una **escala de verdes** (más oscuro = más cantidad) y la leyenda
+  pasa a enseñar el **ahorro estimado** en euros en vez de los puntos de suministro. Componentes en
   `src/components/prototipo/area-cliente/`.
 
   El mapa NO es la imagen del Figma: las provincias son trazados SVG de verdad, en

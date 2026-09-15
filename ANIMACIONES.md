@@ -742,6 +742,18 @@ opacidad de hover que usan los botones del sistema.
 
 ### "Agrupar por" (GrupoSegmentado)
 
+Son **cuatro**: Ubicación, Sociedad, Comercializadora e Inmueble. No solo rehacen la lista — la
+agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto pasa a ser el mapa:
+
+| Qué | Con Ubicación | Con las demás |
+| --- | --- | --- |
+| Ancho del mapa | 588 px (el mapa manda) | 365 px |
+| Color del mapa | escala de verdes por cantidad | el color de cada sociedad |
+| Leyenda | "Ahorro estimado", en euros | puntos de suministro |
+| Estado en la fila | debajo del nombre | a la derecha |
+| Filtros | Dirección, Inmueble, Tipo de suministro, Estado | + Sociedad |
+
+
 La pastilla oscura **no salta** de una opción a otra: se **desliza**, animando a la vez su posición
 y su ancho con `micro-states` (200 ms, lineal). Es lo que hace que el control se lea como una sola
 pieza que se mueve, y no como tres botones que se encienden por turnos.
@@ -769,6 +781,24 @@ la vez sin que se entienda por qué.
 
 Es un SVG de las 53 provincias, en dos capas: abajo España entera en gris (no se mueve nunca) y
 encima solo las provincias encendidas.
+
+**La escala de verdes (solo agrupando por Ubicación).** Cada provincia se pinta de un verde más
+oscuro cuanta más cantidad tiene. Es el único caso en el que el color significa "cuánto hay" en vez
+de "quién es"; con las otras agrupaciones el color sigue siendo la identidad de la sociedad, que es
+lo que ata la lista con el mapa.
+
+La escala mezcla los **dos extremos de la familia verde del sistema** (`extended-five-light` →
+`extended-five-dark`, la paleta pensada para gráficas), así que los bordes de la escala son tokens
+de verdad y solo los pasos intermedios son mezcla — lo que pide por fuerza una escala continua.
+Dos ajustes, los dos para que el mapa se pueda leer:
+
+- **Raíz cuadrada en vez de escala recta.** Madrid se lleva un tercio de la cartera; en una escala
+  recta el resto caería todo junto abajo y el mapa sería "Madrid y un montón de pálidos iguales".
+- **Suelo del 25 %.** Por debajo, el verde se confunde con el gris de la tierra y una provincia con
+  datos parecería no tener ninguno.
+
+La leyenda usa exactamente el mismo verde que el mapa: el cuadradito de cada fila ES el color de su
+provincia.
 
 1. **Encendido escalonado.** Las provincias no aparecen a la vez: se encienden **de norte a sur**,
    con **40 ms** entre una y la siguiente (`anim-aparece-simple`, `micro-appear`). Son 40 y no los
