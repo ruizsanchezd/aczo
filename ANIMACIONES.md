@@ -847,6 +847,19 @@ provincia.
    hecho. "Dirección" no entra en la tabla a propósito: filtrar por direcciones no añade nada
    dentro de una provincia, que ya es la ubicación.
 
+6. **El globo se puede pulsar** (agrupando por ubicación): al hacerlo se despliega esa provincia en
+   la lista y se trae a la vista. Es el atajo natural — acabas de leer "3 locales comerciales" y lo
+   siguiente que quieres saber es cuáles. También funciona pulsando la propia provincia del mapa.
+
+   Para que se pueda pulsar, **el globo no se va en cuanto sales del trazado: espera 120 ms**. Sin
+   esa espera sería imposible llegar hasta él, porque desaparecería por el camino. Y al abrirse, la
+   fila se trae a la vista (`scrollIntoView`, suave salvo `prefers-reduced-motion`): desplegar algo
+   que queda fuera de pantalla se leería como que el clic no ha hecho nada.
+
+   Solo se puede pulsar agrupando por **ubicación**, que es cuando una provincia se corresponde con
+   una fila. En las demás agrupaciones el globo se queda como simple información, y ni cambia el
+   cursor ni promete nada.
+
 ### Desplegar una fila → los inmuebles
 
 La flecha de una fila abre **la lista de sus inmuebles**, uno por tarjeta. Cada inmueble se lee de

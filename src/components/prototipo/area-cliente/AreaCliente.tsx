@@ -26,7 +26,7 @@ import {
   type ModoAgrupacion,
   type TipoCartera,
 } from "@/mocks/aczo";
-import { retardo } from "@/lib/prototipo";
+import { motionSafe, retardo } from "@/lib/prototipo";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { FilaGrupo } from "./FilaGrupo";
 import { OrganizaTuCartera } from "./OrganizaTuCartera";
@@ -129,6 +129,25 @@ export function AreaCliente() {
   // Cambiar de agrupación es empezar de cero: se suelta lo que hubiera marcado
   // y desplegado. Sin esto, al volver a una agrupación anterior reaparecería lo
   // que estaba marcado antes, y parecería que el mapa se enciende solo.
+  /**
+   * Abre una provincia desde el mapa: despliega su fila y la trae a la vista.
+   *
+   * Lo segundo importa tanto como lo primero: la lista puede estar por debajo
+   * de lo que se ve, y desplegar algo que no se ve se leería como que el clic
+   * no ha hecho nada.
+   */
+  function abrirProvincia(provincia: string) {
+    setDesplegado(provincia);
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-grupo="${CSS.escape(provincia)}"]`)
+        ?.scrollIntoView({
+          block: "nearest",
+          behavior: motionSafe() ? "smooth" : "auto",
+        });
+    });
+  }
+
   function cambiarAgrupacion(modo: ModoAgrupacion) {
     setAgrupacion(modo);
     setMarcado(null);
@@ -401,6 +420,10 @@ export function AreaCliente() {
                   grupos={grupos}
                   seleccionado={marcadoVigente}
                   filtros={filtros}
+                  // Solo agrupando por ubicación una provincia se corresponde
+                  // con una fila de la lista; en las demás agrupaciones no hay
+                  // nada que abrir y el globo se queda como información.
+                  onAbrirProvincia={porUbicacion ? abrirProvincia : undefined}
                 />
               </div>
 
@@ -490,6 +513,7 @@ export function AreaCliente() {
                   {grupos.map((grupo, i) => (
                     <li
                       key={grupo.id}
+                      data-grupo={grupo.id}
                       className="anim-aparece"
                       style={retardo(i)}
                     >

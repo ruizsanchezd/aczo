@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MAPA_ALTO, MAPA_ANCHO, PROVINCIAS } from "@/mocks/provincias-espana";
 import {
   ESTADOS_CARTERA,
@@ -84,6 +84,33 @@ function ejeDelGlobo(filtros: FiltrosCartera) {
   return "sociedad" as const;
 }
 
+/**
+ * La caja negra del globo. Es un botón cuando hay una provincia que abrir y un
+ * simple recuadro cuando no, para no prometer una acción que no existe.
+ */
+function Rotulo({
+  como,
+  onClick,
+  children,
+}: {
+  como: "button" | "div";
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  const clases =
+    "block rounded-md bg-background-inverse px-03 py-02 text-left shadow-md";
+  if (como === "div") return <div className={clases}>{children}</div>;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${clases} cursor-pointer transition-opacity motion-micro-states hover:opacity-60`}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** Una línea del globo: "Local comercial · 3 inmuebles". */
 type LineaGlobo = { etiqueta: string; cantidad: number; unidad: Unidad };
 
@@ -99,14 +126,43 @@ export function MapaProvincias({
   grupos,
   seleccionado,
   filtros,
+  onAbrirProvincia,
 }: {
   grupos: GrupoCartera[];
   /** id del grupo marcado en la lista, o null si no hay ninguno. */
   seleccionado: string | null;
   /** Lo que hay filtrado. Decide por qué eje desglosa el globo. */
   filtros: FiltrosCartera;
+  /**
+   * Qué hacer al pulsar una provincia (o su globo). Solo se pasa cuando la
+   * lista va agrupada por ubicación, que es cuando una provincia SE
+   * CORRESPONDE con una fila; en las demás agrupaciones no hay nada que abrir.
+   */
+  onAbrirProvincia?: (provincia: string) => void;
 }) {
   const [encima, setEncima] = useState<string | null>(null);
+
+  /*
+   * El globo no se va en cuanto sales de la provincia: espera un momento.
+   *
+   * Sin esa espera sería imposible pulsarlo — al salir del trazado para ir
+   * hacia él, el globo desaparecería por el camino. Los 120 ms son el tiempo
+   * justo para cruzar el hueco sin que el globo se quede colgado cuando de
+   * verdad te has ido a otro sitio.
+   */
+  const temporizador = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function señalar(provincia: string) {
+    clearTimeout(temporizador.current);
+    setEncima(provincia);
+  }
+
+  function dejarDeSeñalar() {
+    clearTimeout(temporizador.current);
+    temporizador.current = setTimeout(() => setEncima(null), 120);
+  }
+
+  useEffect(() => () => clearTimeout(temporizador.current), []);
 
   const grupoMarcado = grupos.find((g) => g.id === seleccionado);
   const eje = ejeDelGlobo(filtros);
@@ -284,9 +340,11 @@ export function MapaProvincias({
                 style={{
                   animationDelay: `${i * ESCALONADO_MS}ms`,
                   opacity: encima && encima !== p.nombre ? ATENUADA : 1,
+                  cursor: onAbrirProvincia ? "pointer" : undefined,
                 }}
-                onMouseEnter={() => setEncima(p.nombre)}
-                onMouseLeave={() => setEncima(null)}
+                onMouseEnter={() => señalar(p.nombre)}
+                onMouseLeave={dejarDeSeñalar}
+                onClick={() => onAbrirProvincia?.(p.nombre)}
               />
             ))}
           </g>
@@ -328,26 +386,51 @@ export function MapaProvincias({
           aunque el mapa cambie de tamaño. */}
       {detalleGlobo && provinciaEncima && (
         <div
-          className="anim-aparece pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md bg-background-inverse px-03 py-02 shadow-md"
+          className="anim-aparece absolute z-10 -translate-x-1/2 -translate-y-full"
           style={{
             left: `${(provinciaEncima.cx / MAPA_ANCHO) * 100}%`,
             top: `${(provinciaEncima.cy / MAPA_ALTO) * 100}%`,
           }}
+          onMouseEnter={() => señalar(provinciaEncima.nombre)}
+          onMouseLeave={dejarDeSeñalar}
         >
-          <Text variant="label-s" color="inverse" as="p">
-            {provinciaEncima.nombre}
-          </Text>
-          {detalleGlobo.map((linea) => (
-            <Text
-              key={linea.etiqueta}
-              variant="body-s"
-              color="inverse"
-              as="p"
-              className="whitespace-nowrap opacity-60"
-            >
-              {linea.etiqueta} · {enUnidades(linea.cantidad, linea.unidad)}
+          {/* El globo es un BOTÓN cuando hay algo que abrir: pulsarlo despliega
+              esa provincia en la lista, con sus inmuebles. Es el atajo natural
+              — acabas de leer "3 locales comerciales" y lo siguiente que
+              quieres saber es cuáles. */}
+          <Rotulo
+            como={onAbrirProvincia ? "button" : "div"}
+            onClick={
+              onAbrirProvincia
+                ? () => onAbrirProvincia(provinciaEncima.nombre)
+                : undefined
+            }
+          >
+            <Text variant="label-s" color="inverse" as="p">
+              {provinciaEncima.nombre}
             </Text>
-          ))}
+            {detalleGlobo.map((linea) => (
+              <Text
+                key={linea.etiqueta}
+                variant="body-s"
+                color="inverse"
+                as="p"
+                className="whitespace-nowrap opacity-60"
+              >
+                {linea.etiqueta} · {enUnidades(linea.cantidad, linea.unidad)}
+              </Text>
+            ))}
+            {onAbrirProvincia && (
+              <Text
+                variant="body-s"
+                color="inverse"
+                as="p"
+                className="mt-01 whitespace-nowrap opacity-60"
+              >
+                Pulsa para ver los inmuebles
+              </Text>
+            )}
+          </Rotulo>
         </div>
       )}
     </div>

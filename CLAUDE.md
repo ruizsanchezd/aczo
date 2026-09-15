@@ -280,7 +280,8 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   lleva más ancho, se pinta con una **escala de verdes** (más oscuro = más cantidad) y la leyenda
   pasa a enseñar el **ahorro** en euros en vez de los puntos de suministro. El mapa va a la izquierda y la lista a la derecha, y el globo que sale al pasar por
   encima de una provincia **se desglosa por el filtro que haya puesto**: con "Inmueble: local
-  comercial" dice cuántos locales comerciales hay ahí, no el reparto por sociedades.
+  comercial" dice cuántos locales comerciales hay ahí, no el reparto por sociedades. Y se puede
+  pulsar: despliega esa provincia en la lista y la trae a la vista.
 
   La cartera de mentira se reparte por **6 provincias** (Madrid, Barcelona, Málaga, València,
   A Coruña y Murcia). Con más, ni la lista ni la leyenda se podían leer de un vistazo. Componentes en
