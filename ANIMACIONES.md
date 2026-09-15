@@ -748,8 +748,8 @@ agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto 
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
 | Ancho del mapa | 588 px (el mapa manda) | 365 px |
+| Leyenda | "% ahorro", en euros | puntos de suministro |
 | Color del mapa | escala de verdes por cantidad | el color de cada sociedad |
-| Leyenda | "Ahorro estimado", en euros | puntos de suministro |
 | Estado en la fila | debajo del nombre | a la derecha |
 | Filtros | Dirección, Inmueble, Tipo de suministro, Estado | + Sociedad |
 
@@ -776,6 +776,20 @@ desmarca. Un solo gesto para las dos cosas: nunca hace falta buscar un botón de
 El **color es la pieza clave**: la fila, su cuadrado y sus provincias del mapa se pintan del mismo
 color. Ese color compartido es lo que ata la lista y el mapa; sin él serían dos cosas que cambian a
 la vez sin que se entienda por qué.
+
+### El panel: el mapa a la izquierda y la lista rodando sola
+
+El panel tiene **alto fijo** (468 px, el del Figma) y quien rueda es **solo la columna de la
+lista**, no la página. Así los filtros y el mapa se quedan siempre a la vista mientras se recorre
+la cartera, que es de lo que va la pantalla: mirar el mapa Y la lista a la vez.
+
+El mapa va **a la izquierda** y la lista a la derecha. Dentro de su columna, el mapa **se encoge**
+para dejar sitio a la leyenda: mantiene siempre su proporción (es lo que hace que el globo de
+información, que se coloca en porcentajes, caiga donde toca), pero dentro del panel manda el alto y
+el ancho sale solo. La leyenda se queda con lo que necesita y nunca con más de la mitad del panel —
+agrupando por inmueble hay 54 filas.
+
+En móvil no se fija nada: las dos columnas se apilan y rueda la página, que es lo natural.
 
 ### El mapa (MapaProvincias)
 

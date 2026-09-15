@@ -27,7 +27,6 @@ import {
   type TipoCartera,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
-import { MAPA_ALTO } from "@/mocks/provincias-espana";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { FilaGrupo } from "./FilaGrupo";
 import { OrganizaTuCartera } from "./OrganizaTuCartera";
@@ -386,9 +385,91 @@ export function AreaCliente() {
             </Alert>
           )}
 
-          <div className="mt-04 flex flex-col gap-04 lg:flex-row">
-            {/* La lista */}
-            <div className="min-w-0 flex-1">
+          {/* El panel tiene alto fijo y quien rueda es SOLO la columna de la
+              lista, no la página entera: así el mapa y los filtros se quedan
+              siempre a la vista mientras se recorre la cartera. Los 468 px son
+              la altura que le da el Figma al bloque. En móvil no se fija nada:
+              ahí todo se apila y rueda la página, que es lo natural. */}
+          <div className="mt-04 flex flex-col gap-04 lg:h-[468px] lg:flex-row">
+            {/* El mapa y su leyenda — a la izquierda. */}
+            <div
+              className={`flex w-full shrink-0 flex-col gap-04 overflow-hidden rounded-md border border-border-low p-04 lg:h-full ${
+                porUbicacion ? "lg:w-[588px]" : "lg:w-[365px]"
+              }`}
+            >
+              <div className="flex justify-center lg:min-h-0 lg:flex-1">
+                <MapaProvincias grupos={grupos} seleccionado={marcadoVigente} />
+              </div>
+
+              {/* Agrupando por ubicación la leyenda deja de contar puntos y
+                  pasa a contar dinero: es lo que se quiere comparar entre
+                  provincias. Sale así del Figma. */}
+              {porUbicacion && (
+                <Text
+                  variant="label-s"
+                  color="mid"
+                  as="p"
+                  className="-mb-02 text-right"
+                >
+                  % ahorro
+                </Text>
+              )}
+
+              {/* La leyenda se queda con lo que necesita, pero nunca con más
+                  de la mitad del panel: agrupando por inmueble hay 54 filas. */}
+              <ul className="flex shrink-0 flex-col gap-01 overflow-y-auto lg:max-h-[45%]">
+                {grupos.map((grupo) => {
+                  const total = porUbicacion ? ahorroVisible : puntosVisibles;
+                  const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
+                  const porcentaje = total
+                    ? Math.round((parte / total) * 100)
+                    : 0;
+                  const esteMarcado = marcadoVigente === grupo.id;
+                  return (
+                    <li key={grupo.id}>
+                      <button
+                        type="button"
+                        aria-pressed={esteMarcado}
+                        onClick={() =>
+                          setMarcado(esteMarcado ? null : grupo.id)
+                        }
+                        className={`flex w-full cursor-pointer items-center justify-between gap-03 rounded-sm px-01 py-[2px] text-left transition-opacity motion-micro-states hover:opacity-60 ${
+                          marcadoVigente && !esteMarcado ? "opacity-30" : ""
+                        }`}
+                      >
+                        <span className="flex min-w-0 items-center gap-02">
+                          <span
+                            className="size-03 shrink-0 rounded-sm"
+                            style={{ backgroundColor: grupo.color }}
+                          />
+                          <Text
+                            variant="body-s"
+                            color="mid"
+                            as="span"
+                            className="truncate"
+                          >
+                            {grupo.nombre}
+                          </Text>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-01">
+                          <Text variant="label-s" as="span">
+                            {porUbicacion
+                              ? `${euros(grupo.ahorro)} €`
+                              : grupo.puntos}
+                          </Text>
+                          <Text variant="body-s" color="low" as="span">
+                            {porcentaje}%
+                          </Text>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* La lista — a la derecha, y es la única que rueda. */}
+            <div className="min-w-0 flex-1 overflow-y-auto lg:h-full">
               {grupos.length === 0 ? (
                 <div className="rounded-md border border-border-low bg-background-low p-06 text-center">
                   <Text variant="label-m" as="p">
@@ -445,88 +526,6 @@ export function AreaCliente() {
                   ))}
                 </ul>
               )}
-            </div>
-
-            {/* El mapa y su leyenda */}
-            {/* Agrupando por ubicación el mapa manda, y se lleva el ancho que
-                le reserva el Figma en ese estado: 588 px en vez de 365. Son
-                medidas del Figma, no tokens de espaciado. */}
-            <div
-              className={`flex w-full shrink-0 flex-col gap-04 rounded-md border border-border-low p-04 ${
-                porUbicacion ? "lg:w-[588px]" : "lg:w-[365px]"
-              }`}
-            >
-              <MapaProvincias grupos={grupos} seleccionado={marcadoVigente} />
-
-              {/* La leyenda no crece sin fin: se queda como mucho tan alta
-                  como el mapa y a partir de ahí rueda. Agrupando por ubicación
-                  hay casi veinte filas, y sin tope el panel se descuadraría. */}
-              {/* Agrupando por ubicación la leyenda deja de contar puntos y
-                  pasa a contar dinero: es lo que se quiere comparar entre
-                  provincias. Sale así del Figma. */}
-              {porUbicacion && (
-                <Text
-                  variant="label-s"
-                  color="mid"
-                  as="p"
-                  className="-mb-02 text-right"
-                >
-                  Ahorro estimado
-                </Text>
-              )}
-
-              <ul
-                className="flex flex-col gap-01 overflow-y-auto"
-                style={{ maxHeight: MAPA_ALTO }}
-              >
-                {grupos.map((grupo) => {
-                  const total = porUbicacion ? ahorroVisible : puntosVisibles;
-                  const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
-                  const porcentaje = total
-                    ? Math.round((parte / total) * 100)
-                    : 0;
-                  const esteMarcado = marcadoVigente === grupo.id;
-                  return (
-                    <li key={grupo.id}>
-                      <button
-                        type="button"
-                        aria-pressed={esteMarcado}
-                        onClick={() =>
-                          setMarcado(esteMarcado ? null : grupo.id)
-                        }
-                        className={`flex w-full cursor-pointer items-center justify-between gap-03 rounded-sm px-01 py-[2px] text-left transition-opacity motion-micro-states hover:opacity-60 ${
-                          marcadoVigente && !esteMarcado ? "opacity-30" : ""
-                        }`}
-                      >
-                        <span className="flex min-w-0 items-center gap-02">
-                          <span
-                            className="size-03 shrink-0 rounded-sm"
-                            style={{ backgroundColor: grupo.color }}
-                          />
-                          <Text
-                            variant="body-s"
-                            color="mid"
-                            as="span"
-                            className="truncate"
-                          >
-                            {grupo.nombre}
-                          </Text>
-                        </span>
-                        <span className="flex shrink-0 items-center gap-01">
-                          <Text variant="label-s" as="span">
-                            {porUbicacion
-                              ? `${euros(grupo.ahorro)} €`
-                              : grupo.puntos}
-                          </Text>
-                          <Text variant="body-s" color="low" as="span">
-                            {porcentaje}%
-                          </Text>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           </div>
         </section>
