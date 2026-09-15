@@ -152,13 +152,11 @@ export function MapaProvincias({
     // El recorte del mapa va en el div de DENTRO, no en este: si estuviera
     // aquí, el globo de una provincia del norte se cortaría por arriba.
     //
-    // Sobre las medidas: el mapa mantiene SIEMPRE su proporción (es lo que hace
-    // que el globo, que se coloca en porcentajes, caiga donde toca). En móvil
-    // manda el ancho; dentro del panel de escritorio, que tiene alto fijo,
-    // manda el alto y el ancho sale solo — así el mapa se encoge en vez de
-    // comerse el sitio de la leyenda.
+    // El mapa ocupa todo el ancho que le den y su alto sale de la proporción,
+    // que se mantiene siempre: es lo que hace que el globo de información, que
+    // se coloca en porcentajes, caiga donde toca.
     <div
-      className="relative w-full lg:h-full lg:w-auto"
+      className="relative w-full"
       style={{ aspectRatio: `${MAPA_ANCHO} / ${MAPA_ALTO}` }}
     >
       <div className="h-full overflow-hidden rounded-md">

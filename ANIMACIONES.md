@@ -779,15 +779,18 @@ la vez sin que se entienda por qué.
 
 ### El panel: el mapa a la izquierda y la lista rodando sola
 
-El panel tiene **alto fijo** (468 px, el del Figma) y quien rueda es **solo la columna de la
-lista**, no la página. Así los filtros y el mapa se quedan siempre a la vista mientras se recorre
-la cartera, que es de lo que va la pantalla: mirar el mapa Y la lista a la vez.
+El mapa va **a la izquierda** y la lista a la derecha, y **quien manda en la altura del panel es el
+mapa**: se queda siempre a su tamaño. Las otras dos piezas se adaptan rodando por dentro, que es lo
+que evita que ruede la página entera:
 
-El mapa va **a la izquierda** y la lista a la derecha. Dentro de su columna, el mapa **se encoge**
-para dejar sitio a la leyenda: mantiene siempre su proporción (es lo que hace que el globo de
-información, que se coloca en porcentajes, caiga donde toca), pero dentro del panel manda el alto y
-el ancho sale solo. La leyenda se queda con lo que necesita y nunca con más de la mitad del panel —
-agrupando por inmueble hay 54 filas.
+- **La leyenda** tiene tope de alto y rueda. El tope da justo para las seis ubicaciones de la
+  cartera (el caso normal); agrupando por inmueble caben las 54 filas ahí dentro rodando, sin que
+  el panel se estire ni el mapa se encoja.
+- **La lista** se estira hasta la altura del mapa y rueda por dentro. Va dentro de un hijo colocado
+  en absoluto a propósito: así no aporta altura al panel y nunca es ella la que lo estira.
+
+Así, mientras se recorre la cartera, el mapa y los filtros se quedan siempre a la vista — que es de
+lo que va la pantalla: mirar el mapa Y la lista a la vez.
 
 En móvil no se fija nada: las dos columnas se apilan y rueda la página, que es lo natural.
 
