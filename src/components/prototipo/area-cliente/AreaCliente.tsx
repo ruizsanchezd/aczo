@@ -385,12 +385,11 @@ export function AreaCliente() {
             </Alert>
           )}
 
-          {/* Quien manda en la altura del panel es el MAPA, que se queda a su
-              tamaño. La lista se estira hasta ahí y rueda por dentro, igual que
-              la leyenda: así nunca rueda la página entera y el mapa y los
-              filtros se quedan siempre a la vista. En móvil no se fija nada:
-              todo se apila y rueda la página, que es lo natural. */}
-          <div className="mt-04 flex flex-col gap-04 lg:flex-row lg:items-stretch">
+          {/* El mapa a la izquierda y la lista a la derecha. Ninguna de las dos
+              columnas tiene alto fijo ni rueda por dentro: crecen lo que haga
+              falta y quien rueda es la página, que es lo que se espera de una
+              pantalla larga. */}
+          <div className="mt-04 flex flex-col gap-04 lg:flex-row">
             {/* El mapa y su leyenda — a la izquierda. */}
             <div
               className={`flex w-full shrink-0 flex-col gap-04 overflow-hidden rounded-md border border-border-low p-04 lg:h-full ${
@@ -415,12 +414,7 @@ export function AreaCliente() {
                 </Text>
               )}
 
-              {/* La leyenda rueda por dentro en lugar de crecer: así el mapa se
-                  queda a su tamaño pase lo que pase, y el panel no se estira.
-                  El tope da justo para las seis ubicaciones de la cartera (que
-                  es el caso normal); agrupando por inmueble caben las 54 filas
-                  ahí dentro rodando, sin despeinar nada. */}
-              <ul className="flex flex-col gap-01 overflow-y-auto lg:max-h-[140px]">
+              <ul className="flex flex-col gap-01">
                 {grupos.map((grupo) => {
                   const total = porUbicacion ? ahorroVisible : puntosVisibles;
                   const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
@@ -471,68 +465,64 @@ export function AreaCliente() {
               </ul>
             </div>
 
-            {/* La lista — a la derecha. Va dentro de un hijo colocado en
-                absoluto a propósito: así no aporta altura al panel (la marca el
-                mapa) y rueda por dentro en vez de estirar la página. */}
-            <div className="relative min-w-0 flex-1 lg:overflow-hidden">
-              <div className="lg:absolute lg:inset-0 lg:overflow-y-auto">
-                {grupos.length === 0 ? (
-                  <div className="rounded-md border border-border-low bg-background-low p-06 text-center">
-                    <Text variant="label-m" as="p">
-                      No hay nada con esos filtros
-                    </Text>
-                    <Text variant="body-s" color="low" as="p" className="mt-01">
-                      Prueba a quitar alguno para volver a ver tu cartera.
-                    </Text>
-                  </div>
-                ) : (
-                  <ul
-                    // La `key` rehace la lista al cambiar agrupación o filtros,
-                    // para que la cascada de entrada vuelva a lanzarse.
-                    key={`${agrupacion}-${JSON.stringify(filtros)}`}
-                    className="flex flex-col gap-03"
-                  >
-                    {grupos.map((grupo, i) => (
-                      <li
-                        key={grupo.id}
-                        className="anim-aparece"
-                        style={retardo(i)}
-                      >
-                        <FilaGrupo
-                          grupo={grupo}
-                          apilado={porUbicacion}
-                          marcado={marcadoVigente === grupo.id}
-                          desplegado={desplegado === grupo.id}
-                          onMarcar={() =>
-                            setMarcado(
-                              marcadoVigente === grupo.id ? null : grupo.id,
-                            )
-                          }
-                          onDesplegar={() =>
-                            setDesplegado(
-                              desplegado === grupo.id ? null : grupo.id,
-                            )
-                          }
-                          inmuebleDesplegado={inmuebleDesplegado}
-                          onDesplegarInmueble={(id) =>
-                            setInmuebleDesplegado(
-                              inmuebleDesplegado === id ? null : id,
-                            )
-                          }
-                          inmuebleCategorizando={categorizando}
-                          onCategorizarInmueble={(id) =>
-                            setCategorizando(categorizando === id ? null : id)
-                          }
-                          onElegirCategoria={(id, categoria) => {
-                            setCategorias((c) => ({ ...c, [id]: categoria }));
-                            setCategorizando(null);
-                          }}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            {/* La lista — a la derecha. */}
+            <div className="min-w-0 flex-1">
+              {grupos.length === 0 ? (
+                <div className="rounded-md border border-border-low bg-background-low p-06 text-center">
+                  <Text variant="label-m" as="p">
+                    No hay nada con esos filtros
+                  </Text>
+                  <Text variant="body-s" color="low" as="p" className="mt-01">
+                    Prueba a quitar alguno para volver a ver tu cartera.
+                  </Text>
+                </div>
+              ) : (
+                <ul
+                  // La `key` rehace la lista al cambiar agrupación o filtros,
+                  // para que la cascada de entrada vuelva a lanzarse.
+                  key={`${agrupacion}-${JSON.stringify(filtros)}`}
+                  className="flex flex-col gap-03"
+                >
+                  {grupos.map((grupo, i) => (
+                    <li
+                      key={grupo.id}
+                      className="anim-aparece"
+                      style={retardo(i)}
+                    >
+                      <FilaGrupo
+                        grupo={grupo}
+                        apilado={porUbicacion}
+                        marcado={marcadoVigente === grupo.id}
+                        desplegado={desplegado === grupo.id}
+                        onMarcar={() =>
+                          setMarcado(
+                            marcadoVigente === grupo.id ? null : grupo.id,
+                          )
+                        }
+                        onDesplegar={() =>
+                          setDesplegado(
+                            desplegado === grupo.id ? null : grupo.id,
+                          )
+                        }
+                        inmuebleDesplegado={inmuebleDesplegado}
+                        onDesplegarInmueble={(id) =>
+                          setInmuebleDesplegado(
+                            inmuebleDesplegado === id ? null : id,
+                          )
+                        }
+                        inmuebleCategorizando={categorizando}
+                        onCategorizarInmueble={(id) =>
+                          setCategorizando(categorizando === id ? null : id)
+                        }
+                        onElegirCategoria={(id, categoria) => {
+                          setCategorias((c) => ({ ...c, [id]: categoria }));
+                          setCategorizando(null);
+                        }}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </section>

@@ -777,22 +777,11 @@ El **color es la pieza clave**: la fila, su cuadrado y sus provincias del mapa s
 color. Ese color compartido es lo que ata la lista y el mapa; sin él serían dos cosas que cambian a
 la vez sin que se entienda por qué.
 
-### El panel: el mapa a la izquierda y la lista rodando sola
+### El panel: el mapa a la izquierda
 
-El mapa va **a la izquierda** y la lista a la derecha, y **quien manda en la altura del panel es el
-mapa**: se queda siempre a su tamaño. Las otras dos piezas se adaptan rodando por dentro, que es lo
-que evita que ruede la página entera:
-
-- **La leyenda** tiene tope de alto y rueda. El tope da justo para las seis ubicaciones de la
-  cartera (el caso normal); agrupando por inmueble caben las 54 filas ahí dentro rodando, sin que
-  el panel se estire ni el mapa se encoja.
-- **La lista** se estira hasta la altura del mapa y rueda por dentro. Va dentro de un hijo colocado
-  en absoluto a propósito: así no aporta altura al panel y nunca es ella la que lo estira.
-
-Así, mientras se recorre la cartera, el mapa y los filtros se quedan siempre a la vista — que es de
-lo que va la pantalla: mirar el mapa Y la lista a la vez.
-
-En móvil no se fija nada: las dos columnas se apilan y rueda la página, que es lo natural.
+El mapa va **a la izquierda** y la lista a la derecha. Ninguna de las dos columnas tiene alto fijo
+ni rueda por dentro: crecen lo que haga falta y quien rueda es **la página**, que es lo que se
+espera de una pantalla larga. En móvil las dos columnas se apilan.
 
 ### El mapa (MapaProvincias)
 
