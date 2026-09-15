@@ -720,6 +720,301 @@ Está en `useRevelarAlEntrar` (`src/lib/prototipo.ts`) y en el componente que lo
 > tienen que ir por dentro**, no en el propio `Revelar`. La animación termina fijando la opacidad
 > a 1 (`animation-fill-mode: both`) y se las comería.
 
+## Área de cliente (`/area-cliente`) · "Mi cartera"
+
+Esta pantalla **no es parte del alta**: es lo que ve alguien que YA es cliente y entra a vigilar
+sus sociedades. Por eso tiene barra lateral de navegación en lugar del indicador de pasos.
+
+### Entrada de la pantalla
+
+Las cinco tarjetas de resumen entran en cascada de izquierda a derecha con `anim-aparece`
+(`micro-appear`, 350 ms, ease in) y el paso de siempre, `PASO_CASCADA` (60 ms). Las filas de la
+lista hacen lo mismo, y **vuelven a entrar** cada vez que cambia la agrupación o un filtro: así se
+lee "la lista se ha rehecho" en vez de "han desaparecido cosas".
+
+### Barra lateral
+
+La sección activa se marca en amarillo de marca y con una barrita a la izquierda que **se estira
+desde el centro** (`anim-marca-activa`, `macro-levelup`: 350 ms, ease out). Es un gesto diminuto,
+pero hace que cambiar de sección se lea como "la marca se ha movido" y no como "se ha encendido
+otra luz". El resto de secciones se aclaran al pasar por encima con `opacity-60`, la misma
+opacidad de hover que usan los botones del sistema.
+
+### "Agrupar por" (GrupoSegmentado)
+
+Son **cuatro**: Ubicación, Sociedad, Comercializadora e Inmueble. No solo rehacen la lista — la
+agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto pasa a ser el mapa:
+
+| Qué | Con Ubicación | Con las demás |
+| --- | --- | --- |
+| Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
+| Leyenda | "% ahorro", en euros | puntos de suministro |
+| Estado en la fila | debajo del nombre | a la derecha |
+
+**Qué significa el color.** En tres de las cuatro agrupaciones el color es una **identidad**, y
+sale de una sola lista compartida (`PALETA_CARTERA`): es lo que hace que el gráfico se lea igual
+agrupes por lo que agrupes.
+
+| Agrupación | De dónde sale el color |
+| --- | --- |
+| Sociedad | del dato: cada sociedad tiene el suyo |
+| Comercializadora | de la sociedad que más pesa dentro (hay una por sociedad, así que salen distintos) |
+| Tipo de inmueble | la paleta repartida por orden — ese apaño no vale aquí, porque en casi todos los tipos manda la misma sociedad y media lista acabaría del mismo color |
+| Ubicación | **escala de verdes por cantidad**: cuanto más oscuro, más |
+
+La excepción es Ubicación, y por un motivo concreto: ahí el mapa ya dice quién es cada cual (su
+forma y su sitio en España), así que el color queda libre para contar otra cosa.
+
+La paleta tiene ocho colores. Los cuatro primeros son los del Figma, a pelo (ver el comentario en
+`PALETA_CARTERA`); los cuatro últimos SÍ son tokens de la paleta `extended` del sistema, porque el
+Figma solo define cuatro colores —tiene cuatro sociedades— y los tipos de inmueble son ocho.
+
+**El mapa solo sale agrupando por ubicación.** En las demás lo que se quiere comparar no es DÓNDE
+está cada cosa sino CUÁNTO pesa, y para eso un anillo dice en un vistazo lo que un mapa no puede
+decir. Ver `GraficaAnillo`.
+
+**Los filtros cambian con la agrupación**, y son siempre los de la propia agrupación más los dos
+que valen para todo (tipo de suministro y estado):
+
+| Agrupación | Filtros |
+| --- | --- |
+| Ubicación | Dirección · Inmueble · Tipo de suministro · Estado |
+| Sociedad | Sociedad · Tipo de suministro · Estado |
+| Comercializadora | Comercializadora · Tipo de suministro · Estado |
+| Inmueble | Inmueble · Tipo de suministro · Estado |
+
+Agrupando por **tipo de inmueble**, los que nadie ha clasificado van todos juntos a un grupo
+**"Sin catalogar", que se queda SIEMPRE el último** pese los puntos que pese. No es una categoría
+más con la que compararse: es lo que queda por ordenar, y ponerlo en medio de la lista por tamaño
+lo haría pasar por una categoría de verdad.
+
+
+La pastilla oscura **no salta** de una opción a otra: se **desliza**, animando a la vez su posición
+y su ancho con `micro-states` (200 ms, lineal). Es lo que hace que el control se lea como una sola
+pieza que se mueve, y no como tres botones que se encienden por turnos.
+
+La pastilla se **mide en tiempo real** (`offsetLeft` / `offsetWidth` del botón activo en un
+`useLayoutEffect`): no hay anchos escritos a mano, así que funciona con rótulos de cualquier largo
+y en cualquier idioma. Teclado: flechas izquierda/derecha, patrón `tablist`.
+
+### Marcar una fila → el mapa
+
+**Es la interacción principal de la pantalla.** Pulsar una fila la marca; volver a pulsarla la
+desmarca. Un solo gesto para las dos cosas: nunca hace falta buscar un botón de "quitar filtro".
+
+| Qué | Cuándo | Token |
+| --- | --- | --- |
+| Borde de la fila y cuadrado del icono toman el color del grupo | al marcar | `micro-states` |
+| Las provincias del grupo se encienden en el mapa | al marcar | `micro-appear`, escalonado |
+| Las demás filas de la leyenda bajan a `opacity-30` | al marcar | `micro-states` |
+
+El **color es la pieza clave**: la fila, su cuadrado y sus provincias del mapa se pintan del mismo
+color. Ese color compartido es lo que ata la lista y el mapa; sin él serían dos cosas que cambian a
+la vez sin que se entienda por qué.
+
+### La gráfica de anillo (GraficaAnillo)
+
+Ocupa el sitio del mapa en las tres agrupaciones que no son por ubicación. En el centro va el
+total, que es lo que ancla todo lo demás: cada tramo se lee como "su parte de esos 100".
+
+- **Se dibuja al entrar.** Los tramos no aparecen de golpe: se van dibujando uno detrás de otro,
+  como si alguien recorriera la circunferencia con un rotulador (`anim-anillo-entra`,
+  `macro-structure`: 500 ms, ease in out, con **80 ms** entre tramo y tramo). Un anillo que aparece
+  entero es un dibujo; uno que se dibuja se lee como "esto se está calculando delante de ti" — que
+  es justo lo que pasa cada vez que cambias un filtro.
+  El truco para animar tramos de largos distintos con un solo keyframe: cada uno lleva su largo en
+  `--largo` y lo que se anima es el desplazamiento de su línea de puntos, de "todo escondido" a
+  "todo a la vista". Ojo: ese desplazamiento NO puede usarse además para colocar el tramo en su
+  sitio — para eso, un `rotate`.
+- **Al pasar por encima** de un tramo, los demás bajan de intensidad y ese engorda un poco
+  (`micro-states`). Y el centro cambia: pasa a enseñar el valor y el nombre de ese tramo, así que
+  no hace falta ir a buscarlo a la leyenda.
+- **Pulsar un tramo lo marca**, igual que pulsar su fila en la lista.
+
+### El panel: el mapa (o la gráfica) a la izquierda
+
+El mapa va **a la izquierda** y la lista a la derecha. Ninguna de las dos columnas tiene alto fijo
+ni rueda por dentro: crecen lo que haga falta y quien rueda es **la página**, que es lo que se
+espera de una pantalla larga. En móvil las dos columnas se apilan.
+
+### El mapa (MapaProvincias)
+
+Es un SVG de las 53 provincias, en dos capas: abajo España entera en gris (no se mueve nunca) y
+encima solo las provincias encendidas.
+
+**La escala de verdes (solo agrupando por Ubicación).** Cada provincia se pinta de un verde más
+oscuro cuanta más cantidad tiene. Es el único caso en el que el color significa "cuánto hay" en vez
+de "quién es"; con las otras agrupaciones el color sigue siendo la identidad de la sociedad, que es
+lo que ata la lista con el mapa.
+
+La escala mezcla los **dos extremos de la familia verde del sistema** (`extended-five-light` →
+`extended-five-dark`, la paleta pensada para gráficas), así que los bordes de la escala son tokens
+de verdad y solo los pasos intermedios son mezcla — lo que pide por fuerza una escala continua.
+Dos ajustes, los dos para que el mapa se pueda leer:
+
+- **Raíz cuadrada en vez de escala recta.** Madrid se lleva un tercio de la cartera; en una escala
+  recta el resto caería todo junto abajo y el mapa sería "Madrid y un montón de pálidos iguales".
+- **Suelo del 25 %.** Por debajo, el verde se confunde con el gris de la tierra y una provincia con
+  datos parecería no tener ninguno.
+
+La leyenda usa exactamente el mismo verde que el mapa: el cuadradito de cada fila ES el color de su
+provincia.
+
+1. **Encendido escalonado.** Las provincias no aparecen a la vez: se encienden **de norte a sur**,
+   con **40 ms** entre una y la siguiente (`anim-aparece-simple`, `micro-appear`). Son 40 y no los
+   60 ms de `PASO_CASCADA` porque aquí puede haber hasta 18 piezas: a 60 ms la última llegaría más
+   de un segundo tarde. Con 40, seis provincias son 240 ms de punta a punta.
+   El escalonado se relanza dando al grupo `<g>` una `key` que incluye lo marcado: React rehace los
+   trazados y la animación arranca de cero. Sin eso, el navegador reutilizaría los nodos y no se
+   animaría nada.
+2. **Apagado.** Al desmarcar, todo vuelve a la vez, sin escalonar (`micro-states`): deshacer tiene
+   que ser más rápido y más simple que hacer.
+3. **Al pasar por encima.** La provincia señalada se queda a plena intensidad y las demás bajan a
+   **55 %** de opacidad (`micro-states`). **No se mueve nada**: el mapa es un dato, no un botón, y
+   moverlo lo haría parecer pulsable.
+4. **Latido del marcador.** Sobre la provincia principal del grupo marcado laten **tres aros**
+   con el mismo lazo y el arranque escalonado (0, 800 y 1600 ms), así que siempre hay uno saliendo
+   (`anim-pulso-mapa`, 2400 ms, ease out, infinito). Sale del Figma, donde está dibujado como tres
+   círculos concéntricos sobre Madrid; aquí se pone en movimiento y sigue a lo que se marque.
+   Los 2400 ms **no son un token**: como el giro de la pantalla de carga o el pulso de la barra de
+   seguimiento, es un lazo ambiental sin fin, no una transición de un estado a otro.
+   El aro crece con `transform: scale()` y no con el radio `r`, para que funcione en cualquier
+   navegador; `transform-box: fill-box` es lo que hace que crezca desde su propio centro.
+5. **El globo de información** aparece con `anim-aparece` (`micro-appear`) y desaparece de golpe al
+   salir: si tardase en irse estorbaría al mirar la provincia de al lado.
+
+   **El globo responde al filtro que tengas puesto.** Si has filtrado por algo, te cuenta ESE algo:
+   con "Inmueble: local comercial", al pasar por encima de una provincia sale "Local comercial ·
+   3 inmuebles", no el reparto por sociedades. Es la diferencia entre un globo que repite siempre lo
+   mismo y uno que contesta a la pregunta que acabas de hacer.
+
+   | Filtro puesto | Qué desglosa el globo |
+   | --- | --- |
+   | Inmueble | las categorías: "Local comercial · 3 inmuebles" |
+   | Estado | solo los estados marcados: "En trámite · 5 pts." |
+   | Tipo de suministro | solo lo marcado: "Gas · 2 inmuebles" |
+   | Sociedad, Dirección o ninguno | el reparto por sociedades: "Still SL · 4 pts." |
+
+   Solo cambia el EJE, no lo que se cuenta: la lista que llega al mapa ya viene filtrada. En
+   "Estado" y "Tipo" sí hace falta recortar además el desglose, porque un inmueble en trámite casi
+   siempre tiene también puntos activos y sacarlos sería responder a una pregunta que no se ha
+   hecho. "Dirección" no entra en la tabla a propósito: filtrar por direcciones no añade nada
+   dentro de una provincia, que ya es la ubicación.
+
+6. **El globo se puede pulsar** (agrupando por ubicación): al hacerlo se despliega esa provincia en
+   la lista y se trae a la vista. Es el atajo natural — acabas de leer "3 locales comerciales" y lo
+   siguiente que quieres saber es cuáles. También funciona pulsando la propia provincia del mapa.
+
+   Para que se pueda pulsar, **el globo no se va en cuanto sales del trazado: espera 120 ms**. Sin
+   esa espera sería imposible llegar hasta él, porque desaparecería por el camino. Y al abrirse, la
+   fila se trae a la vista (`scrollIntoView`, suave salvo `prefers-reduced-motion`): desplegar algo
+   que queda fuera de pantalla se leería como que el clic no ha hecho nada.
+
+   Solo se puede pulsar agrupando por **ubicación**, que es cuando una provincia se corresponde con
+   una fila. En las demás agrupaciones el globo se queda como simple información, y ni cambia el
+   cursor ni promete nada.
+
+### Desplegar una fila → los inmuebles
+
+La flecha de una fila abre **la lista de sus inmuebles**, uno por tarjeta. Cada inmueble se lee de
+izquierda a derecha: casa · nombre · dirección … CUPS · flecha.
+
+La **categoría** (Oficinas, Almacén…) no se enseña en la fila: la fila sirve para localizar el
+inmueble, y para eso mandan el nombre y la dirección. La categoría sigue en el dato, porque es lo
+que decide si un inmueble está catalogado y, por tanto, si se puede elegir en el filtro de
+"Inmueble".
+
+La técnica de despliegue es la misma que en el resto del prototipo: rejilla de una fila de `0fr` a
+`1fr` con `macro-levelup` (350 ms, ease out), y la flecha gira 180° con `micro-states` (200 ms),
+acabando antes que el panel para que se lea como "esto lo ha provocado la flecha". Vale para los
+dos niveles: sociedad → inmuebles, e inmueble → sus suministros.
+
+**El nombre del inmueble va subrayado** porque en el Figma no es un texto: es un DS Button
+terciario. El subrayado es lo que avisa de que ese trozo se toca. Cuando el inmueble aún no está
+clasificado, ese mismo botón pasa a decir **"Categoriza este inmueble"**: la fila no cambia de
+forma, solo cambia lo que pide.
+
+> ⚠️ El `Button` del sistema **no** subraya su etiqueta y el DS Button terciario del Figma **sí**.
+> En el prototipo el subrayado se añade con una clase suelta en `FilaInmueble`, para no cambiar el
+> componente compartido que ya usan otras diez pantallas. Si se confirma que el terciario debe ir
+> siempre subrayado, hay que arreglarlo en `Button.tsx` y esa clase sobra.
+
+**Categorizar.** Al pulsar el nombre sale en su sitio un desplegable con las categorías. Al elegir
+una, la fila vuelve a su forma normal ya clasificada, sin mover nada de alrededor
+(`micro-states`). Si el inmueble no tenía nombre, la categoría pasa a hacer de rótulo — no se le
+inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
+
+> ⚠️ En el Figma la flecha de cada inmueble aparece solo cerrada: **lo que hay debajo no está
+> diseñado todavía**. El prototipo abre ahí lo que ya se sabe del inmueble (luz/gas y en qué estado
+> están sus puntos) para que el control no quede muerto. Cuando exista ese nivel en Figma, se
+> sustituye.
+
+### Filtros
+
+Los **cinco** filtros recortan la cartera **antes** de agruparla, así que la lista, el mapa, la
+leyenda y sus porcentajes cambian juntos y siempre cuadran. Si los filtros no dejan nada, la lista
+enseña su mensaje y **el mapa se apaga entero**.
+
+Los cinco son iguales por dentro (`FiltroCasillas`): un botón que abre una lista de casillas, y se
+puede elegir **más de una**. No elegir ninguna quiere decir "todas".
+
+| Filtro | Qué lleva dentro |
+| --- | --- |
+| Sociedad | las cuatro sociedades |
+| Tipo de suministro | Luz y Gas |
+| Inmueble | los inmuebles ya clasificados + el bloque "Organiza tu cartera" |
+| Dirección | todas las direcciones, agrupadas por provincia |
+| Estado | Activo, En trámite, En revisión y Por activar |
+
+| Qué | Cuándo | Token |
+| --- | --- | --- |
+| La lista aparece pegada al botón | al abrir | `micro-appear` (`anim-aparece`) |
+| La flecha gira media vuelta | al abrir y al cerrar | `micro-states` |
+| El botón se oscurece y lleva la cuenta: "Dirección (3)" | al elegir | `micro-states` |
+
+- **Solo puede haber uno abierto.** Quién está abierto lo lleva la pantalla, no cada filtro por su
+  cuenta: es lo que permite que "Filtrar por ubicación" salte del filtro de Inmueble al de
+  Dirección de un gesto.
+- **Se cierra** pulsando fuera, con `Escape`, o volviendo a pulsar el botón.
+- **Encabezados a medias.** En el de Dirección, si de una provincia hay unas direcciones elegidas y
+  otras no, su casilla se queda en **indeterminado** (la rayita en vez del check). Es lo que evita
+  tener que bajar la lista para saber si ahí dentro hay algo marcado.
+- **El degradado del final.** Cuando quedan opciones por debajo del borde, la última se difumina;
+  al llegar al final desaparece. No es decoración: es lo que avisa de que la lista sigue, y su
+  ausencia dice "ya está".
+
+### El filtro de Inmueble y "Organiza tu cartera"
+
+El filtro ofrece las **categorías generales** (oficinas, local comercial, nave industrial, almacén,
+centro logístico, hotel, vivienda), no inmuebles sueltos: con 54 inmuebles, una lista de nombres no
+se puede recorrer, y lo que se quiere filtrar casi siempre es "enséñame las oficinas".
+
+Los inmuebles que nadie ha clasificado no tienen categoría, así que ningún filtro los alcanza — y
+en vez de disimularlo, el bloque lo cuenta:
+
+- **Ninguno clasificado:** el desplegable es solo el bloque, con "Tienes 6 inmuebles sin
+  clasificar".
+- **Algunos sí y otros no:** primero los que ya se pueden elegir, una línea de separación, y debajo
+  el mismo bloque con "**Todavía** tienes 5 inmuebles sin clasificar". Ese "todavía" es lo que hace
+  que se lea como "vas por la mitad" y no como "esto está vacío".
+
+La cuenta baja sola según se van categorizando inmuebles desde su fila.
+
+Las dos acciones del bloque:
+
+- **Organizar cartera** deja la pantalla con SOLO los inmuebles sin clasificar, para ir poniéndoles
+  categoría uno a uno desde su propia fila. **No toca el filtro de Inmueble**: ese filtro solo
+  puede contener inmuebles catalogados, porque son los únicos que ofrece, y meterle los otros sería
+  contradecir su propia regla. Es un modo aparte, y mientras dura lo explica un aviso encima de la
+  lista con su salida ("Ver toda la cartera"). Sin ese aviso, la lista parecería rota: faltarían
+  inmuebles sin que nada lo explicase.
+- **Filtrar por ubicación** cierra este filtro y abre el de Dirección, que sí sabe agrupar por
+  provincia aunque no haya nombres.
+
+> ⚠️ En el Figma "Organizar cartera" es un botón sin destino: el flujo de organizar la cartera en
+> bloque no está diseñado todavía. En el prototipo hace lo único que se puede hacer hoy con lo que
+> existe. Cuando haya diseño de ese flujo, se cambia.
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -748,7 +1043,8 @@ src/
     globals.css                tokens + utilidades de motion y de animación
     recorrido/page.tsx          la ruta del recorrido particular clásico
     empresas/page.tsx           la ruta del flujo de empresas
-    particulares/page.tsx       la ruta del flujo de particulares (nuevo)
+    particulares/page.tsx       la ruta del flujo de particulares
+    area-cliente/page.tsx       la ruta del área de cliente ("Mi cartera")
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
@@ -761,10 +1057,15 @@ src/
                                     las dos pantallas del paso 03
       empresas/                 pantallas y navbar propios del flujo de empresas
       particulares/             pantallas y navbar propios del flujo de particulares
+      area-cliente/             la pantalla "Mi cartera": barra lateral, lista
+                                de sociedades, sus inmuebles y el mapa
+                                interactivo de provincias
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript
     prototipo.ts                utilidades pequeñas (cascada, formato)
   mocks/
     aczo.ts                     TODOS los datos de mentira, en un solo archivo
+    provincias-espana.ts        los trazados SVG de las provincias, generados
+                                una vez desde el TopoJSON del INE
 ```

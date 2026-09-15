@@ -1145,3 +1145,733 @@ export function kwh(valor: number): string {
     valor,
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — "Mi cartera"                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * La cartera de una clienta que ya es de Aczo (pantalla "Dashboard / Mi
+ * cartera"). Es otro momento distinto al del recorrido de alta: aquí ya hay
+ * sociedades contratadas, repartidas por España, y lo que se mira es el estado
+ * de cada una.
+ *
+ * La clave de todo es `provincia`: tiene que escribirse EXACTAMENTE igual que
+ * en `provincias-espana.ts` (son los nombres del INE, con sus dos idiomas
+ * donde los hay: "Alacant/Alicante", "Illes Balears", "A Coruña"...). Es lo
+ * que usa el mapa para saber qué pintar.
+ */
+
+export type EstadoCartera =
+  | "activa"
+  | "tramite"
+  | "revision"
+  | "por-activar";
+export type TipoCartera = "luz" | "gas";
+
+/**
+ * Los cuatro estados de un punto de suministro, con su rótulo y el token de
+ * color de su puntito.
+ *
+ * `rotulo` es como se llama el estado en la tarjeta de resumen y en las filas
+ * ("Activas 86"), donde se está contando; `rotuloFiltro` es como se llama en el
+ * desplegable de filtros ("Activo"), donde se está eligiendo uno. Es la única
+ * diferencia, y sale así del Figma.
+ */
+export const ESTADOS_CARTERA: {
+  id: EstadoCartera;
+  rotulo: string;
+  rotuloFiltro: string;
+  /** Clase de color del punto. Tokens de feedback del sistema. */
+  color: string;
+}[] = [
+  {
+    id: "activa",
+    rotulo: "Activas",
+    rotuloFiltro: "Activo",
+    color: "bg-success-high",
+  },
+  {
+    id: "tramite",
+    rotulo: "En trámite",
+    rotuloFiltro: "En trámite",
+    color: "bg-info-high",
+  },
+  {
+    id: "revision",
+    rotulo: "En revisión",
+    rotuloFiltro: "En revisión",
+    color: "bg-warning-high",
+  },
+  {
+    id: "por-activar",
+    rotulo: "Por activar",
+    rotuloFiltro: "Por activar",
+    color: "bg-content-low",
+  },
+];
+
+/** Las categorías que se le pueden poner a un inmueble. */
+export const CATEGORIAS_INMUEBLE = [
+  "Oficinas",
+  "Local comercial",
+  "Nave industrial",
+  "Almacén",
+  "Centro logístico",
+  "Hotel",
+  "Vivienda",
+] as const;
+
+export type CategoriaInmueble = (typeof CATEGORIAS_INMUEBLE)[number];
+
+/** El cajón de los inmuebles que nadie ha clasificado todavía. */
+export const SIN_CATALOGAR = "Sin catalogar";
+
+/**
+ * La paleta con la que se pinta la cartera: sociedades, comercializadoras y
+ * tipos de inmueble tiran todos de aquí, en este orden. Que sea LA MISMA lista
+ * es lo que hace que el gráfico se lea igual agrupes por lo que agrupes.
+ *
+ * EXCEPCIÓN al principio de "tokens siempre": los cuatro primeros están a pelo
+ * porque el Figma los pone a pelo — solo #20270f coincide con un token
+ * (highlight-deep). Se decidió calcar el Figma en vez de aproximarlos.
+ *
+ * Los cuatro últimos SÍ son tokens: el Figma solo define cuatro colores (tiene
+ * cuatro sociedades) y los tipos de inmueble son ocho, así que para el resto se
+ * tira de la paleta `extended` del sistema, que es justo la que existe para
+ * gráficas. Están elegidos para que dos tonos parecidos no caigan seguidos.
+ */
+export const PALETA_CARTERA = [
+  "#20270F",
+  "#898A35",
+  "#7B6EEB",
+  "#E85AB0",
+  "var(--color-extended-four-mid)",
+  "var(--color-extended-three-mid)",
+  "var(--color-extended-five-dark)",
+  "var(--color-extended-two-dark)",
+];
+
+export type InmuebleCartera = {
+  /**
+   * El nombre que le ha puesto la clienta y su categoría. Los dos pueden faltar
+   * a la vez: es un inmueble que llegó de una factura y nadie ha clasificado
+   * todavía. La lista lo enseña como "Categoriza este inmueble".
+   */
+  nombre?: string;
+  categoria?: CategoriaInmueble;
+  direccion: string;
+  tipos: TipoCartera[];
+  /** Puntos de suministro (CUPS) del inmueble, repartidos por estado. */
+  puntos: Record<EstadoCartera, number>;
+  /** Ahorro estimado al año, en euros. Es lo que enseña la leyenda del mapa. */
+  ahorro: number;
+};
+
+export type SedeCartera = {
+  /** Nombre de provincia del INE. Debe coincidir con `provincias-espana.ts`. */
+  provincia: string;
+  ciudad: string;
+  inmuebles: InmuebleCartera[];
+};
+
+export type SociedadCartera = {
+  id: string;
+  nombre: string;
+  /** Su color en el gráfico y en la leyenda. Sale de `PALETA_CARTERA`. */
+  color: string;
+  comercializadora: string;
+  sedes: SedeCartera[];
+};
+
+export const SOCIEDADES_CARTERA: SociedadCartera[] = [
+  {
+    id: "mendesaltaren",
+    nombre: "mendesaltaren SL",
+    color: PALETA_CARTERA[0],
+    comercializadora: "Repsol",
+    sedes: [
+      {
+        provincia: "Madrid",
+        ciudad: "Madrid",
+        inmuebles: [
+          { nombre: "Edificio Oficinas Madrid", categoria: "Oficinas", direccion: "Calle Velázquez nº 10, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 1330 },
+          { nombre: "Sede Chamartín", categoria: "Oficinas", direccion: "Paseo de la Castellana 141, Madrid", tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 620 },
+          { nombre: "Almacén Getafe", categoria: "Almacén", direccion: "Calle Los Ángeles 22, Getafe, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 810 },
+          { direccion: "Calle Orense 34, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 470 },
+          { nombre: "Local Malasaña", categoria: "Local comercial", direccion: "Calle Fuencarral 78, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 320 },
+        ],
+      },
+      {
+        provincia: "Barcelona",
+        ciudad: "Barcelona",
+        inmuebles: [
+          { nombre: "Oficinas Diagonal", categoria: "Oficinas", direccion: "Avinguda Diagonal 442, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1120 },
+          { direccion: "Calle Bonanova 2, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 780 },
+          { nombre: "Nave Zona Franca", categoria: "Nave industrial", direccion: "Carrer A 12, Zona Franca, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 290 },
+          { nombre: "Local Gràcia", categoria: "Local comercial", direccion: "Carrer Gran de Gràcia 90, Barcelona", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 250 },
+        ],
+      },
+      {
+        provincia: "València/Valencia",
+        ciudad: "València",
+        inmuebles: [
+          { nombre: "Oficinas Ruzafa", categoria: "Oficinas", direccion: "Carrer de Sueca 41, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { nombre: "Almacén Port", categoria: "Almacén", direccion: "Camí del Port 8, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 460 },
+          { direccion: "Avinguda del Cid 120, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
+        ],
+      },
+      {
+        provincia: "A Coruña",
+        ciudad: "A Coruña",
+        inmuebles: [
+          { nombre: "Oficinas Riazor", categoria: "Oficinas", direccion: "Avenida de Buenos Aires 5, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
+          { nombre: "Nave Pocomaco", categoria: "Nave industrial", direccion: "Parcela D 14, Pocomaco, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 300 },
+        ],
+      },
+      {
+        provincia: "Málaga",
+        ciudad: "Málaga",
+        inmuebles: [
+          { nombre: "Oficinas Muelle Uno", categoria: "Oficinas", direccion: "Paseo del Muelle Uno 3, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
+          { direccion: "Calle Alfarnate 9, Málaga", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 240 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "still",
+    nombre: "Still SL",
+    color: PALETA_CARTERA[1],
+    comercializadora: "TotalEnergies",
+    sedes: [
+      {
+        provincia: "Madrid",
+        ciudad: "Alcobendas",
+        inmuebles: [
+          { nombre: "Sede Alcobendas", categoria: "Oficinas", direccion: "Avenida de Bruselas 7, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1280 },
+          { nombre: "Centro logístico Norte", categoria: "Centro logístico", direccion: "Carretera de Fuencarral km 3, Alcobendas, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 830 },
+          { direccion: "Calle Marqués de la Valdavia 54, Alcobendas, Madrid", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 280 },
+        ],
+      },
+      {
+        provincia: "Málaga",
+        ciudad: "Málaga",
+        inmuebles: [
+          { nombre: "Hotel Costa del Sol", categoria: "Hotel", direccion: "Paseo Marítimo Pablo Ruiz Picasso 12, Málaga", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 910 },
+          { nombre: "Local Soho", categoria: "Local comercial", direccion: "Calle Tomás Heredia 18, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
+          { direccion: "Calle Cerrojo 5, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 230 },
+        ],
+      },
+      {
+        provincia: "Barcelona",
+        ciudad: "Barcelona",
+        inmuebles: [
+          { nombre: "Oficinas Poblenou", categoria: "Oficinas", direccion: "Carrer de Pallars 193, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 560 },
+          { direccion: "Carrer de Balmes 210, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 420 },
+        ],
+      },
+      {
+        provincia: "A Coruña",
+        ciudad: "A Coruña",
+        inmuebles: [
+          { nombre: "Oficinas Orzán", categoria: "Oficinas", direccion: "Rúa Orzán 60, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
+          { nombre: "Almacén Agrela", categoria: "Almacén", direccion: "Rúa Gutenberg 9, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "nocodehackers",
+    nombre: "Nocodehackers SL",
+    color: PALETA_CARTERA[2],
+    comercializadora: "Ahorra Energía",
+    sedes: [
+      {
+        provincia: "Madrid",
+        ciudad: "Madrid",
+        inmuebles: [
+          { nombre: "Sede Chamberí", categoria: "Oficinas", direccion: "Calle Nicasio Gallego 18, Madrid", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1080 },
+          { nombre: "Nave Vallecas", categoria: "Nave industrial", direccion: "Calle Sierra de Guadalupe 2, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 790 },
+          { direccion: "Calle Alcalá 320, Madrid", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 250 },
+          { nombre: "Almacén Coslada", categoria: "Almacén", direccion: "Avenida de la Cañada 14, Coslada, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 180 },
+        ],
+      },
+      {
+        provincia: "València/Valencia",
+        ciudad: "València",
+        inmuebles: [
+          { nombre: "Oficinas Ciutat Vella", categoria: "Oficinas", direccion: "Carrer dels Cavallers 22, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 530 },
+          { nombre: "Local Mercat", categoria: "Local comercial", direccion: "Plaça del Mercat 6, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 240 },
+          { direccion: "Carrer de Colom 1, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 230 },
+        ],
+      },
+      {
+        provincia: "Murcia",
+        ciudad: "Murcia",
+        inmuebles: [
+          { nombre: "Nave Espinardo", categoria: "Nave industrial", direccion: "Carril de la Condomina 4, Espinardo, Murcia", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 610 },
+          { nombre: "Oficinas Gran Vía", categoria: "Oficinas", direccion: "Gran Vía Escultor Salzillo 20, Murcia", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
+          { direccion: "Calle Trapería 18, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 220 },
+        ],
+      },
+      {
+        provincia: "Barcelona",
+        ciudad: "Barcelona",
+        inmuebles: [
+          { nombre: "Oficinas Sant Cugat", categoria: "Oficinas", direccion: "Avinguda Rius i Taulet 3, Sant Cugat, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { direccion: "Carrer de Muntaner 88, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 250 },
+        ],
+      },
+      {
+        provincia: "Málaga",
+        ciudad: "Málaga",
+        inmuebles: [
+          { nombre: "Centro logístico Sur", categoria: "Centro logístico", direccion: "Calle Villa de Madrid 7, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
+          { direccion: "Calle Camino de Antequera 40, Málaga", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 210 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tailorhub",
+    nombre: "Tailor Hub SL",
+    color: PALETA_CARTERA[3],
+    comercializadora: "Repsol",
+    sedes: [
+      {
+        provincia: "Madrid",
+        ciudad: "Pozuelo de Alarcón",
+        inmuebles: [
+          { nombre: "Sede Pozuelo", categoria: "Oficinas", direccion: "Avenida de Europa 26, Pozuelo de Alarcón, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1260 },
+          { nombre: "Almacén Húmera", categoria: "Almacén", direccion: "Camino de Húmera 14, Pozuelo de Alarcón, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 800 },
+          { direccion: "Calle Las Flores 3, Pozuelo de Alarcón, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 190 },
+        ],
+      },
+      {
+        provincia: "Málaga",
+        ciudad: "Málaga",
+        inmuebles: [
+          { nombre: "Oficinas Teatinos", categoria: "Oficinas", direccion: "Calle Louis Pasteur 5, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 550 },
+          { nombre: "Local Centro", categoria: "Local comercial", direccion: "Calle Larios 12, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
+        ],
+      },
+      {
+        provincia: "A Coruña",
+        ciudad: "A Coruña",
+        inmuebles: [
+          { nombre: "Oficinas Matogrande", categoria: "Oficinas", direccion: "Avenida Alfonso Molina 30, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
+          { direccion: "Rúa Real 44, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 240 },
+        ],
+      },
+      {
+        provincia: "Murcia",
+        ciudad: "Murcia",
+        inmuebles: [
+          { nombre: "Nave Alcantarilla", categoria: "Nave industrial", direccion: "Camino de los Molinos 8, Alcantarilla, Murcia", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
+          { nombre: "Local Murcia Centro", categoria: "Local comercial", direccion: "Calle Platería 27, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 200 },
+          { direccion: "Avenida Juan Carlos I 55, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 230 },
+        ],
+      },
+      {
+        provincia: "València/Valencia",
+        ciudad: "València",
+        inmuebles: [
+          { nombre: "Oficinas Benimaclet", categoria: "Oficinas", direccion: "Carrer de Mistral 14, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { nombre: "Local Russafa", categoria: "Local comercial", direccion: "Carrer de Cadis 33, València", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 250 },
+        ],
+      },
+      {
+        provincia: "Barcelona",
+        ciudad: "Barcelona",
+        inmuebles: [
+          { nombre: "Vivienda Eixample", categoria: "Vivienda", direccion: "Carrer de Girona 120, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 480 },
+          { direccion: "Carrer de Provença 250, Barcelona", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 180 },
+        ],
+      },
+    ],
+  },
+];
+
+/* --- Cuentas derivadas (NADA de esto está escrito a mano) ------------------ */
+
+/** Puntos de suministro (CUPS) de un inmueble, sumando todos sus estados. */
+export function puntosDeInmueble(i: InmuebleCartera): number {
+  return ESTADOS_CARTERA.reduce((t, e) => t + i.puntos[e.id], 0);
+}
+
+/** Puntos de suministro de una sede, sumando sus inmuebles. */
+export function puntosDeSede(sede: SedeCartera): number {
+  return sede.inmuebles.reduce((t, i) => t + puntosDeInmueble(i), 0);
+}
+
+/** Inmuebles de una sociedad. */
+export function inmueblesDeSociedad(s: SociedadCartera): number {
+  return s.sedes.reduce((total, sede) => total + sede.inmuebles.length, 0);
+}
+
+/** Puntos de suministro de una sociedad. */
+export function puntosDeSociedad(s: SociedadCartera): number {
+  return s.sedes.reduce((total, sede) => total + puntosDeSede(sede), 0);
+}
+
+/** Cuántos puntos tiene una sociedad en cada estado. */
+export function estadosDeSociedad(
+  s: SociedadCartera,
+): Record<EstadoCartera, number> {
+  return sumaEstados(
+    s.sedes.flatMap((sede) => sede.inmuebles.map((i) => ({ estados: i.puntos }))),
+  );
+}
+
+/** Los números de las cinco tarjetas de arriba. */
+export const RESUMEN_CARTERA = {
+  sociedades: SOCIEDADES_CARTERA.length,
+  inmuebles: SOCIEDADES_CARTERA.reduce((t, s) => t + inmueblesDeSociedad(s), 0),
+  puntos: SOCIEDADES_CARTERA.reduce((t, s) => t + puntosDeSociedad(s), 0),
+  comercializadoras: [
+    ...new Set(SOCIEDADES_CARTERA.map((s) => s.comercializadora)),
+  ],
+  estados: sumaEstados(
+    SOCIEDADES_CARTERA.map((s) => ({ estados: estadosDeSociedad(s) })),
+  ),
+};
+
+/** Fecha que se enseña arriba del todo ("última actualización"). */
+export const ACTUALIZACION_CARTERA = "06 de julio 2026";
+
+/* --- Agrupar la cartera de tres maneras ------------------------------------ */
+
+/** Las tres formas de agrupar la lista de "Mi cartera". */
+export type ModoAgrupacion =
+  | "ubicacion"
+  | "sociedad"
+  | "comercializadora"
+  | "inmueble";
+
+export const MODOS_AGRUPACION: { id: ModoAgrupacion; rotulo: string }[] = [
+  { id: "ubicacion", rotulo: "Ubicación" },
+  { id: "sociedad", rotulo: "Sociedad" },
+  { id: "comercializadora", rotulo: "Comercializadora" },
+  { id: "inmueble", rotulo: "Inmueble" },
+];
+
+/**
+ * Qué filtros se enseñan con cada agrupación.
+ *
+ * No siempre son los mismos: agrupando por ubicación, por ejemplo, el filtro de
+ * "Sociedad" sobra — la lista ya no va de sociedades. Sale así del Figma.
+ */
+export const FILTROS_POR_AGRUPACION: Record<
+  ModoAgrupacion,
+  (keyof FiltrosCartera)[]
+> = {
+  ubicacion: ["direcciones", "tiposDeInmueble", "tipos", "estados"],
+  sociedad: ["sociedades", "tipos", "estados"],
+  comercializadora: ["comercializadoras", "tipos", "estados"],
+  inmueble: ["tiposDeInmueble", "tipos", "estados"],
+};
+
+/**
+ * Una línea del detalle que se ve al desplegar un grupo: un inmueble, con la
+ * sociedad y la provincia a las que pertenece.
+ */
+export type LineaDetalle = {
+  /** Clave estable de la fila. La dirección no se repite en toda la cartera. */
+  id: string;
+  sociedad: string;
+  provincia: string;
+  ciudad: string;
+  nombre?: string;
+  categoria?: CategoriaInmueble;
+  direccion: string;
+  tipos: TipoCartera[];
+  /** Puntos de suministro (CUPS) del inmueble. */
+  puntos: number;
+  estados: Record<EstadoCartera, number>;
+};
+
+/**
+ * Un grupo de la lista, sea lo que sea que se esté agrupando. Las tres
+ * agrupaciones producen la MISMA forma, así que la fila de la lista y el mapa
+ * no necesitan saber por cuál de las tres se ha agrupado.
+ */
+export type GrupoCartera = {
+  id: string;
+  nombre: string;
+  /**
+   * El color con el que se pinta en el mapa. Siempre sale de una sociedad: la
+   * que más puntos aporta al grupo. Así, agrupes por lo que agrupes, un mismo
+   * color significa siempre la misma sociedad.
+   */
+  color: string;
+  /** Provincias que enciende este grupo en el mapa. */
+  provincias: string[];
+  inmuebles: number;
+  puntos: number;
+  /** Ahorro estimado al año del grupo, en euros. */
+  ahorro: number;
+  estados: Record<EstadoCartera, number>;
+  detalle: LineaDetalle[];
+};
+
+/** Un contador a cero para cada estado. Crece solo si se añade un estado. */
+export function estadosACero(): Record<EstadoCartera, number> {
+  return Object.fromEntries(
+    ESTADOS_CARTERA.map((e) => [e.id, 0]),
+  ) as Record<EstadoCartera, number>;
+}
+
+function sumaEstados(lineas: { estados: Record<EstadoCartera, number> }[]) {
+  return lineas.reduce((total, l) => {
+    for (const e of ESTADOS_CARTERA) total[e.id] += l.estados[e.id];
+    return total;
+  }, estadosACero());
+}
+
+/**
+ * Todos los inmuebles de la cartera, aplanados y con su sociedad y su sede al
+ * lado. Es la unidad con la que trabajan los filtros y las tres agrupaciones.
+ */
+function todosLosInmuebles() {
+  return SOCIEDADES_CARTERA.flatMap((sociedad) =>
+    sociedad.sedes.flatMap((sede) =>
+      sede.inmuebles.map((inmueble) => ({ sociedad, sede, inmueble })),
+    ),
+  );
+}
+
+/**
+ * Los cinco filtros de la barra de "Mi cartera". Todos son de varias
+ * respuestas: una lista vacía quiere decir "todos".
+ */
+export type FiltrosCartera = {
+  sociedades: string[];
+  comercializadoras: string[];
+  tipos: TipoCartera[];
+  /**
+   * Tipos de inmueble elegidos (Oficinas, Almacén, Nave industrial…). El filtro
+   * se llama "Inmueble" y ofrece SOLO estas categorías generales, no inmuebles
+   * sueltos: con 54 inmuebles, una lista de nombres no se puede recorrer, y lo
+   * que se quiere filtrar casi siempre es "enséñame las oficinas".
+   *
+   * Los inmuebles sin catalogar no tienen categoría, así que ningún filtro los
+   * alcanza. Para verlos está `soloSinClasificar`, que es otra cosa y por eso va
+   * aparte.
+   */
+  tiposDeInmueble: CategoriaInmueble[];
+  direcciones: string[];
+  estados: EstadoCartera[];
+  /** Deja a la vista únicamente los inmuebles que aún no están catalogados. */
+  soloSinClasificar: boolean;
+};
+
+export const FILTROS_VACIOS: FiltrosCartera = {
+  sociedades: [],
+  comercializadoras: [],
+  tipos: [],
+  tiposDeInmueble: [],
+  direcciones: [],
+  estados: [],
+  soloSinClasificar: false,
+};
+
+/** Un encabezado del desplegable de direcciones y las direcciones que cuelgan. */
+export type GrupoDirecciones = { provincia: string; direcciones: string[] };
+
+function agruparDirecciones(): GrupoDirecciones[] {
+  const mapa = new Map<string, Set<string>>();
+  for (const sociedad of SOCIEDADES_CARTERA) {
+    for (const sede of sociedad.sedes) {
+      const set = mapa.get(sede.provincia) ?? new Set<string>();
+      for (const inmueble of sede.inmuebles) set.add(inmueble.direccion);
+      mapa.set(sede.provincia, set);
+    }
+  }
+  return [...mapa]
+    .map(([provincia, set]) => ({
+      provincia,
+      direcciones: [...set].sort((a, b) => a.localeCompare(b, "es")),
+    }))
+    .sort((a, b) => a.provincia.localeCompare(b.provincia, "es"));
+}
+
+/**
+ * Todos los inmuebles de la cartera en una lista plana, con la clave y el
+ * rótulo que usan los filtros. La clave es la dirección: no se repite en toda
+ * la cartera.
+ */
+export function listaDeInmuebles(
+  /** Las categorías puestas durante la sesión, igual que en `agruparCartera`. */
+  categorias: Record<string, CategoriaInmueble> = {},
+): {
+  id: string;
+  nombre?: string;
+  categoria?: CategoriaInmueble;
+  direccion: string;
+  provincia: string;
+  ciudad: string;
+}[] {
+  return SOCIEDADES_CARTERA.flatMap((sociedad) =>
+    sociedad.sedes.flatMap((sede) =>
+      sede.inmuebles.map((inmueble) => ({
+        id: inmueble.direccion,
+        nombre: inmueble.nombre,
+        categoria: categorias[inmueble.direccion] ?? inmueble.categoria,
+        direccion: inmueble.direccion,
+        provincia: sede.provincia,
+        ciudad: sede.ciudad,
+      })),
+    ),
+  );
+}
+
+/** Las opciones de cada filtro, sacadas de los propios datos. */
+export const OPCIONES_FILTROS = {
+  sociedades: SOCIEDADES_CARTERA.map((s) => s.nombre),
+  comercializadoras: [
+    ...new Set(SOCIEDADES_CARTERA.map((s) => s.comercializadora)),
+  ],
+  tipos: [
+    { value: "luz" as const, label: "Luz" },
+    { value: "gas" as const, label: "Gas" },
+  ],
+  estados: ESTADOS_CARTERA.map((e) => ({
+    value: e.id,
+    label: e.rotuloFiltro,
+  })),
+  /** El filtro "Inmueble": las categorías generales, no inmuebles sueltos. */
+  tiposDeInmueble: CATEGORIAS_INMUEBLE.map((c) => ({ value: c, label: c })),
+  /**
+   * Las direcciones de la cartera, agrupadas por provincia y ordenadas — es
+   * como las enseña el desplegable de "Dirección": un encabezado por provincia
+   * y debajo sus direcciones, cada una con su casilla.
+   */
+  direcciones: agruparDirecciones(),
+};
+
+/**
+ * Agrupa la cartera por ubicación, por sociedad o por comercializadora, y de
+ * paso aplica los filtros de la barra.
+ *
+ * Sobre el filtro de estado: deja pasar las sedes que TIENEN algún punto en ese
+ * estado, sin recortar sus cifras. Es decir, "En trámite" enseña dónde hay algo
+ * en trámite, no cuántos puntos en trámite hay — para eso está la cifra que ya
+ * sale a la derecha de cada fila.
+ *
+ * Nada de esto está escrito a mano: todo se calcula a partir de
+ * SOCIEDADES_CARTERA, así que al tocar un dato las tres agrupaciones siguen
+ * cuadrando entre ellas.
+ */
+export function agruparCartera(
+  modo: ModoAgrupacion,
+  filtros: FiltrosCartera = FILTROS_VACIOS,
+  /**
+   * Las categorías que se han puesto durante la sesión, por dirección. Los
+   * datos de mentira no se tocan nunca: lo que cambia la persona se guarda
+   * aparte y se aplica aquí, que es el único sitio por el que pasa todo.
+   */
+  categorias: Record<string, CategoriaInmueble> = {},
+): GrupoCartera[] {
+  const categoriaDe = (i: InmuebleCartera) =>
+    categorias[i.direccion] ?? i.categoria;
+
+  const clave = {
+    ubicacion: (_s: SociedadCartera, sede: SedeCartera) => sede.provincia,
+    sociedad: (s: SociedadCartera) => s.nombre,
+    comercializadora: (s: SociedadCartera) => s.comercializadora,
+    // Un grupo por TIPO de inmueble, no por inmueble suelto: son las mismas
+    // categorías generales que ofrece el filtro "Inmueble". Con 54 inmuebles,
+    // una fila por cada uno no se puede ni leer ni comparar.
+    //
+    // Los que nadie ha catalogado van todos juntos a SIN_CATALOGAR, que se
+    // queda siempre en último lugar (ver el orden, al final de la función):
+    // es lo que falta por hacer, no una categoría más que comparar.
+    inmueble: (_s: SociedadCartera, _sede: SedeCartera, i: InmuebleCartera) =>
+      categoriaDe(i) ?? SIN_CATALOGAR,
+  }[modo];
+
+  type Fila = {
+    sociedad: SociedadCartera;
+    sede: SedeCartera;
+    inmueble: InmuebleCartera;
+  };
+
+  const cajones = new Map<string, Fila[]>();
+
+  // Una lista de filtro vacía quiere decir "todos", así que no recorta nada.
+  const pasaFiltros = ({ sociedad, inmueble }: Fila) =>
+    (filtros.sociedades.length === 0 ||
+      filtros.sociedades.includes(sociedad.nombre)) &&
+    (filtros.comercializadoras.length === 0 ||
+      filtros.comercializadoras.includes(sociedad.comercializadora)) &&
+    (filtros.tipos.length === 0 ||
+      filtros.tipos.some((t) => inmueble.tipos.includes(t))) &&
+    (filtros.tiposDeInmueble.length === 0 ||
+      (!!categoriaDe(inmueble) &&
+        filtros.tiposDeInmueble.includes(categoriaDe(inmueble)!))) &&
+    (filtros.direcciones.length === 0 ||
+      filtros.direcciones.includes(inmueble.direccion)) &&
+    (filtros.estados.length === 0 ||
+      filtros.estados.some((e) => inmueble.puntos[e] > 0)) &&
+    (!filtros.soloSinClasificar || !categoriaDe(inmueble));
+
+  for (const fila of todosLosInmuebles().filter(pasaFiltros)) {
+    const k = clave(fila.sociedad, fila.sede, fila.inmueble);
+    cajones.set(k, [...(cajones.get(k) ?? []), fila]);
+  }
+
+  const grupos = [...cajones].map(([nombre, filas]) => {
+    // El color lo pone la sociedad que más puntos aporta al grupo.
+    const porSociedad = new Map<string, { color: string; puntos: number }>();
+    for (const { sociedad, inmueble } of filas) {
+      const actual = porSociedad.get(sociedad.id);
+      porSociedad.set(sociedad.id, {
+        color: sociedad.color,
+        puntos: (actual?.puntos ?? 0) + puntosDeInmueble(inmueble),
+      });
+    }
+    const dominante = [...porSociedad.values()].sort(
+      (a, b) => b.puntos - a.puntos,
+    )[0];
+
+    return {
+      id: nombre,
+      nombre,
+      color: dominante.color,
+      provincias: [...new Set(filas.map(({ sede }) => sede.provincia))],
+      inmuebles: filas.length,
+      puntos: filas.reduce(
+        (t, { inmueble }) => t + puntosDeInmueble(inmueble),
+        0,
+      ),
+      ahorro: filas.reduce((t, { inmueble }) => t + inmueble.ahorro, 0),
+      estados: sumaEstados(
+        filas.map(({ inmueble }) => ({ estados: inmueble.puntos })),
+      ),
+      detalle: filas.map(({ sociedad, sede, inmueble }) => ({
+        id: inmueble.direccion,
+        sociedad: sociedad.nombre,
+        provincia: sede.provincia,
+        ciudad: sede.ciudad,
+        nombre: inmueble.nombre,
+        categoria: categoriaDe(inmueble),
+        direccion: inmueble.direccion,
+        tipos: inmueble.tipos,
+        puntos: puntosDeInmueble(inmueble),
+        estados: inmueble.puntos,
+      })),
+    };
+  });
+
+  // Por sociedad se respeta el orden en que están escritas (es el del Figma);
+  // en el resto, de más puntos a menos. "Sin catalogar" es la excepción: va
+  // SIEMPRE al final, pese los puntos que pese. No es una categoría más con la
+  // que compararse, es lo que queda por ordenar.
+  if (modo === "sociedad") return grupos;
+  return grupos.sort((a, b) => {
+    if (a.id === SIN_CATALOGAR) return 1;
+    if (b.id === SIN_CATALOGAR) return -1;
+    return b.puntos - a.puntos;
+  });
+}

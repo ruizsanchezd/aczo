@@ -486,6 +486,59 @@
   }
 }
 
+/* Los tramos del anillo de "Mi cartera" se DIBUJAN al entrar, uno detrás de
+   otro, como si alguien recorriera la circunferencia con un rotulador. Un
+   anillo que aparece entero de golpe es un dibujo; uno que se dibuja se lee
+   como "esto se está calculando delante de ti", que es justo lo que pasa cada
+   vez que cambias un filtro.
+
+   El truco: cada tramo lleva su propio largo en `--largo`, y lo que se anima es
+   el desplazamiento de la línea de puntos, de "todo escondido" a "todo a la
+   vista". Es la única forma de tener un mismo keyframe para tramos de largos
+   distintos. */
+@keyframes aczo-anillo-entra {
+  from {
+    stroke-dashoffset: var(--largo);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* La barrita amarilla que marca la sección activa del área de cliente: no
+   aparece de golpe, se estira desde el centro hacia arriba y hacia abajo. Es
+   un gesto diminuto, pero es lo que hace que el cambio de sección se lea como
+   "la marca se ha movido" y no como "se ha encendido otra luz". */
+@keyframes aczo-marca-activa {
+  from {
+    transform: translateY(-50%) scaleY(0);
+  }
+  to {
+    transform: translateY(-50%) scaleY(1);
+  }
+}
+
+/* El marcador que late sobre el mapa de "Mi cartera": un aro que sale del
+   punto, crece y se desvanece. Van tres aros con el mismo lazo y el arranque
+   escalonado, así que siempre hay uno saliendo — se lee como "esto está vivo",
+   igual que el radar de un mapa de verdad.
+
+   Ni los 2,4 s ni la curva salen de los seis tokens de motion: esos son para
+   transiciones de un estado a otro, y esto es un lazo ambiental sin fin, el
+   mismo caso que el giro de la pantalla de carga (aczo-gira-cuarto) o el pulso
+   de la barra de seguimiento. La duración se ha buscado hasta que el latido
+   acompaña sin llamar la atención por encima de los datos. */
+@keyframes aczo-pulso-mapa {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(5);
+    opacity: 0;
+  }
+}
+
 /* Una pantalla entra avanzando (se va hacia delante en el recorrido). */
 @utility anim-entra-adelante {
   animation: aczo-entra-adelante var(--motion-timing-3) var(--ease-3) both;
@@ -563,6 +616,29 @@
   animation:
     aczo-tramitacion-entra var(--motion-timing-5) var(--ease-4) both,
     aczo-tramitacion-pulso 2400ms var(--ease-4) var(--motion-timing-5) infinite;
+}
+
+/* Un tramo del anillo dibujándose (ver el keyframe). El escalonado entre tramos
+   se pone desde el componente con `animationDelay`. Usa macro-structure porque
+   es el gráfico entero recolocándose, no un detalle suelto. */
+@utility anim-anillo-entra {
+  animation: aczo-anillo-entra var(--motion-timing-5) var(--ease-4) both;
+}
+
+/* La barrita de la sección activa (ver el keyframe). Usa macro-levelup porque
+   acompaña a un cambio de sección, no a un simple hover. */
+@utility anim-marca-activa {
+  animation: aczo-marca-activa var(--motion-timing-3) var(--ease-3) both;
+}
+
+/* Un aro del marcador del mapa (ver el keyframe). El escalonado entre los tres
+   aros se pone desde el componente con `animationDelay`. */
+@utility anim-pulso-mapa {
+  /* `transform-box: fill-box` hace que el aro crezca desde su propio centro y
+     no desde la esquina del SVG; sin eso, el aro saldría disparado. */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aczo-pulso-mapa 2400ms var(--ease-3) infinite;
 }
 
 /* ============================================================================

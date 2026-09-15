@@ -260,6 +260,50 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   `PASOS_PARTICULARES` en `mocks/aczo.ts`): sube tu factura → ahorro y recomendación → confirma
   tus datos → seguimiento. Y su cabecera se queda pegada arriba, encogiéndose de 80 a 64 px
   mientras se navega y recuperando su altura completa al volver arriba.
+- **`/area-cliente`** — "Mi cartera": lo que ve quien YA es cliente, no el alta. Barra lateral de
+  navegación sobre superficie oscura, cinco tarjetas de resumen, y un panel con la lista de la
+  cartera y un **mapa de España interactivo**. Marcar una fila (o una entrada de la leyenda) apaga
+  el mapa y enciende solo SUS provincias, de norte a sur y con un marcador que late encima de la
+  principal; volver a pulsarla lo desmarca. La flecha de cada fila abre sus **inmuebles**, con su
+  nombre (subrayado, porque se toca), su categoría, su dirección y sus CUPS; los que llegaron de
+  una factura sin clasificar enseñan "Categoriza este inmueble" y se les puede poner categoría ahí
+  mismo. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
+  selección múltiple y se abren como listas de casillas; el de Dirección va agrupado por provincia,
+  con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece las **categorías
+  generales** (oficinas, local comercial, nave industrial, almacén, centro logístico, hotel,
+  vivienda) y lleva debajo el bloque "Organiza tu cartera", que cuenta cuántos quedan sin clasificar
+  y deja verlos en un modo aparte, con su aviso y su salida. Qué filtros salen depende de la
+  agrupación (`FILTROS_POR_AGRUPACION`): con Ubicación, por ejemplo, el de Sociedad sobra.
+  "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
+  tipo de inmueble — las mismas siete categorías generales que ofrece el filtro, más un
+  grupo "Sin catalogar" que va siempre el último). Los colores del gráfico salen todos de
+  una sola lista (`PALETA_CARTERA`), así que sociedades, comercializadoras y tipos de inmueble se
+  leen igual; la única agrupación donde el color significa cantidad en vez de identidad es la de
+  ubicación, con su escala de verdes y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
+  porcentajes siempre cuadran. **El mapa solo sale agrupando por Ubicación**; en las otras tres
+  agrupaciones ocupa su sitio una **gráfica de anillo** (`GraficaAnillo`), porque ahí lo que se
+  compara no es dónde está cada cosa sino cuánto pesa. Agrupando por Ubicación, además, el mapa se
+  lleva más ancho, se pinta con una **escala de verdes** (más oscuro = más cantidad) y la leyenda
+  pasa a enseñar el **ahorro** en euros en vez de los puntos de suministro.
+
+  Los filtros que salen dependen de la agrupación: los de la propia agrupación más los dos que
+  valen siempre (tipo de suministro y estado). Ver `FILTROS_POR_AGRUPACION`. El mapa va a la izquierda y la lista a la derecha, y el globo que sale al pasar por
+  encima de una provincia **se desglosa por el filtro que haya puesto**: con "Inmueble: local
+  comercial" dice cuántos locales comerciales hay ahí, no el reparto por sociedades. Y se puede
+  pulsar: despliega esa provincia en la lista y la trae a la vista.
+
+  La cartera de mentira se reparte por **6 provincias** (Madrid, Barcelona, Málaga, València,
+  A Coruña y Murcia). Con más, ni la lista ni la leyenda se podían leer de un vistazo. Componentes en
+  `src/components/prototipo/area-cliente/`.
+
+  El mapa NO es la imagen del Figma: las provincias son trazados SVG de verdad, en
+  `src/mocks/provincias-espana.ts`, generados **una sola vez** desde el TopoJSON público de
+  `es-atlas` (datos del INE) y proyectados con `d3-geo`. Esos paquetes se usaron para generar el
+  archivo y se quitaron: el prototipo no depende de nada nuevo. Canarias va en un recuadro aparte
+  abajo a la izquierda, como es costumbre en los mapas de España (en el Figma el mapa es una
+  imagen de la península y Canarias no sale; el recuadro se añade para que esas dos provincias
+  también se puedan pintar).
+
 - **`/estilos`** — la página de referencia de tokens.
 - **`ANIMACIONES.md`** (en la raíz) — el documento para el desarrollador del repo real: qué se
   mueve en cada pantalla, cuánto dura, con qué curva y por qué. **Si se añade o cambia una

@@ -47,6 +47,12 @@ const nombres: IconName[] = [
   "lightbulb",
   "fire",
   "wrench",
+  "dashboard",
+  "wallet",
+  "chart-line",
+  "building-office",
+  "bell",
+  "call",
 ];
 
 /** Todo el set de iconos del prototipo, en `currentColor` (text-content-high). */
