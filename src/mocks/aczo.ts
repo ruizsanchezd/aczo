@@ -1760,10 +1760,16 @@ export function agruparCartera(
     ubicacion: (_s: SociedadCartera, sede: SedeCartera) => sede.provincia,
     sociedad: (s: SociedadCartera) => s.nombre,
     comercializadora: (s: SociedadCartera) => s.comercializadora,
-    // Un grupo por inmueble. Los que aún no tienen nombre se agrupan por su
-    // dirección, que es lo único que los distingue.
+    // Un grupo por TIPO de inmueble, no por inmueble suelto: son las mismas
+    // categorías generales que ofrece el filtro "Inmueble". Con 54 inmuebles,
+    // una fila por cada uno no se puede ni leer ni comparar.
+    //
+    // Los que nadie ha catalogado van todos a un grupo aparte en lugar de
+    // quedarse fuera: si se cayeran, los totales dejarían de sumar 100 y el
+    // centro del anillo mentiría. Y de paso se ve de un vistazo cuánto pesa lo
+    // que falta por ordenar.
     inmueble: (_s: SociedadCartera, _sede: SedeCartera, i: InmuebleCartera) =>
-      i.nombre ?? categoriaDe(i) ?? i.direccion,
+      categoriaDe(i) ?? "Sin catalogar",
   }[modo];
 
   type Fila = {

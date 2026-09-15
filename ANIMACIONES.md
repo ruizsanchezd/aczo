@@ -748,9 +748,14 @@ agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto 
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
 | Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
-| Color | escala de verdes por cantidad | el color de cada sociedad |
 | Leyenda | "% ahorro", en euros | puntos de suministro |
 | Estado en la fila | debajo del nombre | a la derecha |
+
+**Qué significa el color.** Por sociedad y por comercializadora, cada fila ES alguien: el color es
+su identidad, y es lo que ata la lista con el gráfico. Por ubicación y por tipo de inmueble no hay
+identidad que respetar, y heredar el color de "quien más pesa ahí" sale mal — cuatro tipos
+distintos acabarían del mismo verde oscuro solo porque en todos manda la misma sociedad. Así que en
+esas dos el color pasa a contar la **cantidad**, con la escala de verdes: cuanto más oscuro, más.
 
 **El mapa solo sale agrupando por ubicación.** En las demás lo que se quiere comparar no es DÓNDE
 está cada cosa sino CUÁNTO pesa, y para eso un anillo dice en un vistazo lo que un mapa no puede

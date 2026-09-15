@@ -103,12 +103,21 @@ export function AreaCliente() {
   const grupos = useMemo(() => {
     const agrupados = agruparCartera(agrupacion, filtros, categorias);
 
-    // Agrupando por UBICACIÓN, el color deja de significar "quién es" y pasa a
-    // significar "cuánto hay": cada provincia se pinta de un verde más oscuro
-    // cuantos más puntos de suministro tiene. Con las otras agrupaciones el
-    // color sigue siendo la identidad de la sociedad, que es lo que ata la
-    // lista con el mapa.
-    if (agrupacion !== "ubicacion") return agrupados;
+    /*
+     * Cuándo el color significa "cuánto hay" en vez de "quién es".
+     *
+     * Por sociedad y por comercializadora, cada fila ES alguien: el color es su
+     * identidad, y es lo que ata la lista con el gráfico.
+     *
+     * Por ubicación y por tipo de inmueble no hay identidad que respetar, y
+     * heredar el color de "la sociedad que más pesa ahí" sale mal: cuatro tipos
+     * distintos acabarían del mismo verde oscuro solo porque en todos manda la
+     * misma sociedad. Así que ahí el color pasa a contar la cantidad, con la
+     * escala de verdes: cuanto más oscuro, más.
+     */
+    if (agrupacion !== "ubicacion" && agrupacion !== "inmueble") {
+      return agrupados;
+    }
 
     const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
     return agrupados.map((g) => ({ ...g, color: verde(g.puntos / mayor) }));
