@@ -284,7 +284,7 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   agrupaciones ocupa su sitio una **gráfica de anillo** (`GraficaAnillo`), porque ahí lo que se
   compara no es dónde está cada cosa sino cuánto pesa. Agrupando por Ubicación, además, el mapa se
   lleva más ancho, se pinta con una **escala de verdes** (más oscuro = más cantidad) y la leyenda
-  pasa a enseñar el **ahorro** en euros en vez de los puntos de suministro.
+  pasa a contar **inmuebles** en vez de puntos de suministro.
 
   Los filtros que salen dependen de la agrupación: los de la propia agrupación más los dos que
   valen siempre (tipo de suministro y estado). Ver `FILTROS_POR_AGRUPACION`. El mapa va a la izquierda y la lista a la derecha, y el globo que sale al pasar por

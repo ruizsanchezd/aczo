@@ -14,7 +14,6 @@ import {
   ACTUALIZACION_CARTERA,
   agruparCartera,
   ESTADOS_CARTERA,
-  euros,
   FILTROS_POR_AGRUPACION,
   FILTROS_VACIOS,
   MODOS_AGRUPACION,
@@ -179,7 +178,6 @@ export function AreaCliente() {
   }
 
   const puntosVisibles = grupos.reduce((t, g) => t + g.puntos, 0);
-  const ahorroVisible = grupos.reduce((t, g) => t + g.ahorro, 0);
   const porUbicacion = agrupacion === "ubicacion";
 
   return (
@@ -486,12 +484,13 @@ export function AreaCliente() {
                 )}
               </div>
 
-              {/* Agrupando por ubicación la leyenda deja de contar puntos y
-                  pasa a contar dinero: es lo que se quiere comparar entre
-                  provincias. Sale así del Figma. */}
+              {/* Agrupando por ubicación la leyenda cuenta INMUEBLES, no
+                  puntos de suministro: la pregunta ahí es "cuántas cosas tengo
+                  en cada sitio". El rótulo de arriba es lo que evita que el
+                  número quede suelto sin saber de qué es. */}
               {porUbicacion && (
                 <Text variant="label-s" color="mid" as="p" className="-mb-02">
-                  % ahorro
+                  Inmuebles
                 </Text>
               )}
 
@@ -501,10 +500,8 @@ export function AreaCliente() {
                   así que ocupa lo que necesita y ni un pelo más. */}
               <ul className="flex flex-wrap gap-x-04 gap-y-02">
                 {grupos.map((grupo) => {
-                  const total = porUbicacion ? ahorroVisible : puntosVisibles;
-                  const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
-                  const porcentaje = total
-                    ? Math.round((parte / total) * 100)
+                  const porcentaje = puntosVisibles
+                    ? Math.round((grupo.puntos / puntosVisibles) * 100)
                     : 0;
                   const esteMarcado = marcadoVigente === grupo.id;
                   return (
@@ -527,13 +524,16 @@ export function AreaCliente() {
                           {grupo.nombre}
                         </Text>
                         <Text variant="label-s" as="span">
-                          {porUbicacion
-                            ? `${euros(grupo.ahorro)} €`
-                            : grupo.puntos}
+                          {porUbicacion ? grupo.inmuebles : grupo.puntos}
                         </Text>
-                        <Text variant="body-s" color="low" as="span">
-                          {porcentaje}%
-                        </Text>
+                        {/* El porcentaje solo acompaña a los puntos de
+                            suministro: con inmuebles, la cifra a secas ya es
+                            la respuesta. */}
+                        {!porUbicacion && (
+                          <Text variant="body-s" color="low" as="span">
+                            {porcentaje}%
+                          </Text>
+                        )}
                       </button>
                     </li>
                   );
