@@ -748,7 +748,7 @@ agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto 
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
 | Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
-| Leyenda | "% ahorro", en euros | puntos de suministro |
+| Leyenda | nº de **inmuebles** por provincia | puntos de suministro y su % |
 | Estado en la fila | debajo del nombre | a la derecha |
 
 **Qué significa el color.** En tres de las cuatro agrupaciones el color es una **identidad**, y
@@ -870,6 +870,11 @@ su provincia.
 **La leyenda va en horizontal**, no en columna: las entradas se reparten en línea y saltan de
 renglón solas cuando no caben. En vertical se comía media columna para decir seis cosas cortas
 (140 px frente a los 40 que ocupa ahora con las seis ubicaciones).
+
+Y **cuenta inmuebles, no puntos de suministro**: agrupando por ubicación la pregunta es "cuántas
+cosas tengo en cada sitio". Va sin porcentaje —con inmuebles, la cifra a secas ya es la respuesta—
+y con un rótulo "Inmuebles" encima, que es lo que evita que el número quede suelto sin saber de qué
+es.
 
 1. **Encendido escalonado.** Las provincias no aparecen a la vez: se encienden **de norte a sur**,
    con **40 ms** entre una y la siguiente (`anim-aparece-simple`, `micro-appear`). Son 40 y no los
