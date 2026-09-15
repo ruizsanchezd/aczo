@@ -864,8 +864,12 @@ Dos ajustes, los dos para que el mapa se pueda leer:
 - **Suelo del 25 %.** Por debajo, el verde se confunde con el gris de la tierra y una provincia con
   datos parecería no tener ninguno.
 
-La leyenda usa exactamente el mismo verde que el mapa: el cuadradito de cada fila ES el color de su
-provincia.
+La leyenda usa exactamente el mismo verde que el mapa: el cuadradito de cada entrada ES el color de
+su provincia.
+
+**La leyenda va en horizontal**, no en columna: las entradas se reparten en línea y saltan de
+renglón solas cuando no caben. En vertical se comía media columna para decir seis cosas cortas
+(140 px frente a los 40 que ocupa ahora con las seis ubicaciones).
 
 1. **Encendido escalonado.** Las provincias no aparecen a la vez: se encienden **de norte a sur**,
    con **40 ms** entre una y la siguiente (`anim-aparece-simple`, `micro-appear`). Son 40 y no los

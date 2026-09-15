@@ -490,17 +490,16 @@ export function AreaCliente() {
                   pasa a contar dinero: es lo que se quiere comparar entre
                   provincias. Sale así del Figma. */}
               {porUbicacion && (
-                <Text
-                  variant="label-s"
-                  color="mid"
-                  as="p"
-                  className="-mb-02 text-right"
-                >
+                <Text variant="label-s" color="mid" as="p" className="-mb-02">
                   % ahorro
                 </Text>
               )}
 
-              <ul className="flex flex-col gap-01">
+              {/* La leyenda va en HORIZONTAL: en vertical se comía media
+                  columna para decir seis cosas cortas. Las entradas se
+                  reparten en línea y saltan de renglón solas cuando no caben,
+                  así que ocupa lo que necesita y ni un pelo más. */}
+              <ul className="flex flex-wrap gap-x-04 gap-y-02">
                 {grupos.map((grupo) => {
                   const total = porUbicacion ? ahorroVisible : puntosVisibles;
                   const parte = porUbicacion ? grupo.ahorro : grupo.puntos;
@@ -516,34 +515,25 @@ export function AreaCliente() {
                         onClick={() =>
                           setMarcado(esteMarcado ? null : grupo.id)
                         }
-                        className={`flex w-full cursor-pointer items-center justify-between gap-03 rounded-sm px-01 py-[2px] text-left transition-opacity motion-micro-states hover:opacity-60 ${
+                        className={`flex cursor-pointer items-center gap-02 rounded-sm text-left transition-opacity motion-micro-states hover:opacity-60 ${
                           marcadoVigente && !esteMarcado ? "opacity-30" : ""
                         }`}
                       >
-                        <span className="flex min-w-0 items-center gap-02">
-                          <span
-                            className="size-03 shrink-0 rounded-sm"
-                            style={{ backgroundColor: grupo.color }}
-                          />
-                          <Text
-                            variant="body-s"
-                            color="mid"
-                            as="span"
-                            className="truncate"
-                          >
-                            {grupo.nombre}
-                          </Text>
-                        </span>
-                        <span className="flex shrink-0 items-center gap-01">
-                          <Text variant="label-s" as="span">
-                            {porUbicacion
-                              ? `${euros(grupo.ahorro)} €`
-                              : grupo.puntos}
-                          </Text>
-                          <Text variant="body-s" color="low" as="span">
-                            {porcentaje}%
-                          </Text>
-                        </span>
+                        <span
+                          className="size-03 shrink-0 rounded-sm"
+                          style={{ backgroundColor: grupo.color }}
+                        />
+                        <Text variant="body-s" color="mid" as="span">
+                          {grupo.nombre}
+                        </Text>
+                        <Text variant="label-s" as="span">
+                          {porUbicacion
+                            ? `${euros(grupo.ahorro)} €`
+                            : grupo.puntos}
+                        </Text>
+                        <Text variant="body-s" color="low" as="span">
+                          {porcentaje}%
+                        </Text>
                       </button>
                     </li>
                   );
