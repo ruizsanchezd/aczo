@@ -1547,15 +1547,9 @@ export const FILTROS_POR_AGRUPACION: Record<
   (keyof FiltrosCartera)[]
 > = {
   ubicacion: ["direcciones", "tiposDeInmueble", "tipos", "estados"],
-  sociedad: ["sociedades", "tipos", "tiposDeInmueble", "direcciones", "estados"],
-  comercializadora: [
-    "sociedades",
-    "tipos",
-    "tiposDeInmueble",
-    "direcciones",
-    "estados",
-  ],
-  inmueble: ["sociedades", "tipos", "tiposDeInmueble", "direcciones", "estados"],
+  sociedad: ["sociedades", "tipos", "estados"],
+  comercializadora: ["comercializadoras", "tipos", "estados"],
+  inmueble: ["tiposDeInmueble", "tipos", "estados"],
 };
 
 /**
@@ -1633,6 +1627,7 @@ function todosLosInmuebles() {
  */
 export type FiltrosCartera = {
   sociedades: string[];
+  comercializadoras: string[];
   tipos: TipoCartera[];
   /**
    * Tipos de inmueble elegidos (Oficinas, Almacén, Nave industrial…). El filtro
@@ -1653,6 +1648,7 @@ export type FiltrosCartera = {
 
 export const FILTROS_VACIOS: FiltrosCartera = {
   sociedades: [],
+  comercializadoras: [],
   tipos: [],
   tiposDeInmueble: [],
   direcciones: [],
@@ -1713,6 +1709,9 @@ export function listaDeInmuebles(
 /** Las opciones de cada filtro, sacadas de los propios datos. */
 export const OPCIONES_FILTROS = {
   sociedades: SOCIEDADES_CARTERA.map((s) => s.nombre),
+  comercializadoras: [
+    ...new Set(SOCIEDADES_CARTERA.map((s) => s.comercializadora)),
+  ],
   tipos: [
     { value: "luz" as const, label: "Luz" },
     { value: "gas" as const, label: "Gas" },
@@ -1779,6 +1778,8 @@ export function agruparCartera(
   const pasaFiltros = ({ sociedad, inmueble }: Fila) =>
     (filtros.sociedades.length === 0 ||
       filtros.sociedades.includes(sociedad.nombre)) &&
+    (filtros.comercializadoras.length === 0 ||
+      filtros.comercializadoras.includes(sociedad.comercializadora)) &&
     (filtros.tipos.length === 0 ||
       filtros.tipos.some((t) => inmueble.tipos.includes(t))) &&
     (filtros.tiposDeInmueble.length === 0 ||

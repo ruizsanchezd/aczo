@@ -486,6 +486,25 @@
   }
 }
 
+/* Los tramos del anillo de "Mi cartera" se DIBUJAN al entrar, uno detrás de
+   otro, como si alguien recorriera la circunferencia con un rotulador. Un
+   anillo que aparece entero de golpe es un dibujo; uno que se dibuja se lee
+   como "esto se está calculando delante de ti", que es justo lo que pasa cada
+   vez que cambias un filtro.
+
+   El truco: cada tramo lleva su propio largo en `--largo`, y lo que se anima es
+   el desplazamiento de la línea de puntos, de "todo escondido" a "todo a la
+   vista". Es la única forma de tener un mismo keyframe para tramos de largos
+   distintos. */
+@keyframes aczo-anillo-entra {
+  from {
+    stroke-dashoffset: var(--largo);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* La barrita amarilla que marca la sección activa del área de cliente: no
    aparece de golpe, se estira desde el centro hacia arriba y hacia abajo. Es
    un gesto diminuto, pero es lo que hace que el cambio de sección se lea como
@@ -597,6 +616,13 @@
   animation:
     aczo-tramitacion-entra var(--motion-timing-5) var(--ease-4) both,
     aczo-tramitacion-pulso 2400ms var(--ease-4) var(--motion-timing-5) infinite;
+}
+
+/* Un tramo del anillo dibujándose (ver el keyframe). El escalonado entre tramos
+   se pone desde el componente con `animationDelay`. Usa macro-structure porque
+   es el gráfico entero recolocándose, no un detalle suelto. */
+@utility anim-anillo-entra {
+  animation: aczo-anillo-entra var(--motion-timing-5) var(--ease-4) both;
 }
 
 /* La barrita de la sección activa (ver el keyframe). Usa macro-levelup porque

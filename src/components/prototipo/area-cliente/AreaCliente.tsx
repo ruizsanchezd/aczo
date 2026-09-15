@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
+import { GraficaAnillo } from "@/components/ui/GraficaAnillo";
 import { GrupoSegmentado } from "@/components/ui/GrupoSegmentado";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
@@ -288,6 +289,26 @@ export function AreaCliente() {
                     />
                   );
 
+                if (campo === "comercializadoras")
+                  return (
+                    <FiltroCasillas
+                      key={campo}
+                      nombre="Comercializadora"
+                      {...comun}
+                      seleccion={filtros.comercializadoras}
+                      onChange={(comercializadoras) =>
+                        setFiltros((f) => ({ ...f, comercializadoras }))
+                      }
+                      grupos={[
+                        {
+                          opciones: OPCIONES_FILTROS.comercializadoras.map(
+                            (x) => ({ value: x, label: x }),
+                          ),
+                        },
+                      ]}
+                    />
+                  );
+
                 if (campo === "tipos")
                   return (
                     <FiltroCasillas
@@ -416,15 +437,32 @@ export function AreaCliente() {
               }`}
             >
               <div className="flex justify-center lg:min-h-0 lg:flex-1">
-                <MapaProvincias
-                  grupos={grupos}
-                  seleccionado={marcadoVigente}
-                  filtros={filtros}
-                  // Solo agrupando por ubicación una provincia se corresponde
-                  // con una fila de la lista; en las demás agrupaciones no hay
-                  // nada que abrir y el globo se queda como información.
-                  onAbrirProvincia={porUbicacion ? abrirProvincia : undefined}
-                />
+                {/* El mapa solo tiene sentido agrupando por ubicación. En las
+                    demás agrupaciones lo que se quiere comparar no es DÓNDE
+                    está cada cosa sino CUÁNTO pesa, y para eso el anillo dice
+                    en un vistazo lo que un mapa no puede decir. */}
+                {porUbicacion ? (
+                  <MapaProvincias
+                    grupos={grupos}
+                    seleccionado={marcadoVigente}
+                    filtros={filtros}
+                    onAbrirProvincia={abrirProvincia}
+                  />
+                ) : (
+                  <GraficaAnillo
+                    unidad="Ptos de suministro"
+                    seleccionado={marcadoVigente}
+                    onSeleccionar={(id) =>
+                      setMarcado(marcadoVigente === id ? null : id)
+                    }
+                    segmentos={grupos.map((g) => ({
+                      id: g.id,
+                      etiqueta: g.nombre,
+                      valor: g.puntos,
+                      color: g.color,
+                    }))}
+                  />
+                )}
               </div>
 
               {/* Agrupando por ubicación la leyenda deja de contar puntos y

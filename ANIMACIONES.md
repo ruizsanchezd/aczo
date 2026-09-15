@@ -747,11 +747,24 @@ agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto 
 
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
-| Ancho del mapa | 588 px (el mapa manda) | 365 px |
+| Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
+| Color | escala de verdes por cantidad | el color de cada sociedad |
 | Leyenda | "% ahorro", en euros | puntos de suministro |
-| Color del mapa | escala de verdes por cantidad | el color de cada sociedad |
 | Estado en la fila | debajo del nombre | a la derecha |
-| Filtros | Dirección, Inmueble, Tipo de suministro, Estado | + Sociedad |
+
+**El mapa solo sale agrupando por ubicación.** En las demás lo que se quiere comparar no es DÓNDE
+está cada cosa sino CUÁNTO pesa, y para eso un anillo dice en un vistazo lo que un mapa no puede
+decir. Ver `GraficaAnillo`.
+
+**Los filtros cambian con la agrupación**, y son siempre los de la propia agrupación más los dos
+que valen para todo (tipo de suministro y estado):
+
+| Agrupación | Filtros |
+| --- | --- |
+| Ubicación | Dirección · Inmueble · Tipo de suministro · Estado |
+| Sociedad | Sociedad · Tipo de suministro · Estado |
+| Comercializadora | Comercializadora · Tipo de suministro · Estado |
+| Inmueble | Inmueble · Tipo de suministro · Estado |
 
 
 La pastilla oscura **no salta** de una opción a otra: se **desliza**, animando a la vez su posición
@@ -777,7 +790,26 @@ El **color es la pieza clave**: la fila, su cuadrado y sus provincias del mapa s
 color. Ese color compartido es lo que ata la lista y el mapa; sin él serían dos cosas que cambian a
 la vez sin que se entienda por qué.
 
-### El panel: el mapa a la izquierda
+### La gráfica de anillo (GraficaAnillo)
+
+Ocupa el sitio del mapa en las tres agrupaciones que no son por ubicación. En el centro va el
+total, que es lo que ancla todo lo demás: cada tramo se lee como "su parte de esos 100".
+
+- **Se dibuja al entrar.** Los tramos no aparecen de golpe: se van dibujando uno detrás de otro,
+  como si alguien recorriera la circunferencia con un rotulador (`anim-anillo-entra`,
+  `macro-structure`: 500 ms, ease in out, con **80 ms** entre tramo y tramo). Un anillo que aparece
+  entero es un dibujo; uno que se dibuja se lee como "esto se está calculando delante de ti" — que
+  es justo lo que pasa cada vez que cambias un filtro.
+  El truco para animar tramos de largos distintos con un solo keyframe: cada uno lleva su largo en
+  `--largo` y lo que se anima es el desplazamiento de su línea de puntos, de "todo escondido" a
+  "todo a la vista". Ojo: ese desplazamiento NO puede usarse además para colocar el tramo en su
+  sitio — para eso, un `rotate`.
+- **Al pasar por encima** de un tramo, los demás bajan de intensidad y ese engorda un poco
+  (`micro-states`). Y el centro cambia: pasa a enseñar el valor y el nombre de ese tramo, así que
+  no hace falta ir a buscarlo a la leyenda.
+- **Pulsar un tramo lo marca**, igual que pulsar su fila en la lista.
+
+### El panel: el mapa (o la gráfica) a la izquierda
 
 El mapa va **a la izquierda** y la lista a la derecha. Ninguna de las dos columnas tiene alto fijo
 ni rueda por dentro: crecen lo que haga falta y quien rueda es **la página**, que es lo que se
