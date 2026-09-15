@@ -26,8 +26,11 @@ import { Text } from "@/components/ui/Text";
  *                         ese solo puede contener inmuebles catalogados, que
  *                         son los únicos que ofrece. Es un modo aparte, y
  *                         mientras dura lo explica un aviso encima de la lista.
- *   Filtrar por ubicación cierra este filtro y abre el de Dirección, que sí
- *                         sabe agrupar por provincia aunque no haya nombres.
+ *   Filtrar por ubicación lleva a mirar la cartera por sitios, que es donde un
+ *                         inmueble sin nombre sí se puede encontrar. Qué hace
+ *                         exactamente depende de dónde salga el bloque: en el
+ *                         filtro abre el de Dirección; al final de la lista
+ *                         cambia la agrupación a "Ubicación".
  *
  * ⚠️ En el Figma "Organizar cartera" es un botón sin destino: el flujo de
  * organizar la cartera en bloque no está diseñado todavía. Aquí hace lo único
@@ -47,7 +50,11 @@ export function OrganizaTuCartera({
   onFiltrarPorUbicacion: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-04 p-04 text-center">
+    // El ancho máximo no es un token: es una medida de lectura. El bloque sale
+    // en dos sitios de anchos muy distintos (el desplegable del filtro y el
+    // final de la lista) y sin tope, en el ancho grande, el texto se estiraría
+    // en una sola línea larguísima y los botones cruzarían la pantalla.
+    <div className="mx-auto flex w-full max-w-[320px] flex-col items-center gap-04 p-04 text-center">
       <div className="flex flex-col gap-02">
         <Text variant="label-l" as="p">
           Organiza tu cartera
@@ -62,14 +69,7 @@ export function OrganizaTuCartera({
       </div>
 
       <div className="flex w-full flex-col gap-02">
-        {/* El relleno gris sale del Figma. `bg-background-mid` es el token que
-            le corresponde; el botón en sí es el terciario del sistema. */}
-        <Button
-          variant="tertiary"
-          fullWidth
-          onClick={onOrganizar}
-          className="bg-background-mid"
-        >
+        <Button variant="secondary" fullWidth onClick={onOrganizar}>
           Organizar cartera
         </Button>
         <Button variant="tertiary" fullWidth onClick={onFiltrarPorUbicacion}>

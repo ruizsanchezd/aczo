@@ -966,7 +966,28 @@ puede elegir **más de una**. No elegir ninguna quiere decir "todas".
   al llegar al final desaparece. No es decoración: es lo que avisa de que la lista sigue, y su
   ausencia dice "ya está".
 
-### El filtro de Inmueble y "Organiza tu cartera"
+### "Organiza tu cartera", y dónde sale
+
+El bloque aparece en **dos sitios**, y en los dos por lo mismo: hay inmuebles que nadie ha
+clasificado y por eso no se pueden encontrar por su nombre.
+
+1. **Dentro del filtro de Inmueble**, debajo de las categorías.
+2. **Al final de la lista, agrupando por tipo de inmueble.** Ahí los sin clasificar **no salen en
+   ninguna fila** — no tienen tipo, así que no hay grupo al que pertenezcan, y meterlos en un
+   "Sin catalogar" sería inventarles una categoría. Como entonces faltarían 16 inmuebles de la
+   cuenta sin que nada lo explicase, el bloque lo dice al final. Es también el motivo de que el
+   centro del anillo diga 82 y no 100 en esa agrupación.
+
+Sus dos acciones hacen lo propio de cada sitio:
+
+- **Organizar cartera** deja a la vista solo los inmuebles sin clasificar. Desde el final de la
+  lista, además, cambia la agrupación a Ubicación — en la de tipo de inmueble no saldría ninguno,
+  que es justo el problema del que viene.
+- **Filtrar por ubicación** lleva a mirar la cartera por sitios, que es donde un inmueble sin
+  nombre sí se puede encontrar: en el filtro abre el de Dirección; al final de la lista cambia la
+  agrupación a Ubicación.
+
+### El filtro de Inmueble
 
 Un inmueble solo se puede elegir por su nombre si **está clasificado**. Los que llegaron de una
 factura y nadie ha tocado no tienen nombre, así que el filtro no puede ofrecerlos — y en vez de

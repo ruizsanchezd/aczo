@@ -1764,12 +1764,11 @@ export function agruparCartera(
     // categorías generales que ofrece el filtro "Inmueble". Con 54 inmuebles,
     // una fila por cada uno no se puede ni leer ni comparar.
     //
-    // Los que nadie ha catalogado van todos a un grupo aparte en lugar de
-    // quedarse fuera: si se cayeran, los totales dejarían de sumar 100 y el
-    // centro del anillo mentiría. Y de paso se ve de un vistazo cuánto pesa lo
-    // que falta por ordenar.
+    // Los que nadie ha catalogado no salen aquí (ver `pasaFiltros`): no tienen
+    // tipo, así que no hay grupo al que pertenezcan. La pantalla lo avisa con
+    // un mensaje al final de la lista en vez de inventarles una categoría.
     inmueble: (_s: SociedadCartera, _sede: SedeCartera, i: InmuebleCartera) =>
-      categoriaDe(i) ?? "Sin catalogar",
+      categoriaDe(i) ?? "",
   }[modo];
 
   type Fila = {
@@ -1795,7 +1794,11 @@ export function agruparCartera(
       filtros.direcciones.includes(inmueble.direccion)) &&
     (filtros.estados.length === 0 ||
       filtros.estados.some((e) => inmueble.puntos[e] > 0)) &&
-    (!filtros.soloSinClasificar || !categoriaDe(inmueble));
+    (!filtros.soloSinClasificar || !categoriaDe(inmueble)) &&
+    // Agrupando por tipo de inmueble, los que no tienen tipo se quedan fuera:
+    // no hay grupo al que pertenezcan. La pantalla lo avisa al final de la
+    // lista, que es mejor que inventarles una categoría de pega.
+    (modo !== "inmueble" || !!categoriaDe(inmueble));
 
   for (const fila of todosLosInmuebles().filter(pasaFiltros)) {
     const k = clave(fila.sociedad, fila.sede, fila.inmueble);

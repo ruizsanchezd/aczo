@@ -419,7 +419,7 @@ export function AreaCliente() {
             <Alert tone="subtle" icon="folder" className="anim-aparece mt-04">
               <div className="flex flex-wrap items-center justify-between gap-03">
                 <Text variant="body-m" color="mid" as="span">
-                  Estás viendo solo los inmuebles que faltan por catalogar.
+                  Estás viendo solo los inmuebles que faltan por clasificar.
                 </Text>
                 <Button
                   variant="tertiary"
@@ -597,6 +597,24 @@ export function AreaCliente() {
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {/* Agrupando por tipo, los inmuebles sin catalogar no salen en
+                  ninguna fila: no tienen tipo. En vez de inventarles una
+                  categoría de pega, se avisa aquí abajo — si no, faltarían 16
+                  inmuebles de la cuenta sin que nada lo explicase. */}
+              {agrupacion === "inmueble" && sinClasificar > 0 && (
+                <div className="anim-aparece mt-04 rounded-md border border-border-low bg-background-low">
+                  <OrganizaTuCartera
+                    sinClasificar={sinClasificar}
+                    hayClasificados
+                    onOrganizar={() => {
+                      setFiltros((f) => ({ ...f, soloSinClasificar: true }));
+                      cambiarAgrupacion("ubicacion");
+                    }}
+                    onFiltrarPorUbicacion={() => cambiarAgrupacion("ubicacion")}
+                  />
+                </div>
               )}
             </div>
           </div>
