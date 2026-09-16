@@ -103,6 +103,34 @@ se comporte igual sobre cualquier superficie.
   (empresas), y con acciones dentro el ancho pasa a ser el fijo del Figma (320 px), el que deja
   sitio a los dos botones en una sola línea. Ojo al implementar: el momento de montar la burbuja en el DOM se ajusta DURANTE el
   render, no desde un efecto — desde un efecto encadena un render de más.
+- **Disparador a lo ancho (`bloque`):** por defecto el disparador es `inline-flex` y se ajusta a
+  su contenido, que es lo que hace falta envolviendo un icono. Envolviendo un TEXTO QUE SE CORTA
+  hay que pasar `bloque`, o la caja le daría al texto todo el ancho que pide, el texto dejaría de
+  cortarse y desaparecería el motivo mismo de la burbuja. Lo usa `TextoRecortado`.
+
+### TextoRecortado
+
+Un texto que se corta con puntos suspensivos y que, **solo cuando de verdad ha quedado cortado**,
+enseña el texto entero al pasar por encima. Se ve en las tablas de "Mi cartera": "Planta 1
+Puerta…", "Calle Velázquez nº 10, Alcobendas, M…".
+
+- **La burbuja es la del sistema**, con sus tiempos de siempre (`micro-appear` al entrar,
+  `micro-leave` al salir). Aquí no se inventa ninguna animación.
+- **Solo sale si el texto está cortado.** Ponerla siempre llenaría la pantalla de globos que
+  repiten lo que ya se lee entero, y acabarían ignorándose justo cuando sí hacen falta. Por eso se
+  MIDE el elemento (`scrollWidth > clientWidth`, con 1 px de margen por los redondeos a subpíxel).
+- **Se vuelve a medir tres veces**, y cada una por un motivo distinto:
+  - Al cambiar de tamaño (`ResizeObserver` sobre el texto y sobre su padre, que es quien manda el
+    ancho de la celda): agrupando por ubicación el mapa se lleva más ancho y la tabla de al lado
+    se recoloca.
+  - Al acabar de cargar las tipografías (`document.fonts.ready`): en la primera medición todavía
+    está la fuente de repuesto, más estrecha, y un texto que con Inter no cabe ahí sí cabía. La
+    caja no cambia de tamaño al cambiar la fuente, así que el observador de tamaño ni se entera.
+  - Al envolverlo en la burbuja: envolverlo cambia el sitio del texto en la página y el navegador
+    lo tira y crea uno nuevo. **Por eso el elemento a medir se guarda en un estado y no en una
+    `ref` normal** — con una `ref` normal nos quedaríamos midiendo para siempre un elemento viejo,
+    ya fuera del documento, y la burbuja no llegaría a salir nunca. Es el fallo que tuvo esto la
+    primera vez.
 
 ## Pantalla 1 · Subida masiva de facturas
 
@@ -745,11 +773,28 @@ opacidad de hover que usan los botones del sistema.
 Son **cuatro**: Ubicación, Sociedad, Comercializadora e Inmueble. No solo rehacen la lista — la
 agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto pasa a ser el mapa:
 
+La pantalla **abre por Ubicación**: es la vista que más dice de un vistazo (dónde está la cartera
+y cuánta hay en cada sitio) y la única con mapa.
+
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
 | Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
-| Leyenda | nº de **inmuebles** por provincia | puntos de suministro y su % |
+| Leyenda | **ninguna** | puntos de suministro y su % |
+| Emblema de la fila | chincheta (`DS Icon / Location`) | edificio, o el **logo** de la comercializadora |
 | Estado en la fila | debajo del nombre | a la derecha |
+
+**Con el mapa no hay leyenda**, y no es un olvido: el mapa ya dice qué provincia es cada cosa por
+su forma y su sitio, y el detalle exacto lo da el globo al pasar por encima. Una leyenda ahí sería
+repetir lo que ya se ve.
+
+**Cambiar de agrupación reinicia los filtros.** Cada agrupación tiene los suyos, así que al pasar
+de ubicación a sociedades la mitad de los que hubiera puestos ni siquiera se verían — y seguirían
+recortando la lista sin que nada lo explique, que se leería como que faltan cosas.
+
+**El emblema de la fila cambia con la agrupación** porque cambia lo que hay en cada fila: una
+chincheta dice "un sitio" mucho antes que un edificio, y una comercializadora se reconoce por su
+logo antes que por cualquier icono. El logo va en su caja blanca de siempre, no sobre el cuadrado
+oscuro: las marcas se reconocen sobre blanco.
 
 **Qué significa el color.** En tres de las cuatro agrupaciones el color es una **identidad**, y
 sale de una sola lista compartida (`PALETA_CARTERA`): es lo que hace que el gráfico se lea igual
@@ -960,10 +1005,23 @@ una, la fila vuelve a su forma normal ya clasificada, sin mover nada de alrededo
 (`micro-states`). Si el inmueble no tenía nombre, la categoría pasa a hacer de rótulo — no se le
 inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
 
-> ⚠️ En el Figma la flecha de cada inmueble aparece solo cerrada: **lo que hay debajo no está
-> diseñado todavía**. El prototipo abre ahí lo que ya se sabe del inmueble (luz/gas y en qué estado
-> están sus puntos) para que el control no quede muerto. Cuando exista ese nivel en Figma, se
-> sustituye.
+### Al desplegar un inmueble: su tabla de suministros
+
+La flecha de un inmueble abre **la tabla de sus puntos de suministro** (`TablaSuministrosInmueble`):
+nombre del punto, luz o gas, quién se lo sirve y si lleva mantenimiento; a la derecha, el puntito de
+su estado y otra flecha.
+
+- **Cada fila abre la MISMA ficha técnica** que las tablas de empresas y particulares
+  (`DetalleTecnicoSuministro`): CUPS, tarifa, consumo anual, potencia, perfil de consumo y compañía
+  actual. No es una copia parecida: es el mismo componente, así que los tres sitios cambian a la
+  vez. Aquí va en su variante `compacto` (fondo gris y menos aire), porque la columna es estrecha.
+- **Solo una fila abierta a la vez.** Con siete puntos en un inmueble, dejarlas todas abiertas
+  convierte la tabla en una lista larguísima donde ya no se pueden comparar las filas.
+- Se despliega con la rejilla `0fr` → `1fr` de siempre (`macro-levelup`) y la flecha gira con
+  `micro-states`, acabando antes que el panel.
+- **Las columnas van en proporción, no en píxeles fijos.** La tabla vive dentro de la lista, y la
+  lista no siempre mide lo mismo: agrupando por ubicación el mapa se lleva mucho ancho y la tabla se
+  queda en unos 480 px, donde los 519 del Figma no caben y la última columna se cortaba.
 
 ### Filtros
 

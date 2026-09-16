@@ -53,6 +53,7 @@ const nombres: IconName[] = [
   "building-office",
   "bell",
   "call",
+  "location",
 ];
 
 /** Todo el set de iconos del prototipo, en `currentColor` (text-content-high). */

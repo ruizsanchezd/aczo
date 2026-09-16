@@ -187,3 +187,23 @@ export const AbiertaDesdeFuera: Story = {
     );
   },
 };
+
+/**
+ * `bloque`: el disparador ocupa todo el ancho de su hueco en vez de ajustarse
+ * a su contenido. Es lo que hace falta al envolver un **texto que se corta**
+ * con puntos suspensivos: sin esto, la caja se ajustaría al texto, le daría
+ * todo el ancho que pide y el texto dejaría de cortarse — justo lo contrario
+ * de lo que se busca. Lo usa `TextoRecortado`.
+ */
+export const Bloque: Story = {
+  args: { content: "Calle Velázquez nº 10, Alcobendas, Madrid" },
+  render: (args) => (
+    <div className="flex h-[120px] w-[180px] items-end">
+      <Tooltip {...args} bloque>
+        <span className="block truncate text-label-s text-content-high">
+          Calle Velázquez nº 10, Alcobendas, Madrid
+        </span>
+      </Tooltip>
+    </div>
+  ),
+};

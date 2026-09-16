@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from "react";
+import type { ElementType, ReactNode, Ref } from "react";
 
 /**
  * Text — aplica la escala tipográfica del sistema de diseño.
@@ -77,6 +77,12 @@ type TextProps = {
   as?: ElementType;
   className?: string;
   children?: ReactNode;
+  /**
+   * Para llegar al elemento desde fuera. Lo usa `TextoRecortado`, que necesita
+   * medirlo para saber si el texto ha quedado cortado. En React 19 la `ref` es
+   * una prop normal, sin necesidad de `forwardRef`.
+   */
+  ref?: Ref<HTMLElement>;
 };
 
 export function Text({
@@ -85,11 +91,15 @@ export function Text({
   as,
   className = "",
   children,
+  ref,
 }: TextProps) {
   const Tag = as ?? defaultTags[variant];
 
   return (
-    <Tag className={`${variants[variant]} ${colors[color]} ${className}`.trim()}>
+    <Tag
+      ref={ref}
+      className={`${variants[variant]} ${colors[color]} ${className}`.trim()}
+    >
       {children}
     </Tag>
   );

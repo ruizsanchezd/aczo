@@ -1589,6 +1589,8 @@ export type LineaDetalle = {
   /** Puntos de suministro (CUPS) del inmueble. */
   puntos: number;
   estados: Record<EstadoCartera, number>;
+  /** Los CUPS uno a uno, que es lo que se ve al desplegar el inmueble. */
+  suministros: PuntoDeInmueble[];
 };
 
 /**
@@ -1860,6 +1862,7 @@ export function agruparCartera(
         tipos: inmueble.tipos,
         puntos: puntosDeInmueble(inmueble),
         estados: inmueble.puntos,
+        suministros: puntosDelInmueble(inmueble, sociedad.comercializadora),
       })),
     };
   });
@@ -1874,4 +1877,95 @@ export function agruparCartera(
     if (b.id === SIN_CATALOGAR) return -1;
     return b.puntos - a.puntos;
   });
+}
+
+/* --- Los puntos de suministro de cada inmueble ----------------------------- */
+
+/**
+ * Los CUPS que se ven al desplegar un inmueble en "Mi cartera".
+ *
+ * NO están escritos uno a uno: son cien, y a mano se desincronizarían del
+ * `puntos` de su inmueble a la primera. Se derivan de lo que ya hay — cuántos
+ * puntos tiene el inmueble en cada estado y si lleva luz, gas o las dos — con
+ * el mismo atajo `suministro()` que usa el resto del prototipo, así que
+ * comparten forma, CUPS de pega y valores por defecto.
+ *
+ * Al editar los `puntos` de un inmueble, su lista de CUPS se rehace sola.
+ */
+
+/** Los sitios con los que se nombra un punto dentro de un edificio. */
+const SITIOS = [
+  "Planta 1 Puerta Derecha",
+  "Planta 1 Puerta Izquierda",
+  "Planta 2 Puerta Derecha",
+  "Planta 2 Puerta Izquierda",
+  "Planta 3 Oficina",
+  "Planta baja Local",
+  "Sótano Garaje",
+  "Cubierta Climatización",
+  "Almacén interior",
+  "Zona común",
+];
+
+export type PuntoDeInmueble = {
+  suministro: Suministro;
+  estado: EstadoCartera;
+  /** Quién le da el suministro hoy. Es la de su sociedad. */
+  comercializadora: string;
+};
+
+/**
+ * Reparte los puntos de un inmueble en CUPS concretos.
+ *
+ * El reparto es a propósito determinista (nada de azar): la misma cartera
+ * produce siempre la misma lista, así que una captura de pantalla de hoy sigue
+ * valiendo mañana.
+ */
+export function puntosDelInmueble(
+  inmueble: InmuebleCartera,
+  comercializadora: string,
+): PuntoDeInmueble[] {
+  const puntos: PuntoDeInmueble[] = [];
+  let i = 0;
+
+  for (const estado of ESTADOS_CARTERA) {
+    for (let n = 0; n < inmueble.puntos[estado.id]; n++) {
+      // Si el inmueble tiene luz y gas, el gas es SIEMPRE el último punto: en
+      // un edificio hay una acometida de gas y muchos cuadros de luz.
+      const ultimo =
+        i === puntosDeInmueble(inmueble) - 1 && inmueble.tipos.includes("gas");
+      const tipo: TipoSuministro = ultimo ? "Gas" : "Luz";
+
+      // La potencia sube con el tamaño del inmueble: los que tienen muchos
+      // puntos son instalaciones grandes, y algunas pasan del umbral a partir
+      // del cual el mantenimiento de luz entra solo.
+      const potencia =
+        tipo === "Gas" ? 0 : 15.5 + (puntosDeInmueble(inmueble) > 4 ? 20 : 0);
+
+      puntos.push({
+        estado: estado.id,
+        comercializadora,
+        suministro: suministro(
+          // El número va DELANTE: el CUPS de pega se calcula con los primeros
+          // caracteres del id, y con la dirección delante saldrían todos
+          // iguales dentro de un mismo inmueble.
+          `${i}-${inmueble.direccion}`,
+          SITIOS[i % SITIOS.length],
+          tipo,
+          tipo === "Gas" ? "3.1" : "2.0TD",
+          0,
+          0,
+          {
+            ciudad: inmueble.direccion.split(", ").pop() ?? "",
+            potencia,
+            consumoAnual: tipo === "Gas" ? 18_400 : 42_350,
+            mantenimiento: tipo === "Gas" || potencia > POTENCIA_MANTENIMIENTO_AUTO,
+          },
+        ),
+      });
+      i++;
+    }
+  }
+
+  return puntos;
 }
