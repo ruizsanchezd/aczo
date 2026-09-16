@@ -745,11 +745,28 @@ opacidad de hover que usan los botones del sistema.
 Son **cuatro**: Ubicación, Sociedad, Comercializadora e Inmueble. No solo rehacen la lista — la
 agrupación por **Ubicación** cambia la pantalla entera, porque ahí el asunto pasa a ser el mapa:
 
+La pantalla **abre por Ubicación**: es la vista que más dice de un vistazo (dónde está la cartera
+y cuánta hay en cada sitio) y la única con mapa.
+
 | Qué | Con Ubicación | Con las demás |
 | --- | --- | --- |
 | Pieza de la izquierda | el **mapa** (588 px de ancho) | la **gráfica de anillo** (365 px) |
-| Leyenda | nº de **inmuebles** por provincia | puntos de suministro y su % |
+| Leyenda | **ninguna** | puntos de suministro y su % |
+| Emblema de la fila | chincheta (`DS Icon / Location`) | edificio, o el **logo** de la comercializadora |
 | Estado en la fila | debajo del nombre | a la derecha |
+
+**Con el mapa no hay leyenda**, y no es un olvido: el mapa ya dice qué provincia es cada cosa por
+su forma y su sitio, y el detalle exacto lo da el globo al pasar por encima. Una leyenda ahí sería
+repetir lo que ya se ve.
+
+**Cambiar de agrupación reinicia los filtros.** Cada agrupación tiene los suyos, así que al pasar
+de ubicación a sociedades la mitad de los que hubiera puestos ni siquiera se verían — y seguirían
+recortando la lista sin que nada lo explique, que se leería como que faltan cosas.
+
+**El emblema de la fila cambia con la agrupación** porque cambia lo que hay en cada fila: una
+chincheta dice "un sitio" mucho antes que un edificio, y una comercializadora se reconoce por su
+logo antes que por cualquier icono. El logo va en su caja blanca de siempre, no sobre el cuadrado
+oscuro: las marcas se reconocen sobre blanco.
 
 **Qué significa el color.** En tres de las cuatro agrupaciones el color es una **identidad**, y
 sale de una sola lista compartida (`PALETA_CARTERA`): es lo que hace que el gráfico se lea igual

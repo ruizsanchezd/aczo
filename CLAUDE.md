@@ -274,7 +274,7 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   vivienda) y lleva debajo el bloque "Organiza tu cartera", que cuenta cuántos quedan sin clasificar
   y deja verlos en un modo aparte, con su aviso y su salida. Qué filtros salen depende de la
   agrupación (`FILTROS_POR_AGRUPACION`): con Ubicación, por ejemplo, el de Sociedad sobra.
-  "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
+  La pantalla **abre por Ubicación**. "Agrupar por" rehace la lista de **cuatro** maneras (ubicación, sociedad, comercializadora o
   tipo de inmueble — las mismas siete categorías generales que ofrece el filtro, más un
   grupo "Sin catalogar" que va siempre el último). Los colores del gráfico salen todos de
   una sola lista (`PALETA_CARTERA`), así que sociedades, comercializadoras y tipos de inmueble se
@@ -282,12 +282,16 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   ubicación, con su escala de verdes y los filtros recortan la cartera antes de agruparla, así que lista, mapa, leyenda y
   porcentajes siempre cuadran. **El mapa solo sale agrupando por Ubicación**; en las otras tres
   agrupaciones ocupa su sitio una **gráfica de anillo** (`GraficaAnillo`), porque ahí lo que se
-  compara no es dónde está cada cosa sino cuánto pesa. Agrupando por Ubicación, además, el mapa se
+  compara no es dónde está cada cosa sino cuánto pesa. La leyenda solo acompaña a la gráfica: con
+  el mapa sobra, porque el mapa ya dice qué es cada provincia y el globo da el detalle. Agrupando por Ubicación, además, el mapa se
   lleva más ancho, se pinta con una **escala de verdes** (más oscuro = más cantidad) y la leyenda
   pasa a contar **inmuebles** en vez de puntos de suministro.
 
   Los filtros que salen dependen de la agrupación: los de la propia agrupación más los dos que
-  valen siempre (tipo de suministro y estado). Ver `FILTROS_POR_AGRUPACION`. El mapa va a la izquierda y la lista a la derecha, y el globo que sale al pasar por
+  valen siempre (tipo de suministro y estado). Ver `FILTROS_POR_AGRUPACION`. **Cambiar de
+  agrupación los reinicia**, porque los de la anterior ya no se ven y seguirían recortando la lista
+  sin que nada lo explique. Y el emblema de cada fila cambia también: chincheta con Ubicación, el
+  logo de la compañía con Comercializadora, y el edificio en el resto. El mapa va a la izquierda y la lista a la derecha, y el globo que sale al pasar por
   encima de una provincia **se desglosa por el filtro que haya puesto**: con "Inmueble: local
   comercial" dice cuántos locales comerciales hay ahí, no el reparto por sociedades. Y se puede
   pulsar: despliega esa provincia en la lista y la trae a la vista.

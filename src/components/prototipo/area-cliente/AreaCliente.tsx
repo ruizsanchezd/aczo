@@ -78,7 +78,9 @@ function verde(peso: number): string {
 }
 
 export function AreaCliente() {
-  const [agrupacion, setAgrupacion] = useState<ModoAgrupacion>("sociedad");
+  // La pantalla abre por UBICACIÓN: es la vista que más dice de un vistazo
+  // (dónde está la cartera y cuánta hay en cada sitio) y la única con mapa.
+  const [agrupacion, setAgrupacion] = useState<ModoAgrupacion>("ubicacion");
   const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
   const [marcado, setMarcado] = useState<string | null>(null);
   const [desplegado, setDesplegado] = useState<string | null>(null);
@@ -171,6 +173,12 @@ export function AreaCliente() {
 
   function cambiarAgrupacion(modo: ModoAgrupacion) {
     setAgrupacion(modo);
+    // Los filtros se van con lo demás porque cada agrupación tiene los suyos:
+    // al pasar de ubicación a sociedades, la mitad de los que había puestos ni
+    // siquiera se ven ya, y seguirían recortando la lista sin que nada lo
+    // explique — se leería como que faltan cosas.
+    setFiltros(FILTROS_VACIOS);
+    setFiltroAbierto(null);
     setMarcado(null);
     setDesplegado(null);
     setInmuebleDesplegado(null);
@@ -484,61 +492,48 @@ export function AreaCliente() {
                 )}
               </div>
 
-              {/* Agrupando por ubicación la leyenda cuenta INMUEBLES, no
-                  puntos de suministro: la pregunta ahí es "cuántas cosas tengo
-                  en cada sitio". El rótulo de arriba es lo que evita que el
-                  número quede suelto sin saber de qué es. */}
-              {porUbicacion && (
-                <Text variant="label-s" color="mid" as="p" className="-mb-02">
-                  Inmuebles
-                </Text>
-              )}
-
-              {/* La leyenda va en HORIZONTAL: en vertical se comía media
-                  columna para decir seis cosas cortas. Las entradas se
-                  reparten en línea y saltan de renglón solas cuando no caben,
-                  así que ocupa lo que necesita y ni un pelo más. */}
-              <ul className="flex flex-wrap gap-x-04 gap-y-02">
-                {grupos.map((grupo) => {
-                  const porcentaje = puntosVisibles
-                    ? Math.round((grupo.puntos / puntosVisibles) * 100)
-                    : 0;
-                  const esteMarcado = marcadoVigente === grupo.id;
-                  return (
-                    <li key={grupo.id}>
-                      <button
-                        type="button"
-                        aria-pressed={esteMarcado}
-                        onClick={() =>
-                          setMarcado(esteMarcado ? null : grupo.id)
-                        }
-                        className={`flex cursor-pointer items-center gap-02 rounded-sm text-left transition-opacity motion-micro-states hover:opacity-60 ${
-                          marcadoVigente && !esteMarcado ? "opacity-30" : ""
-                        }`}
-                      >
-                        <span
-                          className="size-03 shrink-0 rounded-sm"
-                          style={{ backgroundColor: grupo.color }}
-                        />
-                        <Text variant="body-s" color="mid" as="span">
-                          {grupo.nombre}
-                        </Text>
-                        <Text variant="label-s" as="span">
-                          {porUbicacion ? grupo.inmuebles : grupo.puntos}
-                        </Text>
-                        {/* El porcentaje solo acompaña a los puntos de
-                            suministro: con inmuebles, la cifra a secas ya es
-                            la respuesta. */}
-                        {!porUbicacion && (
+              {/* La leyenda solo acompaña a la GRÁFICA. Con el mapa sobra: el
+                  mapa ya dice qué provincia es cada cosa por su forma y su
+                  sitio, y el detalle exacto lo da el globo al pasar por encima.
+                  Una leyenda ahí sería repetir lo que ya se ve. */}
+              {!porUbicacion && (
+                <ul className="flex flex-wrap gap-x-04 gap-y-02">
+                  {grupos.map((grupo) => {
+                    const porcentaje = puntosVisibles
+                      ? Math.round((grupo.puntos / puntosVisibles) * 100)
+                      : 0;
+                    const esteMarcado = marcadoVigente === grupo.id;
+                    return (
+                      <li key={grupo.id}>
+                        <button
+                          type="button"
+                          aria-pressed={esteMarcado}
+                          onClick={() =>
+                            setMarcado(esteMarcado ? null : grupo.id)
+                          }
+                          className={`flex cursor-pointer items-center gap-02 rounded-sm text-left transition-opacity motion-micro-states hover:opacity-60 ${
+                            marcadoVigente && !esteMarcado ? "opacity-30" : ""
+                          }`}
+                        >
+                          <span
+                            className="size-03 shrink-0 rounded-sm"
+                            style={{ backgroundColor: grupo.color }}
+                          />
+                          <Text variant="body-s" color="mid" as="span">
+                            {grupo.nombre}
+                          </Text>
+                          <Text variant="label-s" as="span">
+                            {grupo.puntos}
+                          </Text>
                           <Text variant="body-s" color="low" as="span">
                             {porcentaje}%
                           </Text>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
 
             {/* La lista — a la derecha. */}
@@ -568,6 +563,13 @@ export function AreaCliente() {
                     >
                       <FilaGrupo
                         grupo={grupo}
+                        emblema={
+                          agrupacion === "ubicacion"
+                            ? "ubicacion"
+                            : agrupacion === "comercializadora"
+                              ? "comercializadora"
+                              : "edificio"
+                        }
                         apilado={porUbicacion}
                         marcado={marcadoVigente === grupo.id}
                         desplegado={desplegado === grupo.id}

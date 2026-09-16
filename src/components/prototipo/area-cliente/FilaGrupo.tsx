@@ -8,6 +8,7 @@ import {
   type CategoriaInmueble,
   type GrupoCartera,
 } from "@/mocks/aczo";
+import { LogoComercializadora } from "@/components/prototipo/TarjetaPlan";
 import { FilaInmueble } from "./FilaInmueble";
 
 /**
@@ -71,6 +72,7 @@ export function FilaGrupo({
   desplegado,
   onMarcar,
   onDesplegar,
+  emblema = "edificio",
   apilado = false,
   inmuebleDesplegado,
   onDesplegarInmueble,
@@ -83,6 +85,17 @@ export function FilaGrupo({
   desplegado: boolean;
   onMarcar: () => void;
   onDesplegar: () => void;
+  /**
+   * Qué se pinta en el cuadrado de la izquierda. Lo elige la agrupación,
+   * porque lo que hay en cada fila cambia con ella:
+   *
+   *   edificio          una sociedad o un tipo de inmueble
+   *   ubicacion         una provincia — una chincheta dice "un sitio" mucho
+   *                     antes que un edificio
+   *   comercializadora  una compañía — ahí manda su logo, que es como se
+   *                     reconocen entre ellas
+   */
+  emblema?: "edificio" | "ubicacion" | "comercializadora";
   /**
    * Apila el estado DEBAJO del nombre en vez de mandarlo a la derecha. Es la
    * forma de la fila cuando la lista va estrecha — agrupando por ubicación, el
@@ -113,16 +126,28 @@ export function FilaGrupo({
           onClick={onMarcar}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-04 text-left"
         >
-          <span
-            className="flex size-08 shrink-0 items-center justify-center rounded-md text-highlight-soft transition-colors motion-micro-states"
-            style={{
-              backgroundColor: marcado
-                ? grupo.color
-                : "var(--color-highlight-deep)",
-            }}
-          >
-            <Icon name="building-office" />
-          </span>
+          {emblema === "comercializadora" ? (
+            // El logo va en su caja blanca de siempre, no sobre el cuadrado
+            // oscuro: las marcas se reconocen sobre blanco, y así se ven igual
+            // aquí que en el resto del prototipo.
+            <LogoComercializadora
+              nombre={grupo.nombre}
+              className="size-08 shrink-0"
+            />
+          ) : (
+            <span
+              className="flex size-08 shrink-0 items-center justify-center rounded-md text-highlight-soft transition-colors motion-micro-states"
+              style={{
+                backgroundColor: marcado
+                  ? grupo.color
+                  : "var(--color-highlight-deep)",
+              }}
+            >
+              <Icon
+                name={emblema === "ubicacion" ? "location" : "building-office"}
+              />
+            </span>
+          )}
 
           <span className="flex min-w-0 flex-col gap-01">
             <span className="flex min-w-0 flex-wrap items-center gap-04">
