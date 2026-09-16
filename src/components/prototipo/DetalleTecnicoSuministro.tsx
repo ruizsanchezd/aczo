@@ -17,12 +17,37 @@ import { euros, kwh, type Suministro } from "@/mocks/aczo";
  * Cada fila es etiqueta en mayúsculas a la izquierda y valor a la derecha, sin
  * líneas entre medias: la separación la da el espaciado, como en el Figma.
  */
-export function DetalleTecnicoSuministro({ suministro }: { suministro: Suministro }) {
+export function DetalleTecnicoSuministro({
+  suministro,
+  compacto = false,
+  etiquetaCups = "CUPS",
+}: {
+  suministro: Suministro;
+  /**
+   * Menos aire alrededor y fondo gris, para cuando la ficha vive dentro de una
+   * columna estrecha — es el caso de "Mi cartera", donde la tabla comparte
+   * sitio con el mapa. Sale así del Figma de esa pantalla.
+   */
+  compacto?: boolean;
+  /**
+   * Cómo se llama la primera fila. En las tablas del alta el Figma la titula
+   * "CUPS" a secas; en "Mi cartera", "Punto de suministro (CUPS)".
+   */
+  etiquetaCups?: string;
+}) {
   const { detalle } = suministro;
 
   return (
-    <div className="flex flex-col gap-04 border-t border-border-low bg-background-base px-07 py-06">
-      <FilaDatoSuministro etiqueta="CUPS">{detalle.cups}</FilaDatoSuministro>
+    <div
+      className={`flex flex-col gap-04 border-t border-border-low ${
+        compacto
+          ? "bg-background-low px-03 py-04"
+          : "bg-background-base px-07 py-06"
+      }`}
+    >
+      <FilaDatoSuministro etiqueta={etiquetaCups}>
+        {detalle.cups}
+      </FilaDatoSuministro>
       <FilaDatoSuministro etiqueta="Tarifa contratada">
         {suministro.tarifa} ({suministro.tipo})
       </FilaDatoSuministro>
@@ -46,8 +71,8 @@ export function DetalleTecnicoSuministro({ suministro }: { suministro: Suministr
             <Tag key={franja} tone="outline">
               <span className="font-medium">{franja}</span>
               <span className="text-content-mid">
-                {kwh(Math.round((detalle.consumoAnual * porcentaje) / 100))} kWh (
-                {porcentaje}%)
+                {kwh(Math.round((detalle.consumoAnual * porcentaje) / 100))} kWh
+                ({porcentaje}%)
               </span>
             </Tag>
           ))}

@@ -2,15 +2,13 @@
 
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
-import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import {
   CATEGORIAS_INMUEBLE,
-  ESTADOS_CARTERA,
   type CategoriaInmueble,
   type LineaDetalle,
 } from "@/mocks/aczo";
+import { TablaSuministrosInmueble } from "./TablaSuministrosInmueble";
 
 /**
  * FilaInmueble — un inmueble dentro de una sociedad desplegada, en "Mi cartera".
@@ -43,12 +41,9 @@ import {
  *   forma normal ya con su etiqueta. Entra y sale con motion-micro-states, sin
  *   mover nada de alrededor.
  *
- *   Desplegar. La flecha abre el reparto de los CUPS de ese inmueble, con la
- *   técnica de rejilla 0fr → 1fr del resto del prototipo (macro-levelup).
- *   ⚠️ En el Figma esta flecha está solo en su estado cerrado: lo que hay
- *   debajo NO está diseñado todavía. Aquí se enseña lo que ya se sabe del
- *   inmueble (luz/gas y en qué estado están sus puntos) para que el control no
- *   quede muerto. Cuando exista el diseño de ese nivel, se sustituye.
+ *   Desplegar. La flecha abre la tabla con los puntos de suministro del
+ *   inmueble (ver TablaSuministrosInmueble), con la técnica de rejilla
+ *   0fr → 1fr del resto del prototipo (macro-levelup).
  */
 
 export function FilaInmueble({
@@ -67,7 +62,6 @@ export function FilaInmueble({
   onCategorizar: () => void;
   onElegirCategoria: (categoria: CategoriaInmueble) => void;
 }) {
-  const sinClasificar = !linea.categoria;
   // Qué dice el botón: el nombre si lo tiene; si no, su categoría (es lo único
   // que se sabe de él); y si no tiene ninguna de las dos, la llamada a
   // catalogarlo.
@@ -140,38 +134,14 @@ export function FilaInmueble({
         </button>
       </div>
 
-      {/* Reparto de los CUPS del inmueble (ver el aviso de la cabecera). */}
+      {/* Los puntos de suministro del inmueble, uno por fila. */}
       <div
         className="grid transition-[grid-template-rows] motion-macro-levelup"
         style={{ gridTemplateRows: desplegado ? "1fr" : "0fr" }}
         aria-hidden={!desplegado}
       >
         <div className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-04 border-t border-border-low px-03 py-03">
-            <span className="flex items-center gap-01">
-              {linea.tipos.map((tipo) => (
-                <Tag key={tipo} icon={tipo === "luz" ? "lightbulb" : "fire"}>
-                  {tipo === "luz" ? "Luz" : "Gas"}
-                </Tag>
-              ))}
-            </span>
-            {ESTADOS_CARTERA.filter((e) => linea.estados[e.id] > 0).map(
-              (estado) => (
-                <PuntoEstado
-                  key={estado.id}
-                  color={estado.color}
-                  rotulo={estado.rotulo}
-                  cantidad={linea.estados[estado.id]}
-                  estirado={false}
-                />
-              ),
-            )}
-            {sinClasificar && (
-              <Text variant="body-s" color="low" as="span">
-                Sin categorizar
-              </Text>
-            )}
-          </div>
+          <TablaSuministrosInmueble puntos={linea.suministros} />
         </div>
       </div>
     </li>

@@ -977,10 +977,23 @@ una, la fila vuelve a su forma normal ya clasificada, sin mover nada de alrededo
 (`micro-states`). Si el inmueble no tenía nombre, la categoría pasa a hacer de rótulo — no se le
 inventa un nombre, y así nunca se lee "Oficinas · Oficinas".
 
-> ⚠️ En el Figma la flecha de cada inmueble aparece solo cerrada: **lo que hay debajo no está
-> diseñado todavía**. El prototipo abre ahí lo que ya se sabe del inmueble (luz/gas y en qué estado
-> están sus puntos) para que el control no quede muerto. Cuando exista ese nivel en Figma, se
-> sustituye.
+### Al desplegar un inmueble: su tabla de suministros
+
+La flecha de un inmueble abre **la tabla de sus puntos de suministro** (`TablaSuministrosInmueble`):
+nombre del punto, luz o gas, quién se lo sirve y si lleva mantenimiento; a la derecha, el puntito de
+su estado y otra flecha.
+
+- **Cada fila abre la MISMA ficha técnica** que las tablas de empresas y particulares
+  (`DetalleTecnicoSuministro`): CUPS, tarifa, consumo anual, potencia, perfil de consumo y compañía
+  actual. No es una copia parecida: es el mismo componente, así que los tres sitios cambian a la
+  vez. Aquí va en su variante `compacto` (fondo gris y menos aire), porque la columna es estrecha.
+- **Solo una fila abierta a la vez.** Con siete puntos en un inmueble, dejarlas todas abiertas
+  convierte la tabla en una lista larguísima donde ya no se pueden comparar las filas.
+- Se despliega con la rejilla `0fr` → `1fr` de siempre (`macro-levelup`) y la flecha gira con
+  `micro-states`, acabando antes que el panel.
+- **Las columnas van en proporción, no en píxeles fijos.** La tabla vive dentro de la lista, y la
+  lista no siempre mide lo mismo: agrupando por ubicación el mapa se lleva mucho ancho y la tabla se
+  queda en unos 480 px, donde los 519 del Figma no caben y la última columna se cortaba.
 
 ### Filtros
 

@@ -267,7 +267,11 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   principal; volver a pulsarla lo desmarca. La flecha de cada fila abre sus **inmuebles**, con su
   nombre (subrayado, porque se toca), su categoría, su dirección y sus CUPS; los que llegaron de
   una factura sin clasificar enseñan "Categoriza este inmueble" y se les puede poner categoría ahí
-  mismo. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
+  mismo. Y la flecha de cada inmueble abre **su tabla de puntos de suministro**
+  (`TablaSuministrosInmueble`), donde cada fila despliega la misma ficha técnica
+  (`DetalleTecnicoSuministro`) que usan las tablas de empresas y particulares. Los CUPS no están
+  escritos uno a uno: se derivan de los `puntos` de cada inmueble (`puntosDelInmueble` en mocks),
+  así que al tocar una cifra la lista se rehace sola y nunca se desincroniza. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
   selección múltiple y se abren como listas de casillas; el de Dirección va agrupado por provincia,
   con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece las **categorías
   generales** (oficinas, local comercial, nave industrial, almacén, centro logístico, hotel,
