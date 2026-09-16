@@ -125,7 +125,7 @@ Estos son los archivos de Figma del proyecto. Ante cualquier duda visual, se con
   de diseño están hechos a mano en `src/components/ui/`, uno por archivo, a partir de la
   documentación de la librería de Figma: `Button`, `Input` (con `Textarea`, `Select`,
   `PasswordInput`, `SearchInput`), `Checkbox`, `Radio`, `Switch`, `Tag`, `ProgressBar`
-  (+ `SegmentedProgress`), `Alert`, `Tooltip`, `Icon` y `Text`.
+  (+ `SegmentedProgress`), `Alert`, `Tooltip`, `TextoRecortado`, `Icon` y `Text`.
 - **Animación:** sin librería. Todo con CSS/Tailwind usando las utilidades de motion y unas
   pocas animaciones de una pasada definidas en `globals.css` (`anim-*`). Si alguna interacción
   llega a necesitar gestos o timelines de verdad, valorar añadir `motion` y documentarlo aquí.
@@ -271,7 +271,11 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   (`TablaSuministrosInmueble`), donde cada fila despliega la misma ficha técnica
   (`DetalleTecnicoSuministro`) que usan las tablas de empresas y particulares. Los CUPS no están
   escritos uno a uno: se derivan de los `puntos` de cada inmueble (`puntosDelInmueble` en mocks),
-  así que al tocar una cifra la lista se rehace sola y nunca se desincroniza. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
+  así que al tocar una cifra la lista se rehace sola y nunca se desincroniza. Donde el texto no
+  cabe y se corta con puntos suspensivos —nombres de punto, direcciones, rótulos de columna—, al
+  pasar por encima sale una burbuja con el texto entero (`TextoRecortado`); y solo ahí, porque el
+  componente MIDE el texto y únicamente ofrece la burbuja cuando de verdad ha quedado algo
+  escondido. Los filtros (Sociedad, Tipo de suministro, Inmueble, Dirección y Estado) son de
   selección múltiple y se abren como listas de casillas; el de Dirección va agrupado por provincia,
   con encabezados que marcan toda la provincia de una vez, y el de Inmueble ofrece las **categorías
   generales** (oficinas, local comercial, nave industrial, almacén, centro logístico, hotel,

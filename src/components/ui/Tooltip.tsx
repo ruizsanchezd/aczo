@@ -91,6 +91,7 @@ export function Tooltip({
   open,
   onOpenChange,
   label,
+  bloque = false,
 }: {
   content: ReactNode;
   children: ReactNode;
@@ -98,6 +99,19 @@ export function Tooltip({
   className?: string;
   /** La burbuja recibe el ratón: imprescindible si lleva botones dentro. */
   interactive?: boolean;
+  /**
+   * El disparador ocupa todo el ancho de su hueco en vez de ajustarse a su
+   * contenido.
+   *
+   * Por defecto el disparador es `inline-flex`, que es lo que hace falta cuando
+   * lo que envuelve es un icono: la caja se pega al icono. Pero envolviendo un
+   * TEXTO QUE SE CORTA con puntos suspensivos eso lo estropea, y de una manera
+   * que despista mucho: una caja que se ajusta a su contenido le da al texto
+   * todo el ancho que pida, así que el texto deja de cortarse... y con él
+   * desaparece el motivo mismo de poner la burbuja. Con `bloque` la caja se
+   * queda del ancho de la celda y el texto se sigue cortando igual.
+   */
+  bloque?: boolean;
   /** Modo controlado: manda quien la usa (p. ej. para abrirla sola). */
   open?: boolean;
   onOpenChange?: (abierta: boolean) => void;
@@ -263,11 +277,11 @@ export function Tooltip({
 
   // Mismos estilos de foco en los dos modos; lo que cambia es la etiqueta
   // (un botón de verdad cuando se puede abrir y cerrar a voluntad).
-  const clasesAncla =
-    "inline-flex rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high";
+  const caja = bloque ? "block min-w-0" : "inline-flex";
+  const clasesAncla = `${caja} rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high`;
 
   return (
-    <span ref={anclaRef} className={`inline-flex ${className}`}>
+    <span ref={anclaRef} className={`${caja} ${className}`}>
       {interactive ? (
         <button
           type="button"

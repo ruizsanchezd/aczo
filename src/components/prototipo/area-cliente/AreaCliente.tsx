@@ -9,6 +9,7 @@ import { GrupoSegmentado } from "@/components/ui/GrupoSegmentado";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
 import { Text } from "@/components/ui/Text";
+import { TextoRecortado } from "@/components/ui/TextoRecortado";
 import { LogoComercializadora } from "@/components/prototipo/TarjetaPlan";
 import {
   ACTUALIZACION_CARTERA,
@@ -519,9 +520,9 @@ export function AreaCliente() {
                             className="size-03 shrink-0 rounded-sm"
                             style={{ backgroundColor: grupo.color }}
                           />
-                          <Text variant="body-s" color="mid" as="span">
+                          <TextoRecortado variant="body-s" color="mid">
                             {grupo.nombre}
-                          </Text>
+                          </TextoRecortado>
                           <Text variant="label-s" as="span">
                             {grupo.puntos}
                           </Text>

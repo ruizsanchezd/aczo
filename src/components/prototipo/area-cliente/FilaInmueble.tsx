@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
+import { TextoRecortado } from "@/components/ui/TextoRecortado";
 import {
   CATEGORIAS_INMUEBLE,
   type CategoriaInmueble,
@@ -107,9 +108,9 @@ export function FilaInmueble({
             <Text variant="label-m" color="mid" as="span">
               ·
             </Text>
-            <Text variant="label-s" color="mid" as="span" className="truncate">
-              {linea.direccion}
-            </Text>
+            <span className="min-w-0">
+              <TextoRecortado color="mid">{linea.direccion}</TextoRecortado>
+            </span>
           </div>
 
           <Text variant="body-s" color="low" as="span" className="shrink-0">

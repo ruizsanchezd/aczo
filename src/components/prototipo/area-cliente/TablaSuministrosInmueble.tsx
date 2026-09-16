@@ -5,6 +5,7 @@ import { DetalleTecnicoSuministro } from "@/components/prototipo/DetalleTecnicoS
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
+import { TextoRecortado } from "@/components/ui/TextoRecortado";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { ESTADOS_CARTERA, type PuntoDeInmueble } from "@/mocks/aczo";
 
@@ -64,14 +65,9 @@ export function TablaSuministrosInmueble({
         <Columna>T. de sum.</Columna>
         <Columna>Comercializadora</Columna>
         <span className="flex min-w-0 items-center gap-01">
-          <Text
-            variant="label-s-uppercase"
-            color="low"
-            as="span"
-            className="truncate"
-          >
+          <TextoRecortado variant="label-s-uppercase" color="low">
             Mantenimiento
-          </Text>
+          </TextoRecortado>
           <Tooltip content="Aczo se encarga de las incidencias de la instalación: averías, revisiones y urgencias.">
             <Icon name="info" size={16} className="shrink-0 text-content-low" />
           </Tooltip>
@@ -96,10 +92,8 @@ export function TablaSuministrosInmueble({
               className="grid w-full cursor-pointer items-center gap-02 border-b border-border-low bg-background-base px-03 py-03 text-left transition-colors motion-micro-states hover:bg-background-low"
               style={{ gridTemplateColumns: COLUMNAS }}
             >
-              <span className="min-w-0 truncate">
-                <Text variant="label-s" as="span">
-                  {suministro.nombre}
-                </Text>
+              <span className="min-w-0">
+                <TextoRecortado>{suministro.nombre}</TextoRecortado>
               </span>
 
               <span className="min-w-0">
@@ -108,10 +102,10 @@ export function TablaSuministrosInmueble({
                 </Tag>
               </span>
 
-              <span className="min-w-0 truncate">
-                <Text variant="label-s" color="mid" as="span">
+              <span className="min-w-0">
+                <TextoRecortado color="mid">
                   {punto.comercializadora}
-                </Text>
+                </TextoRecortado>
               </span>
 
               <span className="min-w-0">
@@ -154,12 +148,12 @@ export function TablaSuministrosInmueble({
 }
 
 /** Un rótulo de columna. */
-function Columna({ children }: { children: React.ReactNode }) {
+function Columna({ children }: { children: string }) {
   return (
-    <span className="min-w-0 truncate">
-      <Text variant="label-s-uppercase" color="low" as="span">
+    <span className="min-w-0">
+      <TextoRecortado variant="label-s-uppercase" color="low">
         {children}
-      </Text>
+      </TextoRecortado>
     </span>
   );
 }

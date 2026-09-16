@@ -103,6 +103,34 @@ se comporte igual sobre cualquier superficie.
   (empresas), y con acciones dentro el ancho pasa a ser el fijo del Figma (320 px), el que deja
   sitio a los dos botones en una sola línea. Ojo al implementar: el momento de montar la burbuja en el DOM se ajusta DURANTE el
   render, no desde un efecto — desde un efecto encadena un render de más.
+- **Disparador a lo ancho (`bloque`):** por defecto el disparador es `inline-flex` y se ajusta a
+  su contenido, que es lo que hace falta envolviendo un icono. Envolviendo un TEXTO QUE SE CORTA
+  hay que pasar `bloque`, o la caja le daría al texto todo el ancho que pide, el texto dejaría de
+  cortarse y desaparecería el motivo mismo de la burbuja. Lo usa `TextoRecortado`.
+
+### TextoRecortado
+
+Un texto que se corta con puntos suspensivos y que, **solo cuando de verdad ha quedado cortado**,
+enseña el texto entero al pasar por encima. Se ve en las tablas de "Mi cartera": "Planta 1
+Puerta…", "Calle Velázquez nº 10, Alcobendas, M…".
+
+- **La burbuja es la del sistema**, con sus tiempos de siempre (`micro-appear` al entrar,
+  `micro-leave` al salir). Aquí no se inventa ninguna animación.
+- **Solo sale si el texto está cortado.** Ponerla siempre llenaría la pantalla de globos que
+  repiten lo que ya se lee entero, y acabarían ignorándose justo cuando sí hacen falta. Por eso se
+  MIDE el elemento (`scrollWidth > clientWidth`, con 1 px de margen por los redondeos a subpíxel).
+- **Se vuelve a medir tres veces**, y cada una por un motivo distinto:
+  - Al cambiar de tamaño (`ResizeObserver` sobre el texto y sobre su padre, que es quien manda el
+    ancho de la celda): agrupando por ubicación el mapa se lleva más ancho y la tabla de al lado
+    se recoloca.
+  - Al acabar de cargar las tipografías (`document.fonts.ready`): en la primera medición todavía
+    está la fuente de repuesto, más estrecha, y un texto que con Inter no cabe ahí sí cabía. La
+    caja no cambia de tamaño al cambiar la fuente, así que el observador de tamaño ni se entera.
+  - Al envolverlo en la burbuja: envolverlo cambia el sitio del texto en la página y el navegador
+    lo tira y crea uno nuevo. **Por eso el elemento a medir se guarda en un estado y no en una
+    `ref` normal** — con una `ref` normal nos quedaríamos midiendo para siempre un elemento viejo,
+    ya fuera del documento, y la burbuja no llegaría a salir nunca. Es el fallo que tuvo esto la
+    primera vez.
 
 ## Pantalla 1 · Subida masiva de facturas
 
