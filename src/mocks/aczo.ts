@@ -1207,7 +1207,10 @@ export const ESTADOS_CARTERA: {
     id: "por-activar",
     rotulo: "Por activar",
     rotuloFiltro: "Por activar",
-    color: "bg-content-low",
+    // Rojo, no gris: en la Figma del Dashboard (nodo 788:9503) es el único
+    // estado que de verdad necesita que alguien haga algo (activar el punto),
+    // y por eso lleva el color de aviso más fuerte del sistema.
+    color: "bg-danger-high",
   },
 ];
 
@@ -1539,6 +1542,85 @@ export const RESUMEN_CARTERA = {
 
 /** Fecha que se enseña arriba del todo ("última actualización"). */
 export const ACTUALIZACION_CARTERA = "06 de julio 2026";
+
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — "Dashboard"                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Ahorro potencial anual estimado. Es una proyección, así que se enseña
+ * igual pase lo que pase con el resto de tarjetas: antes de la primera
+ * factura ES lo único que hay, y con el cliente ya asentado sigue siendo la
+ * referencia contra la que se compara el ahorro real.
+ */
+export const AHORRO_POTENCIAL_ANUAL_DASHBOARD = 8300;
+
+/**
+ * El escenario "cliente ya asentado" del Dashboard: casi un año con Aczo, ya
+ * con facturas reales de por medio (a diferencia del escenario inicial, con
+ * el ahorro real y el resto de tarjetas todavía en "--"). Sale del Figma
+ * (nodo 788:11027).
+ */
+export const AHORRO_REAL_ACUMULADO_DASHBOARD = 7234;
+
+/** Coste y consumo del último mes, con la variación frente al mismo mes del
+ * año anterior. El signo va incluido en `variacion` (puede ser negativo). */
+export type ResumenUltimoMes = { valor: number; variacion: number };
+
+export const COSTE_ULTIMO_MES_DASHBOARD: ResumenUltimoMes = {
+  valor: 3231,
+  variacion: -6,
+};
+
+export const CONSUMO_ULTIMO_MES_DASHBOARD: ResumenUltimoMes = {
+  valor: 18650,
+  variacion: 6,
+};
+
+/** El período contra el que se comparan las variaciones de arriba. */
+export const MES_COMPARACION_DASHBOARD = "julio 2025";
+
+/** Fecha de la última actualización del Dashboard. */
+export const ACTUALIZACION_DASHBOARD = "06 de julio 2026";
+
+/**
+ * Un mes del histórico de coste que se enseña en el Dashboard: lo que habría
+ * costado con la comercializadora anterior frente a lo que ha costado (o se
+ * estima que costará) con Aczo.
+ *
+ * `real` distingue los meses ya facturados de los que todavía son una
+ * proyección: con casi un año de cliente, los primeros ocho meses son
+ * factura de verdad y solo quedan por estimar los últimos cuatro. Es lo que
+ * decide si la columna se pinta sólida o con la trama de "estimado" (ver
+ * `GraficaBarras`).
+ */
+export type PuntoConsumoMensual = {
+  mes: string;
+  costeConAczo: number;
+  costeSinAczo: number;
+  consumoKwh: number;
+  real: boolean;
+};
+
+/**
+ * El histórico de los últimos 12 meses. Los números son de mentira, pero
+ * guardan la misma forma que el Figma: más consumo (y más ahorro) en los
+ * meses de más calor.
+ */
+export const CONSUMO_MENSUAL_DASHBOARD: PuntoConsumoMensual[] = [
+  { mes: "Ene", costeConAczo: 195, costeSinAczo: 260, consumoKwh: 1450, real: true },
+  { mes: "Feb", costeConAczo: 210, costeSinAczo: 275, consumoKwh: 1520, real: true },
+  { mes: "Mar", costeConAczo: 165, costeSinAczo: 220, consumoKwh: 1180, real: true },
+  { mes: "Abr", costeConAczo: 175, costeSinAczo: 230, consumoKwh: 1230, real: true },
+  { mes: "May", costeConAczo: 160, costeSinAczo: 215, consumoKwh: 1140, real: true },
+  { mes: "Jun", costeConAczo: 205, costeSinAczo: 270, consumoKwh: 1480, real: true },
+  { mes: "Jul", costeConAczo: 255, costeSinAczo: 330, consumoKwh: 1820, real: true },
+  { mes: "Ago", costeConAczo: 200, costeSinAczo: 260, consumoKwh: 1460, real: true },
+  { mes: "Sep", costeConAczo: 210, costeSinAczo: 275, consumoKwh: 1510, real: false },
+  { mes: "Oct", costeConAczo: 220, costeSinAczo: 285, consumoKwh: 1560, real: false },
+  { mes: "Nov", costeConAczo: 245, costeSinAczo: 320, consumoKwh: 1740, real: false },
+  { mes: "Dic", costeConAczo: 260, costeSinAczo: 335, consumoKwh: 1850, real: false },
+];
 
 /* --- Agrupar la cartera de tres maneras ------------------------------------ */
 

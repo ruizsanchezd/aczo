@@ -1089,6 +1089,60 @@ Las dos acciones del bloque:
 > bloque no está diseñado todavía. En el prototipo hace lo único que se puede hacer hoy con lo que
 > existe. Cuando haya diseño de ese flujo, se cambia.
 
+## Área de cliente (`/area-cliente2`) · "Dashboard"
+
+Es la primera pantalla del área de cliente: el resumen antes de entrar a mirar el detalle en "Mi
+cartera". Vive en una copia independiente del área de cliente (`area-cliente2`) — no en
+`area-cliente`, que se deja tal cual — con el mismo menú lateral, ahora con dos secciones
+navegables: "Dashboard" y "Mi cartera". "Consumo y ahorro" y "Documentos" siguen en el menú sin
+pantalla propia todavía, igual que ya pasaba con "Documentos" antes de este cambio.
+
+### Entrada de la pantalla
+
+Las cuatro tarjetas de arriba entran en cascada con `anim-aparece` y `PASO_CASCADA` (60 ms), el
+mismo gesto que las cinco de "Mi cartera": es el mismo lenguaje en toda el área de cliente.
+
+### Estado "sin primera factura"
+
+Mientras no llega la primera factura real con la nueva comercializadora, "Ahorro real acumulado",
+"Coste del último mes" y "Consumo del último mes" se quedan en **"--"**: son datos que todavía no
+existen, y decirlo es más honesto que estimarlos. El aviso de la gráfica explica lo mismo con
+palabras. Solo "Ahorro potencial (estimado)" tiene valor, porque ese sí se puede calcular desde las
+facturas que ya se subieron.
+
+### La gráfica de barras (GraficaBarras)
+
+El histórico mensual de "Consumo y ahorro": una barra por mes, con una segunda barra de fondo para
+comparar (el coste sin Aczo, cuando la pestaña es Coste €).
+
+- **Las dos series llevan trama a rayas**, no un color liso: como todavía no ha llegado ninguna
+  factura real, todo el histórico es una estimación, y la trama es la forma en la que este sistema
+  marca "esto es un cálculo, no un dato cerrado". La serie de fondo va con la trama más clara, para
+  que se lea como "el fondo con el que se compara" y no compita con la principal.
+- **Las barras crecen desde abajo al entrar** (`anim-barra-crece`, `macro-structure`: 500 ms, ease
+  in out, con **40 ms** entre barra y barra) — la misma idea que el anillo de "Mi cartera"
+  dibujándose: se lee como "esto se está calculando", que es justo lo que pasa al cambiar de
+  pestaña o de sociedad. Por eso la gráfica vuelve a crecer cada vez que cambian esos datos (su
+  `key`, en `Dashboard`, incluye la pestaña y la sociedad elegidas).
+- **"Coste (€) / Consumo (kWh)"** es el mismo `GrupoSegmentado` deslizante que "Agrupar por" en
+  "Mi cartera" — el mismo control, el mismo gesto.
+- El desplegable de "Sociedad" es el `Select` nativo del sistema: de momento solo cambia el rótulo
+  de qué se está mirando, porque los datos de mentira no tienen histórico separado por sociedad.
+
+### El panel de "Cartera"
+
+Repite los números de "Mi cartera" (puntos, inmuebles, sociedades) y añade dos pestañas
+(`GrupoSegmentado` otra vez):
+
+- **Estado cartera**: el % completado, una barra con los cuatro tramos de color de
+  `ESTADOS_CARTERA` (el mismo verde/azul/naranja/gris que sus puntitos) y la lista de los cuatro
+  estados con su cantidad.
+- **Detalle cartera**: el desglose por sociedad, con los puntitos de estado de cada una.
+
+"Ver cartera" navega de verdad a la sección "Mi cartera" del menú lateral — no es un enlace
+decorativo. "Ver consumo y ahorro" no lleva a ningún lado todavía: esa sección del menú sigue sin
+pantalla propia.
+
 ## Transición entre pantallas
 
 Cada pantalla entra desplazándose **24 px** y apareciendo. La dirección depende de hacia dónde se va:
@@ -1119,6 +1173,8 @@ src/
     empresas/page.tsx           la ruta del flujo de empresas
     particulares/page.tsx       la ruta del flujo de particulares
     area-cliente/page.tsx       la ruta del área de cliente ("Mi cartera")
+    area-cliente2/page.tsx      la ruta del área de cliente con Dashboard,
+                                copia independiente de area-cliente
   components/
     brand/                      logo y patrón de cruces
     prototipo/                  una pantalla por archivo + Recorrido.tsx
@@ -1134,6 +1190,8 @@ src/
       area-cliente/             la pantalla "Mi cartera": barra lateral, lista
                                 de sociedades, sus inmuebles y el mapa
                                 interactivo de provincias
+      area-cliente2/            copia de area-cliente + Dashboard.tsx; el menú
+                                lateral (AreaCliente2.tsx) navega entre las dos
     ui/                         componentes del sistema de diseño
   lib/
     motion.ts                   tokens de motion en JavaScript
