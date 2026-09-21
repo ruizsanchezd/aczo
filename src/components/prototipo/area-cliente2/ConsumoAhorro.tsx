@@ -128,6 +128,12 @@ export function ConsumoAhorro() {
   const factor =
     puntosFiltrados > 0 ? puntosFiltrados / RESUMEN_CARTERA.puntos : 1;
 
+  const hayFiltros =
+    filtros.sociedades.length > 0 ||
+    filtros.direcciones.length > 0 ||
+    filtros.tiposDeInmueble.length > 0 ||
+    filtros.tipos.length > 0;
+
   const datosCoste = CONSUMO_MENSUAL_DASHBOARD.map((m) => ({
     id: m.mes,
     etiqueta: m.mes,
@@ -262,6 +268,18 @@ export function ConsumoAhorro() {
             },
           ]}
         />
+
+        {/* Solo sale con algo puesto: con los cuatro filtros vacíos no hay
+            nada que quitar, y el botón estaría ahí sin decir nada. */}
+        {hayFiltros && (
+          <button
+            type="button"
+            onClick={() => setFiltros(FILTROS_VACIOS)}
+            className="flex h-07 cursor-pointer items-center rounded-md px-03 text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
+          >
+            Eliminar filtros
+          </button>
+        )}
       </div>
 
       {/* Las cuatro tarjetas de resumen — mismas que el Dashboard. `flex` en
