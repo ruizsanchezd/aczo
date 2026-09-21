@@ -207,3 +207,17 @@ export const Bloque: Story = {
     </div>
   ),
 };
+
+/**
+ * `tono="highlight"`: la burbuja en `highlight-muted` (el verde oliva de
+ * marca) en vez del habitual "superficie invertida". La usa el tooltip de
+ * las barras del Dashboard (`GraficaBarras`).
+ */
+export const Highlight: Story = {
+  args: { tono: "highlight" },
+  render: (args) => (
+    <div className="flex h-[160px] items-end">
+      <Tooltip {...args} />
+    </div>
+  ),
+};

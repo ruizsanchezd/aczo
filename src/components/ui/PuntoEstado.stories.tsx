@@ -45,3 +45,9 @@ export const LosTresEstados: Story = {
     </div>
   ),
 };
+
+/** Tamaño `m` (14px): el panel "Cartera" del Dashboard, más espacioso que
+ * las tarjetas de "Mi cartera". */
+export const TamanoM: Story = {
+  args: { tamano: "m" },
+};

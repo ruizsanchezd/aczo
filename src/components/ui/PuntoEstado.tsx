@@ -14,11 +14,17 @@ import { Text } from "./Text";
  * El color del punto llega como clase de fondo desde fuera (`bg-success-high`,
  * `bg-info-high`…) para que nunca haya un color escrito a pelo aquí dentro.
  */
+const tipografias = {
+  s: { rotulo: "body-s", cifra: "label-s" },
+  m: { rotulo: "body-m", cifra: "label-m" },
+} as const;
+
 export function PuntoEstado({
   color,
   rotulo,
   cantidad,
   estirado = true,
+  tamano = "s",
 }: {
   /** Clase de color de fondo del punto. Siempre un token: `bg-info-high`… */
   color: string;
@@ -26,19 +32,26 @@ export function PuntoEstado({
   cantidad?: number;
   /** true: rótulo y cifra se separan a los extremos. false: van juntos. */
   estirado?: boolean;
+  /**
+   * `s` (12px): las tarjetas de "Mi cartera" y las filas de la lista, donde
+   * el sitio es estrecho. `m` (14px): el panel "Cartera" del Dashboard, más
+   * espacioso — así sale en su Figma (nodo 788:9503).
+   */
+  tamano?: "s" | "m";
 }) {
+  const tipografia = tipografias[tamano];
   return (
     <div
       className={`flex items-center gap-02 ${estirado ? "w-full justify-between" : ""}`}
     >
       <span className="flex items-center gap-02">
         <span className={`size-02 shrink-0 rounded-full ${color}`} />
-        <Text variant="body-s" color="low" as="span">
+        <Text variant={tipografia.rotulo} color="low" as="span">
           {rotulo}
         </Text>
       </span>
       {cantidad !== undefined && (
-        <Text variant="label-s" as="span">
+        <Text variant={tipografia.cifra} as="span">
           {cantidad}
         </Text>
       )}

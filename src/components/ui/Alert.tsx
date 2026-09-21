@@ -8,11 +8,19 @@ import { Icon, type IconName } from "./Icon";
  * recomendación (variante `neutral`, sobre fondo gris) y el aviso oculto de la
  * pantalla de firma.
  *
- * Variantes: neutral (fondo gris, sin borde) · subtle · info · warning ·
- * danger · success. Ninguna lleva borde — se quitó de la librería de Figma.
+ * Variantes: neutral (fondo gris, sin borde) · subtle · highlight · info ·
+ * warning · danger · success. Ninguna lleva borde — se quitó de la librería
+ * de Figma.
  */
 
-type AlertTone = "neutral" | "subtle" | "info" | "warning" | "danger" | "success";
+type AlertTone =
+  | "neutral"
+  | "subtle"
+  | "highlight"
+  | "info"
+  | "warning"
+  | "danger"
+  | "success";
 
 const tonos: Record<AlertTone, { caja: string; icono: string }> = {
   neutral: {
@@ -24,6 +32,14 @@ const tonos: Record<AlertTone, { caja: string; icono: string }> = {
   subtle: {
     caja: "bg-background-low text-content-mid",
     icono: "text-content-mid",
+  },
+  // El verde pálido de marca (highlight-soft). Es una superficie que NO
+  // cambia entre modos, así que el texto va con `always-dark` y no con
+  // `content-high` — si no, se volvería blanco sobre verde el día que se
+  // active el modo oscuro (ver CLAUDE.md, "superficie oscura").
+  highlight: {
+    caja: "bg-highlight-soft text-content-always-dark",
+    icono: "text-content-always-dark",
   },
   info: { caja: "bg-info-low text-content-high", icono: "text-info-high" },
   warning: {

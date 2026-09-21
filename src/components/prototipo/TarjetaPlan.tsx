@@ -143,11 +143,12 @@ export function TarjetaPlan({
 }
 
 /**
- * Logos ya disponibles (ver LogoComercializadora). Los de TotalEnergies y
- * Repsol son los reales, exportados del Figma; los de "Ahorra Energía" y
- * "Bululú Energía" son inventados, porque esas dos compañías también lo son
- * (ver ALTERNATIVAS_COMPARAR en mocks/aczo.ts). El resto de comercializadoras
- * sigue sin archivo: HuecoLogo enseña su nombre mientras tanto.
+ * Logos ya disponibles (ver LogoComercializadora). Los de TotalEnergies,
+ * Repsol y Endesa son los reales; los de "Ahorra Energía" y "Bululú
+ * Energía" son inventados, porque esas dos compañías también lo son (ver
+ * ALTERNATIVAS_COMPARAR en mocks/aczo.ts). El resto de comercializadoras
+ * sigue sin archivo: HuecoLogo enseña su nombre mientras tanto, y
+ * LogoComercializadora su inicial.
  *
  * Las claves son el nombre en minúsculas, tal cual (con espacios y tildes):
  * es lo que compara `tieneLogoComercializadora`.
@@ -155,6 +156,7 @@ export function TarjetaPlan({
 const LOGOS: Record<string, string> = {
   totalenergies: "/logos/totalenergies.png",
   repsol: "/logos/repsol.png",
+  endesa: "/logos/endesa.png",
   "ahorra energía": "/logos/ahorra-energia.svg",
   "bululú energía": "/logos/bululu-energia.svg",
 };
@@ -170,6 +172,12 @@ export function tieneLogoComercializadora(nombre: string): boolean {
  * plan, 40 × 40 en la fila de detalle de la pantalla de empresas). Blanca
  * siempre, también sobre la tarjeta oscura "Ahorro Aczo": así está en el
  * Figma, con independencia de la superficie de alrededor.
+ *
+ * Sin archivo todavía (una marca real pendiente, como Endesa o Naturgy — ver
+ * el comentario de `LOGOS`), enseña su INICIAL en un cuadrado neutro en vez
+ * de desaparecer: es el "hueco con la inicial" que menciona el CLAUDE.md
+ * para las listas de caja cuadrada, y evita el hueco vacío que dejaba antes
+ * en filas como la de "Comercializadoras" de Mi cartera.
  */
 export function LogoComercializadora({
   nombre,
@@ -179,7 +187,19 @@ export function LogoComercializadora({
   className?: string;
 }) {
   const logo = LOGOS[nombre.toLowerCase()];
-  if (!logo) return null;
+
+  if (!logo) {
+    return (
+      <span
+        title={nombre}
+        className={`flex shrink-0 items-center justify-center rounded-md border border-border-low bg-background-mid ${className}`}
+      >
+        <Text variant="label-s" color="mid" as="span">
+          {nombre.trim().charAt(0).toUpperCase()}
+        </Text>
+      </span>
+    );
+  }
 
   return (
     <span

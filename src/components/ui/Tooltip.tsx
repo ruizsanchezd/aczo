@@ -92,11 +92,19 @@ export function Tooltip({
   onOpenChange,
   label,
   bloque = false,
+  tono = "inverse",
 }: {
   content: ReactNode;
   children: ReactNode;
   position?: "top" | "bottom" | "right";
   className?: string;
+  /**
+   * `inverse` (por defecto): la burbuja DS Tooltip de siempre. `highlight`:
+   * la variante en `highlight-muted` que usa el tooltip de la gráfica del
+   * Dashboard (`GraficaBarras`) — el color de marca en vez del habitual
+   * "superficie invertida".
+   */
+  tono?: "inverse" | "highlight";
   /** La burbuja recibe el ratón: imprescindible si lleva botones dentro. */
   interactive?: boolean;
   /**
@@ -264,7 +272,10 @@ export function Tooltip({
         // dos botones en una línea. Sin acciones, se ajusta al texto: 28ch no
         // es un token, mide el ancho máximo de la línea, no un valor de diseño.
         interactive ? "w-[320px]" : "w-max max-w-[28ch]",
-        "rounded-md bg-background-inverse px-03 py-02 text-left text-body-m text-content-inverse shadow-md",
+        "rounded-md px-03 py-02 text-left text-body-m shadow-md",
+        tono === "highlight"
+          ? "bg-highlight-muted text-content-always-light"
+          : "bg-background-inverse text-content-inverse",
         "transition-opacity",
         visible ? "opacity-100 motion-micro-appear" : "opacity-0 motion-micro-leave",
       ]

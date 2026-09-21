@@ -505,6 +505,21 @@
   }
 }
 
+/* Una barra de la gráfica de "Consumo y ahorro" (Dashboard): crece desde
+   abajo, como si se rellenara, en vez de aparecer entera de golpe. Es la
+   misma idea que el anillo de "Mi cartera" dibujándose: se lee como "esto se
+   está calculando", que es justo lo que pasa al cambiar de Coste€ a
+   Consumo kWh o de sociedad. El escalonado entre barras se pone desde el
+   componente con `animationDelay`. */
+@keyframes aczo-barra-crece {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
 /* La barrita amarilla que marca la sección activa del área de cliente: no
    aparece de golpe, se estira desde el centro hacia arriba y hacia abajo. Es
    un gesto diminuto, pero es lo que hace que el cambio de sección se lea como
@@ -623,6 +638,14 @@
    es el gráfico entero recolocándose, no un detalle suelto. */
 @utility anim-anillo-entra {
   animation: aczo-anillo-entra var(--motion-timing-5) var(--ease-4) both;
+}
+
+/* Una barra de la gráfica del Dashboard creciendo desde abajo (ver el
+   keyframe). Usa macro-structure porque es el gráfico entero recolocándose,
+   igual que el anillo de "Mi cartera". */
+@utility anim-barra-crece {
+  transform-origin: bottom;
+  animation: aczo-barra-crece var(--motion-timing-5) var(--ease-4) both;
 }
 
 /* La barrita de la sección activa (ver el keyframe). Usa macro-levelup porque
