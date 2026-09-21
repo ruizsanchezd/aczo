@@ -264,16 +264,16 @@ export function ConsumoAhorro() {
         ))}
       </div>
 
-      {/* Coste y ahorro — el título va suelto, sobre el fondo de la página;
-          las tres estadísticas y la gráfica van CADA UNA en su propia
-          tarjeta con borde (Figma nodo 797:8393): antes flotaban sueltas
-          sobre el fondo, sin caja que las contuviera. */}
-      <section className="mt-06">
+      {/* Coste y ahorro — TODO el bloque va dentro de una tarjeta grande
+          (título incluido), y dentro de ella las tres estadísticas y la
+          gráfica van CADA UNA en su propia tarjeta con borde (Figma nodo
+          797:8393): antes ni la de fuera ni las de dentro tenían caja. */}
+      <section className="mt-06 rounded-md border border-border-low bg-background-base p-06">
         <Text variant="heading-s" as="h2">
           Coste y ahorro
         </Text>
 
-        <div className="mt-04 flex flex-col items-start gap-04 lg:flex-row">
+        <div className="mt-06 flex flex-col items-start gap-04 lg:flex-row">
           <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
             <TarjetaDato
               rotulo="Ahorro medio mensual (est.)"
@@ -331,12 +331,12 @@ export function ConsumoAhorro() {
       </section>
 
       {/* Consumo — misma técnica que "Coste y ahorro". */}
-      <section className="mt-06">
+      <section className="mt-06 rounded-md border border-border-low bg-background-base p-06">
         <Text variant="heading-s" as="h2">
           Consumo
         </Text>
 
-        <div className="mt-04 flex flex-col items-start gap-04 lg:flex-row">
+        <div className="mt-06 flex flex-col items-start gap-04 lg:flex-row">
           <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
             <TarjetaDato
               rotulo="Consumo medio (est.)"
