@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
+import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
 import {
   ACTUALIZACION_DASHBOARD,
+  CONTRATOS_CLIENTE,
   FACTURAS_CLIENTE,
   euros,
 } from "@/mocks/aczo";
@@ -16,19 +18,18 @@ import { SelectorCompacto } from "./PiezasAreaCliente";
  * DocumentosCliente — "Documentos" del área de cliente (Figma nodo
  * 797:44753).
  *
- * Tres pestañas: "Facturas" es la única con diseño en el Figma — las otras
- * dos ("Contratar", "Otra documentación") están en el menú pero, como
- * "Sociedades pendientes" en el panel de avisos, todavía no tienen pantalla
- * que enseñar. Se avisa de eso en vez de inventar un contenido que no está
- * en el Figma.
+ * Tres pestañas: "Facturas" (797:44753) y "Contratos" (797:44901) tienen
+ * diseño en el Figma. "Otra documentación" sigue sin él — como "Sociedades
+ * pendientes" en el panel de avisos, se avisa de eso en vez de inventar un
+ * contenido que no está en el Figma.
  *
  * LA CABECERA DE LA TABLA VA EN OSCURO (`bg-highlight-deep`), no en blanco
- * como el resto de tablas del prototipo — así sale en el Figma, y es lo que
- * distingue esta lista larga (24 facturas, con paginación) de una lista
- * corta como la de "Mi cartera".
+ * como el resto de tablas del prototipo — así sale en las dos pestañas, y es
+ * lo que distingue estas listas largas de una lista corta como la de "Mi
+ * cartera".
  *
  * Los filtros son de una sola respuesta (`SelectorCompacto`, el mismo del
- * Dashboard) y sus opciones salen de las facturas que de verdad hay — no
+ * Dashboard) y sus opciones salen de los documentos que de verdad hay — no
  * hay una lista de sociedades o comercializadoras aparte que se pueda
  * desincronizar.
  *
@@ -36,19 +37,92 @@ import { SelectorCompacto } from "./PiezasAreaCliente";
  * real que descargar (todo son datos de mentira, ver CLAUDE.md): están ahí
  * para que se vea el gesto, igual que "Añadir nuevos suministros" en el
  * resto de pantallas del área de cliente.
+ *
+ * Los tres contratos de ejemplo del Figma traían sociedades inventadas que
+ * no existen en ningún otro sitio del prototipo — en `CONTRATOS_CLIENTE` se
+ * sustituyen por sociedades de verdad de la cartera, para que el filtro
+ * "Sociedad" tenga sentido con el resto del área de cliente.
  */
 
 const PESTAÑAS = [
   { id: "facturas", rotulo: "Facturas" },
-  { id: "contratar", rotulo: "Contratar" },
+  { id: "contratos", rotulo: "Contratos" },
   { id: "otra", rotulo: "Otra documentación" },
 ] as const;
 type Pestaña = (typeof PESTAÑAS)[number]["id"];
 
-const POR_PAGINA = 10;
-
 export function DocumentosCliente() {
   const [pestaña, setPestaña] = useState<Pestaña>("facturas");
+
+  return (
+    <>
+      {/* Cabecera */}
+      <header className="flex flex-wrap items-end justify-between gap-04">
+        <div className="flex flex-col gap-01">
+          <Text variant="label-s-uppercase" color="low" as="p">
+            Última actualización · {ACTUALIZACION_DASHBOARD}
+          </Text>
+          <Text variant="heading-l" as="h1">
+            Documentos
+          </Text>
+          <Text variant="body-s" color="mid" as="p">
+            Toda tu documentación en un mismo sitio
+          </Text>
+        </div>
+        <Button size="small">Añadir nuevos suministros</Button>
+      </header>
+
+      {/* Pestañas */}
+      <div
+        role="tablist"
+        aria-label="Ver documentos por"
+        className="mt-06 flex gap-06 border-b border-border-low"
+      >
+        {PESTAÑAS.map((p) => {
+          const activa = p.id === pestaña;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={activa}
+              onClick={() => setPestaña(p.id)}
+              className={`cursor-pointer border-b-2 py-02 transition-colors motion-micro-states ${
+                activa
+                  ? "border-content-high"
+                  : "border-transparent hover:opacity-60"
+              }`}
+            >
+              <Text variant="label-m" as="span" color={activa ? "high" : "low"}>
+                {p.rotulo}
+              </Text>
+            </button>
+          );
+        })}
+      </div>
+
+      {pestaña === "facturas" ? (
+        <TablaFacturas />
+      ) : pestaña === "contratos" ? (
+        <TablaContratos />
+      ) : (
+        <div className="mt-06 flex flex-col items-center gap-02 rounded-md border border-border-low bg-background-base p-08 text-center">
+          <Text variant="label-l" as="p">
+            Todavía no hay nada que enseñar aquí
+          </Text>
+          <Text variant="body-s" color="mid" as="p" className="max-w-[40ch]">
+            Otra documentación no tiene diseño en el Figma todavía.
+          </Text>
+        </div>
+      )}
+    </>
+  );
+}
+
+const POR_PAGINA = 10;
+
+/** La pestaña "Facturas" (Figma nodo 797:44753): filtros, tabla paginada. */
+function TablaFacturas() {
   const [fecha, setFecha] = useState("");
   const [sociedad, setSociedad] = useState("");
   const [ubicacion, setUbicacion] = useState("");
@@ -123,302 +197,427 @@ export function DocumentosCliente() {
 
   return (
     <>
-      {/* Cabecera */}
-      <header className="flex flex-wrap items-end justify-between gap-04">
-        <div className="flex flex-col gap-01">
-          <Text variant="label-s-uppercase" color="low" as="p">
-            Última actualización · {ACTUALIZACION_DASHBOARD}
-          </Text>
-          <Text variant="heading-l" as="h1">
-            Documentos
-          </Text>
-          <Text variant="body-s" color="mid" as="p">
-            Toda tu documentación en un mismo sitio
-          </Text>
+      {/* Filtros + descargar */}
+      <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
+        <div className="flex flex-wrap gap-02">
+          <SelectorCompacto
+            etiqueta="Fecha"
+            ancho="w-[110px]"
+            valor={fecha}
+            onChange={cambiarFiltro(setFecha)}
+            opciones={[
+              { value: "", label: "Fecha" },
+              ...opciones.fechas.map((f) => ({ value: f, label: f })),
+            ]}
+          />
+          <SelectorCompacto
+            etiqueta="Sociedad"
+            ancho="w-[150px]"
+            valor={sociedad}
+            onChange={cambiarFiltro(setSociedad)}
+            opciones={[
+              { value: "", label: "Sociedad" },
+              ...opciones.sociedades.map((s) => ({ value: s, label: s })),
+            ]}
+          />
+          <SelectorCompacto
+            etiqueta="Ubicación"
+            ancho="w-[150px]"
+            valor={ubicacion}
+            onChange={cambiarFiltro(setUbicacion)}
+            opciones={[
+              { value: "", label: "Ubicación" },
+              ...opciones.ubicaciones.map((u) => ({ value: u, label: u })),
+            ]}
+          />
+          <SelectorCompacto
+            etiqueta="Comercializadora"
+            ancho="w-[170px]"
+            valor={comercializadora}
+            onChange={cambiarFiltro(setComercializadora)}
+            opciones={[
+              { value: "", label: "Comercializadora" },
+              ...opciones.comercializadoras.map((c) => ({
+                value: c,
+                label: c,
+              })),
+            ]}
+          />
+          <SelectorCompacto
+            etiqueta="Tipo de factura"
+            ancho="w-[150px]"
+            valor={tipo}
+            onChange={cambiarFiltro(setTipo)}
+            opciones={[
+              { value: "", label: "Tipo de factura" },
+              { value: "luz", label: "Luz" },
+              { value: "gas", label: "Gas" },
+            ]}
+          />
         </div>
-        <Button size="small">Añadir nuevos suministros</Button>
-      </header>
 
-      {/* Pestañas */}
-      <div
-        role="tablist"
-        aria-label="Ver documentos por"
-        className="mt-06 flex gap-06 border-b border-border-low"
-      >
-        {PESTAÑAS.map((p) => {
-          const activa = p.id === pestaña;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              role="tab"
-              aria-selected={activa}
-              onClick={() => setPestaña(p.id)}
-              className={`cursor-pointer border-b-2 py-02 transition-colors motion-micro-states ${
-                activa
-                  ? "border-content-high"
-                  : "border-transparent hover:opacity-60"
-              }`}
-            >
-              <Text variant="label-m" as="span" color={activa ? "high" : "low"}>
-                {p.rotulo}
-              </Text>
-            </button>
-          );
-        })}
+        <Button variant="secondary" size="small">
+          <span className="flex items-center gap-02">
+            <Icon name="download" size={16} />
+            Descargar todas
+          </span>
+        </Button>
       </div>
 
-      {pestaña !== "facturas" ? (
-        <div className="mt-06 flex flex-col items-center gap-02 rounded-md border border-border-low bg-background-base p-08 text-center">
-          <Text variant="label-l" as="p">
-            Todavía no hay nada que enseñar aquí
+      {/* Tabla */}
+      <div className="mt-04 overflow-hidden rounded-md border border-border-low">
+        <div className="flex items-center gap-04 bg-highlight-deep px-04 py-03">
+          <Checkbox
+            checked={todasMarcadas}
+            indeterminate={marcadasEnPagina > 0 && !todasMarcadas}
+            onChange={alternarPagina}
+          />
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-[2]"
+          >
+            Factura
           </Text>
-          <Text variant="body-s" color="mid" as="p" className="max-w-[40ch]">
-            {PESTAÑAS.find((p) => p.id === pestaña)?.rotulo} no tiene diseño
-            en el Figma todavía.
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Sociedad
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Ubicación/ Activo
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="w-[80px] shrink-0 text-right"
+          >
+            Importe
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="w-08 shrink-0 text-right"
+          >
+            Acción
           </Text>
         </div>
-      ) : (
-        <>
-          {/* Filtros + descargar */}
-          <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
-            <div className="flex flex-wrap gap-02">
-              <SelectorCompacto
-                etiqueta="Fecha"
-                ancho="w-[110px]"
-                valor={fecha}
-                onChange={cambiarFiltro(setFecha)}
-                opciones={[
-                  { value: "", label: "Fecha" },
-                  ...opciones.fechas.map((f) => ({ value: f, label: f })),
-                ]}
-              />
-              <SelectorCompacto
-                etiqueta="Sociedad"
-                ancho="w-[150px]"
-                valor={sociedad}
-                onChange={cambiarFiltro(setSociedad)}
-                opciones={[
-                  { value: "", label: "Sociedad" },
-                  ...opciones.sociedades.map((s) => ({ value: s, label: s })),
-                ]}
-              />
-              <SelectorCompacto
-                etiqueta="Ubicación"
-                ancho="w-[150px]"
-                valor={ubicacion}
-                onChange={cambiarFiltro(setUbicacion)}
-                opciones={[
-                  { value: "", label: "Ubicación" },
-                  ...opciones.ubicaciones.map((u) => ({ value: u, label: u })),
-                ]}
-              />
-              <SelectorCompacto
-                etiqueta="Comercializadora"
-                ancho="w-[170px]"
-                valor={comercializadora}
-                onChange={cambiarFiltro(setComercializadora)}
-                opciones={[
-                  { value: "", label: "Comercializadora" },
-                  ...opciones.comercializadoras.map((c) => ({
-                    value: c,
-                    label: c,
-                  })),
-                ]}
-              />
-              <SelectorCompacto
-                etiqueta="Tipo de factura"
-                ancho="w-[150px]"
-                valor={tipo}
-                onChange={cambiarFiltro(setTipo)}
-                opciones={[
-                  { value: "", label: "Tipo de factura" },
-                  { value: "luz", label: "Luz" },
-                  { value: "gas", label: "Gas" },
-                ]}
-              />
-            </div>
 
-            <Button variant="secondary" size="small">
-              <span className="flex items-center gap-02">
-                <Icon name="download" size={16} />
-                Descargar todas
-              </span>
-            </Button>
+        {facturasPagina.length === 0 ? (
+          <div className="p-08 text-center">
+            <Text variant="body-m" color="mid" as="p">
+              No hay facturas con los filtros puestos.
+            </Text>
           </div>
-
-          {/* Tabla */}
-          <div className="mt-04 overflow-hidden rounded-md border border-border-low">
-            <div className="flex items-center gap-04 bg-highlight-deep px-04 py-03">
-              <Checkbox
-                checked={todasMarcadas}
-                indeterminate={marcadasEnPagina > 0 && !todasMarcadas}
-                onChange={alternarPagina}
-              />
-              <Text
-                variant="label-s-uppercase"
-                color="always-light"
-                as="span"
-                className="min-w-0 flex-[2]"
+        ) : (
+          <ul className="divide-y divide-border-low">
+            {facturasPagina.map((f) => (
+              <li
+                key={f.id}
+                className="flex items-center gap-04 bg-background-base px-04 py-03"
               >
-                Factura
-              </Text>
-              <Text
-                variant="label-s-uppercase"
-                color="always-light"
-                as="span"
-                className="min-w-0 flex-1"
-              >
-                Sociedad
-              </Text>
-              <Text
-                variant="label-s-uppercase"
-                color="always-light"
-                as="span"
-                className="min-w-0 flex-1"
-              >
-                Ubicación/ Activo
-              </Text>
-              <Text
-                variant="label-s-uppercase"
-                color="always-light"
-                as="span"
-                className="w-[80px] shrink-0 text-right"
-              >
-                Importe
-              </Text>
-              <Text
-                variant="label-s-uppercase"
-                color="always-light"
-                as="span"
-                className="w-08 shrink-0 text-right"
-              >
-                Acción
-              </Text>
-            </div>
-
-            {facturasPagina.length === 0 ? (
-              <div className="p-08 text-center">
-                <Text variant="body-m" color="mid" as="p">
-                  No hay facturas con los filtros puestos.
+                <Checkbox
+                  checked={seleccion.has(f.id)}
+                  onChange={() => alternarFila(f.id)}
+                />
+                <span className="flex min-w-0 flex-[2] items-center gap-03">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                    <Icon name="document" className="text-content-mid" />
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <Text variant="label-m" as="span">
+                      {f.numero} · {f.fecha}
+                    </Text>
+                    <Text variant="body-s" color="low" as="span">
+                      {f.tipo === "luz" ? "Luz" : "Gas"}
+                    </Text>
+                  </span>
+                </span>
+                <Text
+                  variant="body-m"
+                  as="span"
+                  className="min-w-0 flex-1 truncate"
+                >
+                  {f.sociedad}
                 </Text>
-              </div>
-            ) : (
-              <ul className="divide-y divide-border-low">
-                {facturasPagina.map((f) => (
-                  <li
-                    key={f.id}
-                    className="flex items-center gap-04 bg-background-base px-04 py-03"
+                <Text
+                  variant="body-m"
+                  color="mid"
+                  as="span"
+                  className="min-w-0 flex-1 truncate"
+                >
+                  {f.ubicacion}
+                </Text>
+                <Text
+                  variant="body-m"
+                  as="span"
+                  className="w-[80px] shrink-0 text-right"
+                >
+                  {euros(f.importe)} €
+                </Text>
+                <span className="flex w-08 shrink-0 justify-end">
+                  <button
+                    type="button"
+                    aria-label={`Descargar ${f.numero}`}
+                    className="flex cursor-pointer items-center rounded-md p-02 text-content-high transition-opacity motion-micro-states hover:opacity-60"
                   >
-                    <Checkbox
-                      checked={seleccion.has(f.id)}
-                      onChange={() => alternarFila(f.id)}
-                    />
-                    <span className="flex min-w-0 flex-[2] items-center gap-03">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
-                        <Icon name="document" className="text-content-mid" />
-                      </span>
-                      <span className="flex min-w-0 flex-col">
-                        <Text variant="label-m" as="span">
-                          {f.numero} · {f.fecha}
-                        </Text>
-                        <Text variant="body-s" color="low" as="span">
-                          {f.tipo === "luz" ? "Luz" : "Gas"}
-                        </Text>
-                      </span>
-                    </span>
-                    <Text
-                      variant="body-m"
-                      as="span"
-                      className="min-w-0 flex-1 truncate"
-                    >
-                      {f.sociedad}
-                    </Text>
-                    <Text
-                      variant="body-m"
-                      color="mid"
-                      as="span"
-                      className="min-w-0 flex-1 truncate"
-                    >
-                      {f.ubicacion}
-                    </Text>
-                    <Text
-                      variant="body-m"
-                      as="span"
-                      className="w-[80px] shrink-0 text-right"
-                    >
-                      {euros(f.importe)} €
-                    </Text>
-                    <span className="flex w-08 shrink-0 justify-end">
-                      <button
-                        type="button"
-                        aria-label={`Descargar ${f.numero}`}
-                        className="flex cursor-pointer items-center rounded-md p-02 text-content-high transition-opacity motion-micro-states hover:opacity-60"
-                      >
-                        <Icon name="download" size={16} />
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+                    <Icon name="download" size={16} />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-            {/* Paginación */}
-            <div className="flex flex-wrap items-center justify-between gap-03 border-t border-border-low bg-background-base px-04 py-03">
-              <Text variant="body-s" color="low" as="p">
-                Mostrando {facturas.length === 0 ? 0 : inicio + 1}-
-                {Math.min(inicio + POR_PAGINA, facturas.length)} de{" "}
-                {facturas.length} facturas
-              </Text>
-              <div className="flex items-center gap-01">
+        {/* Paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-03 border-t border-border-low bg-background-base px-04 py-03">
+          <Text variant="body-s" color="low" as="p">
+            Mostrando {facturas.length === 0 ? 0 : inicio + 1}-
+            {Math.min(inicio + POR_PAGINA, facturas.length)} de{" "}
+            {facturas.length} facturas
+          </Text>
+          <div className="flex items-center gap-01">
+            <button
+              type="button"
+              disabled={paginaSegura === 1}
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              aria-label="Página anterior"
+              className="flex size-08 cursor-pointer items-center justify-center rounded-md text-content-high transition-opacity motion-micro-states hover:opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <Icon name="chevron-left" size={16} />
+            </button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(
+              (n) => (
                 <button
+                  key={n}
                   type="button"
-                  disabled={paginaSegura === 1}
-                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                  aria-label="Página anterior"
-                  className="flex size-08 cursor-pointer items-center justify-center rounded-md text-content-high transition-opacity motion-micro-states hover:opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-current={n === paginaSegura ? "page" : undefined}
+                  onClick={() => setPagina(n)}
+                  className={`flex size-08 cursor-pointer items-center justify-center rounded-md transition-colors motion-micro-states ${
+                    n === paginaSegura
+                      ? "bg-background-inverse text-content-inverse"
+                      : "text-content-high hover:bg-background-low"
+                  }`}
                 >
-                  <Icon name="chevron-left" size={16} />
+                  <Text
+                    variant="label-s"
+                    as="span"
+                    color={n === paginaSegura ? "inverse" : "high"}
+                  >
+                    {n}
+                  </Text>
                 </button>
-                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(
-                  (n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      aria-current={n === paginaSegura ? "page" : undefined}
-                      onClick={() => setPagina(n)}
-                      className={`flex size-08 cursor-pointer items-center justify-center rounded-md transition-colors motion-micro-states ${
-                        n === paginaSegura
-                          ? "bg-background-inverse text-content-inverse"
-                          : "text-content-high hover:bg-background-low"
-                      }`}
-                    >
-                      <Text
-                        variant="label-s"
-                        as="span"
-                        color={n === paginaSegura ? "inverse" : "high"}
-                      >
-                        {n}
-                      </Text>
-                    </button>
-                  ),
-                )}
-                <button
-                  type="button"
-                  disabled={paginaSegura === totalPaginas}
-                  onClick={() =>
-                    setPagina((p) => Math.min(totalPaginas, p + 1))
-                  }
-                  aria-label="Página siguiente"
-                  className="flex size-08 cursor-pointer items-center justify-center rounded-md text-content-high transition-opacity motion-micro-states hover:opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <Icon name="chevron-right" size={16} />
-                </button>
-              </div>
-            </div>
+              ),
+            )}
+            <button
+              type="button"
+              disabled={paginaSegura === totalPaginas}
+              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+              aria-label="Página siguiente"
+              className="flex size-08 cursor-pointer items-center justify-center rounded-md text-content-high transition-opacity motion-micro-states hover:opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <Icon name="chevron-right" size={16} />
+            </button>
           </div>
-        </>
-      )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** La pestaña "Contratos" (Figma nodo 797:44901): filtros, tabla sin paginar. */
+function TablaContratos() {
+  const [sociedad, setSociedad] = useState("");
+  const [comercializadora, setComercializadora] = useState("");
+
+  const opciones = useMemo(
+    () => ({
+      sociedades: [...new Set(CONTRATOS_CLIENTE.map((c) => c.sociedad))],
+      comercializadoras: [
+        ...new Set(CONTRATOS_CLIENTE.map((c) => c.proveedor)),
+      ],
+    }),
+    [],
+  );
+
+  const contratos = useMemo(
+    () =>
+      CONTRATOS_CLIENTE.filter(
+        (c) =>
+          (!sociedad || c.sociedad === sociedad) &&
+          (!comercializadora || c.proveedor === comercializadora),
+      ),
+    [sociedad, comercializadora],
+  );
+
+  return (
+    <>
+      {/* Filtros + descargar */}
+      <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
+        <div className="flex flex-wrap gap-02">
+          <SelectorCompacto
+            etiqueta="Sociedad"
+            ancho="w-[150px]"
+            valor={sociedad}
+            onChange={setSociedad}
+            opciones={[
+              { value: "", label: "Sociedad" },
+              ...opciones.sociedades.map((s) => ({ value: s, label: s })),
+            ]}
+          />
+          <SelectorCompacto
+            etiqueta="Comercializadora"
+            ancho="w-[170px]"
+            valor={comercializadora}
+            onChange={setComercializadora}
+            opciones={[
+              { value: "", label: "Comercializadora" },
+              ...opciones.comercializadoras.map((c) => ({
+                value: c,
+                label: c,
+              })),
+            ]}
+          />
+        </div>
+
+        <Button variant="secondary" size="small">
+          <span className="flex items-center gap-02">
+            <Icon name="download" size={16} />
+            Descargar todas
+          </span>
+        </Button>
+      </div>
+
+      {/* Tabla */}
+      <div className="mt-04 overflow-hidden rounded-md border border-border-low">
+        <div className="flex items-center gap-04 bg-highlight-deep px-04 py-03">
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-[2]"
+          >
+            Documento
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Sociedad
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Firma
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Vigencia
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="w-[100px] shrink-0"
+          >
+            Estado
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="w-08 shrink-0 text-right"
+          >
+            Acción
+          </Text>
+        </div>
+
+        {contratos.length === 0 ? (
+          <div className="p-08 text-center">
+            <Text variant="body-m" color="mid" as="p">
+              No hay contratos con los filtros puestos.
+            </Text>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border-low">
+            {contratos.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center gap-04 bg-background-base px-04 py-03"
+              >
+                <span className="flex min-w-0 flex-[2] items-center gap-03">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                    <Icon name="document" className="text-content-mid" />
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <Text variant="label-m" as="span">
+                      {c.titulo}
+                    </Text>
+                    <Text variant="body-s" color="low" as="span">
+                      {c.categoria} · {c.proveedor}
+                    </Text>
+                  </span>
+                </span>
+                <Text
+                  variant="body-m"
+                  as="span"
+                  className="min-w-0 flex-1 truncate"
+                >
+                  {c.sociedad}
+                </Text>
+                <Text
+                  variant="body-m"
+                  color="mid"
+                  as="span"
+                  className="min-w-0 flex-1"
+                >
+                  {c.firma}
+                </Text>
+                <Text
+                  variant="body-m"
+                  color="mid"
+                  as="span"
+                  className="min-w-0 flex-1"
+                >
+                  {c.vigencia}
+                </Text>
+                <span className="w-[100px] shrink-0">
+                  <Tag tone="success">Vigente</Tag>
+                </span>
+                <span className="flex w-08 shrink-0 justify-end">
+                  <button
+                    type="button"
+                    aria-label={`Descargar ${c.titulo}`}
+                    className="flex cursor-pointer items-center rounded-md p-02 text-content-high transition-opacity motion-micro-states hover:opacity-60"
+                  >
+                    <Icon name="download" size={16} />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </>
   );
 }

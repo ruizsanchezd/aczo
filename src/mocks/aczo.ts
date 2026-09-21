@@ -1774,6 +1774,57 @@ export const FACTURAS_CLIENTE: FacturaCliente[] = (() => {
   return facturas;
 })();
 
+/** Un contrato de la pestaña "Contratos" de "Documentos" (Figma nodo 797:44901). */
+export type ContratoCliente = {
+  id: string;
+  titulo: string;
+  categoria: string;
+  proveedor: string;
+  sociedad: string;
+  firma: string;
+  vigencia: string;
+  estado: "Vigente";
+};
+
+/**
+ * Los tres contratos del Figma, con las sociedades de verdad de la cartera
+ * (el Figma trae otras tres, de mentira, que no existen en ningún otro sitio
+ * del prototipo — se sustituyen por las nuestras para que el filtro de
+ * "Sociedad" tenga sentido con el resto del área de cliente).
+ */
+export const CONTRATOS_CLIENTE: ContratoCliente[] = [
+  {
+    id: "contrato-1",
+    titulo: "Mantenimiento técnico",
+    categoria: "agua",
+    proveedor: "Aqualia",
+    sociedad: "mendesaltaren SL",
+    firma: "04 feb 2026",
+    vigencia: "04 feb 2027",
+    estado: "Vigente",
+  },
+  {
+    id: "contrato-2",
+    titulo: "Contrato de alquiler",
+    categoria: "oficina",
+    proveedor: "Meridia",
+    sociedad: "Still SL",
+    firma: "18 jun 2025",
+    vigencia: "18 jun 2028",
+    estado: "Vigente",
+  },
+  {
+    id: "contrato-3",
+    titulo: "Seguro empresarial",
+    categoria: "negocio",
+    proveedor: "Mapfre",
+    sociedad: "Nocodehackers SL",
+    firma: "30 sep 2024",
+    vigencia: "30 sep 2026",
+    estado: "Vigente",
+  },
+];
+
 /* --- Agrupar la cartera de tres maneras ------------------------------------ */
 
 /** Las tres formas de agrupar la lista de "Mi cartera". */
