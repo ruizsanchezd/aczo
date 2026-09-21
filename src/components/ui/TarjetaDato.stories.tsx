@@ -29,6 +29,11 @@ export const RotuloLargo: Story = {
   args: { rotulo: "Ptos. de suministro (CUPS)", valor: 100 },
 };
 
+/** Con el distintivo de marca delante del rótulo: las cifras de ahorro de "Consumo y ahorro". */
+export const Destacada: Story = {
+  args: { rotulo: "Ahorro potencial (estimado)", valor: "8.300 €/año", destacado: true },
+};
+
 /** Con contenido a medida en vez del número: la tarjeta de "Estado". */
 export const ContenidoAMedida: Story = {
   args: {
