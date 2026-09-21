@@ -1,0 +1,13 @@
+# Cómo publica Netlify el prototipo.
+#
+# El prototipo no tiene servidor (son pantallas y datos de mentira), así que se
+# exporta como archivos estáticos a la carpeta "out" y Netlify solo los sirve.
+# Netlify publica cualquier cambio que entre en "main", lo haya escrito quien lo
+# haya escrito — que es justo lo que en Vercel no podíamos tener sin pagar.
+
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"

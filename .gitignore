@@ -42,3 +42,6 @@ coverage/
 *storybook.log
 storybook-static
 .env*
+
+# exportación estática
+/out
