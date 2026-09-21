@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { ConsumoAhorro } from "./ConsumoAhorro";
 import { Dashboard } from "./Dashboard";
+import { DocumentosCliente } from "./DocumentosCliente";
 import { PanelAvisos } from "./PanelAvisos";
 import { PantallaCartera } from "./PantallaCartera";
 
@@ -16,17 +17,20 @@ import { PantallaCartera } from "./PantallaCartera";
  * con sus propios componentes, así que las dos áreas pueden evolucionar en
  * paralelo sin pisarse.
  *
- * Por ahora hay tres secciones con contenido: "dashboard" (la que se ve al
- * entrar), "cartera" y "consumo". "Documentos" sigue en el menú pero
- * todavía no tiene pantalla — al pulsarla, de momento no pasa nada, igual
- * que ya ocurría en AreaCliente.
+ * Las cuatro secciones del menú tienen ya su pantalla: "dashboard" (la que
+ * se ve al entrar), "cartera", "consumo" y "documentos".
  */
 export function AreaCliente2() {
   const [seccion, setSeccion] = useState("dashboard");
   const [avisosAbiertos, setAvisosAbiertos] = useState(false);
 
   function navegar(id: string) {
-    if (id === "dashboard" || id === "cartera" || id === "consumo")
+    if (
+      id === "dashboard" ||
+      id === "cartera" ||
+      id === "consumo" ||
+      id === "documentos"
+    )
       setSeccion(id);
   }
 
@@ -49,8 +53,10 @@ export function AreaCliente2() {
           />
         ) : seccion === "cartera" ? (
           <PantallaCartera />
-        ) : (
+        ) : seccion === "consumo" ? (
           <ConsumoAhorro />
+        ) : (
+          <DocumentosCliente />
         )}
       </main>
 

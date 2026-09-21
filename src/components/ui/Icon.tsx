@@ -55,7 +55,8 @@ export type IconName =
   | "call"
   | "location"
   | "home"
-  | "trash";
+  | "trash"
+  | "download";
 
 type IconProps = Omit<SVGProps<SVGSVGElement>, "name" | "children"> & {
   name: IconName;
@@ -175,6 +176,8 @@ const stroked: Partial<Record<IconName, string>> = {
     "M2.5 5.83C2.5 5.09 3.09 4.5 3.83 4.5H7.34C7.71 4.5 8.06 4.65 8.31 4.93L9.19 5.9C9.44 6.18 9.79 6.33 10.16 6.33H16.17C16.91 6.33 17.5 6.92 17.5 7.67V14.17C17.5 14.91 16.91 15.5 16.17 15.5H3.83C3.09 15.5 2.5 14.91 2.5 14.17V5.83Z",
   // Llama, a juego con lightbulb (Luz/Gas del mantenimiento).
   fire: "M10 17.5C7.24 17.5 5 15.26 5 12.5C5 9.5 7 7.5 7.5 5C7.5 5 10 6.5 10 9C10 9 11.5 8 11.5 6C13 7.5 15 9.5 15 12.5C15 15.26 12.76 17.5 10 17.5Z",
+  // Flecha a una bandeja: "descargar". Va con el mismo icono de "Documentos".
+  download: "M10 3V13M10 13L6 9M10 13L14 9M4 16.5H16",
 };
 
 export function Icon({ name, size = 20, className, ...rest }: IconProps) {
