@@ -27,49 +27,10 @@ export default function Home() {
         >
           <span>
             <Text variant="label-l" as="span">
-              Landing
+              Bloque 1: Flujo de captación y switching
             </Text>
             <Text variant="body-s" color="mid">
               La página de entrada (captación), antes de empezar el recorrido
-            </Text>
-          </span>
-          <span
-            aria-hidden
-            className="shrink-0 text-content-low transition-transform motion-micro-states group-hover:translate-x-01"
-          >
-            →
-          </span>
-        </Link>
-        <Link
-          href="/recorrido"
-          className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
-        >
-          <span>
-            <Text variant="label-l" as="span">
-              Recorrido completo
-            </Text>
-            <Text variant="body-s" color="mid">
-              Las seis pantallas: subida de facturas, datos, análisis,
-              recomendación, firma y alta
-            </Text>
-          </span>
-          <span
-            aria-hidden
-            className="shrink-0 text-content-low transition-transform motion-micro-states group-hover:translate-x-01"
-          >
-            →
-          </span>
-        </Link>
-        <Link
-          href="/empresas"
-          className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
-        >
-          <span>
-            <Text variant="label-l" as="span">
-              Flujo de empresas
-            </Text>
-            <Text variant="body-s" color="mid">
-              De momento, el paso 1: subir las facturas de varias sociedades
             </Text>
           </span>
           <span
@@ -85,7 +46,7 @@ export default function Home() {
         >
           <span>
             <Text variant="label-l" as="span">
-              Área de cliente
+              Bloque 2: Área privada Empresas
             </Text>
             <Text variant="body-s" color="mid">
               Dashboard y &ldquo;Mi cartera&rdquo; para quien ya es cliente
