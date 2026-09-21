@@ -88,7 +88,14 @@ function filasCon(filtros: FiltrosCartera, sinFiltro: keyof FiltrosCartera) {
   return agruparCartera("ubicacion", f).flatMap((g) => g.detalle);
 }
 
-export function ConsumoAhorro() {
+export function ConsumoAhorro({
+  onAbrirNuevoSuministro,
+}: {
+  /** Abre el asistente "Añadir nuevos suministros" (ver
+   * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
+   * AreaCliente2.tsx. */
+  onAbrirNuevoSuministro?: () => void;
+}) {
   const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
   const [filtroAbierto, setFiltroAbierto] = useState<
     keyof FiltrosCartera | null
@@ -194,7 +201,9 @@ export function ConsumoAhorro() {
             Qué consumes, qué pagas y cuánto ahorras con Aczo
           </Text>
         </div>
-        <Button size="small">Añadir nuevos suministros</Button>
+        <Button size="small" onClick={onAbrirNuevoSuministro}>
+          Añadir nuevos suministros
+        </Button>
       </header>
 
       {/* Filtros — de varias respuestas y excluyentes entre ellos (ver el

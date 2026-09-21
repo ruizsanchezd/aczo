@@ -85,7 +85,14 @@ function verde(peso: number): string {
   return `color-mix(in oklab, var(--color-highlight-deep) ${porcentaje}%, var(--color-extended-one-light))`;
 }
 
-export function PantallaCartera() {
+export function PantallaCartera({
+  onAbrirNuevoSuministro,
+}: {
+  /** Abre el asistente "Añadir nuevos suministros" (ver
+   * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
+   * AreaCliente2.tsx. */
+  onAbrirNuevoSuministro?: () => void;
+}) {
   // La pantalla abre por UBICACIÓN: es la vista que más dice de un vistazo
   // (dónde está la cartera y cuánta hay en cada sitio) y la única con mapa.
   const [agrupacion, setAgrupacion] = useState<ModoAgrupacion>("ubicacion");
@@ -215,7 +222,9 @@ export function PantallaCartera() {
           <Button variant="secondary" size="small" iconStart="call">
             ¿Necesitas asistencia?
           </Button>
-          <Button size="small">Añadir nuevos suministros</Button>
+          <Button size="small" onClick={onAbrirNuevoSuministro}>
+            Añadir nuevos suministros
+          </Button>
         </div>
       </header>
 

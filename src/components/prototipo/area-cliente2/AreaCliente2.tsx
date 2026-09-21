@@ -5,6 +5,7 @@ import { BarraLateralCliente } from "./BarraLateralCliente";
 import { ConsumoAhorro } from "./ConsumoAhorro";
 import { Dashboard } from "./Dashboard";
 import { DocumentosCliente } from "./DocumentosCliente";
+import { NuevoSuministroCliente } from "./NuevoSuministroCliente";
 import { PanelAvisos } from "./PanelAvisos";
 import { PantallaCartera } from "./PantallaCartera";
 
@@ -18,7 +19,12 @@ import { PantallaCartera } from "./PantallaCartera";
  * paralelo sin pisarse.
  *
  * Las cuatro secciones del menú tienen ya su pantalla: "dashboard" (la que
- * se ve al entrar), "cartera", "consumo" y "documentos".
+ * se ve al entrar), "cartera", "consumo" y "documentos". Hay una quinta
+ * sección, "nuevo-suministro", que no está en el menú: se abre desde el
+ * botón "Añadir nuevos suministros" de la cabecera de las otras cuatro (ver
+ * `onAbrirNuevoSuministro`) y no es una ruta aparte ni un modal, solo otro
+ * valor de este mismo estado — así el asistente sigue dentro de `<main>`,
+ * con la barra lateral siempre visible.
  */
 export function AreaCliente2() {
   const [seccion, setSeccion] = useState("dashboard");
@@ -29,7 +35,8 @@ export function AreaCliente2() {
       id === "dashboard" ||
       id === "cartera" ||
       id === "consumo" ||
-      id === "documentos"
+      id === "documentos" ||
+      id === "nuevo-suministro"
     )
       setSeccion(id);
   }
@@ -50,13 +57,25 @@ export function AreaCliente2() {
           <Dashboard
             onVerCartera={() => setSeccion("cartera")}
             onVerConsumo={() => setSeccion("consumo")}
+            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
           />
         ) : seccion === "cartera" ? (
-          <PantallaCartera />
+          <PantallaCartera
+            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
+          />
         ) : seccion === "consumo" ? (
-          <ConsumoAhorro />
+          <ConsumoAhorro
+            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
+          />
+        ) : seccion === "documentos" ? (
+          <DocumentosCliente
+            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
+          />
         ) : (
-          <DocumentosCliente />
+          <NuevoSuministroCliente
+            onVolver={() => setSeccion("dashboard")}
+            onIrACartera={() => setSeccion("cartera")}
+          />
         )}
       </main>
 
