@@ -50,7 +50,10 @@ import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
  *     inmueble por los suyos, y Tipo de suministro por el reparto fijo entre
  *     luz y gas. Si un filtro no tiene ningún punto que pesar (por ejemplo,
  *     ninguna categoría está catalogada todavía), no se aplica — antes que
- *     vaciar la gráfica, se queda como estaba.
+ *     vaciar la gráfica, se queda como estaba. Los filtros están a nivel de
+ *     PANTALLA, no de gráfica: por eso el mismo `factor` también escala las
+ *     cuatro tarjetas de arriba, no solo las dos gráficas — si no, cambiar
+ *     un filtro movería una cosa sí y la otra no, y se leería como roto.
  *
  * Las flechas junto al título de cada gráfica (◀ ▶) están en el Figma sin
  * decir a dónde llevan — como "Organizar cartera" en su momento (ver
@@ -203,7 +206,7 @@ export function ConsumoAhorro() {
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
-                valor={euros(AHORRO_POTENCIAL_ANUAL_DASHBOARD)}
+                valor={euros(AHORRO_POTENCIAL_ANUAL_DASHBOARD * factor)}
                 unidad="€/año"
               />
               <Text variant="body-s" color="disabled" as="p">
@@ -219,7 +222,7 @@ export function ConsumoAhorro() {
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
-                valor={euros(AHORRO_REAL_ACUMULADO_DASHBOARD)}
+                valor={euros(AHORRO_REAL_ACUMULADO_DASHBOARD * factor)}
                 unidad="€"
               />
               <Text variant="body-s" color="disabled" as="p">
@@ -234,7 +237,7 @@ export function ConsumoAhorro() {
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
-                valor={euros(COSTE_ULTIMO_MES_DASHBOARD.valor)}
+                valor={euros(COSTE_ULTIMO_MES_DASHBOARD.valor * factor)}
                 unidad="€"
               />
               <Tendencia variacion={COSTE_ULTIMO_MES_DASHBOARD.variacion} />
@@ -247,7 +250,7 @@ export function ConsumoAhorro() {
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
-                valor={kwh(CONSUMO_ULTIMO_MES_DASHBOARD.valor)}
+                valor={kwh(Math.round(CONSUMO_ULTIMO_MES_DASHBOARD.valor * factor))}
                 unidad="kWh"
               />
               <Tendencia variacion={CONSUMO_ULTIMO_MES_DASHBOARD.variacion} />
