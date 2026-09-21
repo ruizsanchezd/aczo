@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
 import { GraficaBarras } from "@/components/ui/GraficaBarras";
 import { Icon } from "@/components/ui/Icon";
-import { Select } from "@/components/ui/Input";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
 import { Text } from "@/components/ui/Text";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -15,13 +15,13 @@ import {
   COSTE_ULTIMO_MES_DASHBOARD,
   CONSUMO_MENSUAL_DASHBOARD,
   CONSUMO_ULTIMO_MES_DASHBOARD,
+  FILTROS_VACIOS,
   OPCIONES_FILTROS,
   RESUMEN_CARTERA,
-  SOCIEDADES_CARTERA,
   agruparCartera,
   euros,
   kwh,
-  puntosDeSociedad,
+  type FiltrosCartera,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
 import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
@@ -31,9 +31,9 @@ import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
  *
  * Es la versión ampliada de la sección "Consumo y ahorro" del Dashboard: el
  * mismo gráfico de barras y las mismas cuatro tarjetas de cabecera, pero con
- * sitio para los filtros completos, un aviso mientras llega la primera
- * factura, y el coste y el consumo cada uno con su propio bloque de
- * estadísticas (medio, máximo, mínimo) al lado de su gráfica.
+ * sitio para los filtros completos y el coste y el consumo cada uno con su
+ * propio bloque de estadísticas (medio, máximo, mínimo) al lado de su
+ * gráfica.
  *
  * REUTILIZA, tal cual, las piezas del Dashboard (mismas reglas visuales):
  *   - `GraficaBarras`: eje, barras, tramas de "estimado" y tooltips — no se
@@ -41,19 +41,35 @@ import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
  *   - `ValorConUnidad` / `Tendencia`: el número grande + unidad y la línea
  *     "-6% vs julio 2025", ahora en `PiezasAreaCliente.tsx` porque las usan
  *     las dos pantallas.
- *   - El mismo truco de "datos de mentira que se mueven": los filtros no
- *     tienen con qué recortar los doce meses de verdad, así que se escala el
- *     histórico por el PESO del filtro elegido sobre el total de la cartera
- *     (ver el comentario de `factor` en Dashboard.tsx). Aquí hay CUATRO
- *     filtros en vez de dos, y los cuatro funcionan por el mismo motivo:
- *     Sociedad y Ubicación pesan por sus puntos de suministro, Tipo de
- *     inmueble por los suyos, y Tipo de suministro por el reparto fijo entre
- *     luz y gas. Si un filtro no tiene ningún punto que pesar (por ejemplo,
- *     ninguna categoría está catalogada todavía), no se aplica — antes que
- *     vaciar la gráfica, se queda como estaba. Los filtros están a nivel de
- *     PANTALLA, no de gráfica: por eso el mismo `factor` también escala las
- *     cuatro tarjetas de arriba, no solo las dos gráficas — si no, cambiar
- *     un filtro movería una cosa sí y la otra no, y se leería como roto.
+ *
+ * LOS FILTROS SON DE VARIAS RESPUESTAS (`FiltroCasillas`, el mismo de "Mi
+ * cartera"), no un desplegable de una sola opción: se puede marcar más de
+ * una sociedad o más de una provincia a la vez, y no marcar ninguna quiere
+ * decir "todas".
+ *
+ * Y SE EXCLUYEN ENTRE ELLOS: elegir una sociedad recorta las opciones que
+ * ofrecen los demás filtros a lo que esa sociedad de verdad tiene — si
+ * "mendesaltaren SL" no tiene ningún hotel, "Hotel" no sale en "Tipo de
+ * inmueble" mientras esté marcada. `opcionesDisponibles` calcula esto
+ * reutilizando `agruparCartera`: agrupa con los filtros puestos MENOS el que
+ * se está calculando, y de las filas que quedan saca qué valores de ESE
+ * filtro aparecen de verdad.
+ *
+ * "Datos de mentira que se mueven": los filtros no tienen con qué recortar
+ * los doce meses de verdad, así que se escala el histórico por el PESO real
+ * de la cartera filtrada sobre el total (puntos de suministro que pasan los
+ * cuatro filtros a la vez, entre los puntos totales) — ya no es una
+ * aproximación por filtro como antes: al cruzar los cuatro de verdad, el
+ * peso ya sale exacto de la propia cartera filtrada. Los filtros están a
+ * nivel de PANTALLA, no de gráfica, así que ese mismo peso también escala
+ * las cuatro tarjetas de arriba: si no, cambiar un filtro movería una cosa
+ * sí y la otra no, y se leería como roto.
+ *
+ * OJO: como ahora mismo NINGÚN inmueble tiene categoría puesta (ver "Mi
+ * cartera"), el filtro "Tipo de inmueble" no tiene nada que ofrecer todavía
+ * — no es un fallo, es que de verdad no hay ninguno catalogado. En cuanto se
+ * nombren y categoricen inmuebles desde ModalOrganizaCartera, sus tipos
+ * empiezan a aparecer aquí solos.
  *
  * Las flechas junto al título de cada gráfica (◀ ▶) están en el Figma sin
  * decir a dónde llevan — como "Organizar cartera" en su momento (ver
@@ -61,37 +77,56 @@ import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
  * que de momento van desactivadas en vez de fingir una navegación que no
  * existe.
  */
+/**
+ * Qué filas quedan si se aplican todos los filtros MENOS `sinFiltro` — es
+ * decir, qué ofrece ese filtro dados los otros tres. Fuera del componente
+ * (no depende de nada suyo) para no arrastrar el aviso de dependencias de
+ * los `useMemo` que la usan: la única entrada real es `filtros`.
+ */
+function filasCon(filtros: FiltrosCartera, sinFiltro: keyof FiltrosCartera) {
+  const f: FiltrosCartera = { ...filtros, [sinFiltro]: [] };
+  return agruparCartera("ubicacion", f).flatMap((g) => g.detalle);
+}
+
 export function ConsumoAhorro() {
-  const [sociedad, setSociedad] = useState("");
-  const [provincia, setProvincia] = useState("");
-  const [tipoInmueble, setTipoInmueble] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
+  const [filtroAbierto, setFiltroAbierto] = useState<
+    keyof FiltrosCartera | null
+  >(null);
 
-  // El mismo peso "puntos del filtro / puntos totales" para los cuatro,
-  // menos Tipo de suministro (que no tiene puntos que pesar: reparte fijo).
-  const gruposUbicacion = useMemo(() => agruparCartera("ubicacion"), []);
-  const gruposInmueble = useMemo(() => agruparCartera("inmueble"), []);
+  const sociedadesDisponibles = useMemo(
+    () => new Set(filasCon(filtros, "sociedades").map((l) => l.sociedad)),
+    [filtros],
+  );
+  const provinciasDisponibles = useMemo(
+    () => new Set(filasCon(filtros, "direcciones").map((l) => l.provincia)),
+    [filtros],
+  );
+  const tiposInmuebleDisponibles = useMemo(
+    () =>
+      new Set(
+        filasCon(filtros, "tiposDeInmueble")
+          .map((l) => l.categoria)
+          .filter((c): c is NonNullable<typeof c> => !!c),
+      ),
+    [filtros],
+  );
+  const tiposDisponibles = useMemo(
+    () => new Set(filasCon(filtros, "tipos").flatMap((l) => l.tipos)),
+    [filtros],
+  );
 
-  const sociedadElegida = SOCIEDADES_CARTERA.find((s) => s.nombre === sociedad);
-  const factorSociedad = sociedadElegida
-    ? puntosDeSociedad(sociedadElegida) / RESUMEN_CARTERA.puntos
-    : 1;
-
-  const grupoProvincia = gruposUbicacion.find((g) => g.nombre === provincia);
-  const factorProvincia =
-    provincia && grupoProvincia
-      ? grupoProvincia.puntos / RESUMEN_CARTERA.puntos
-      : 1;
-
-  const grupoInmueble = gruposInmueble.find((g) => g.nombre === tipoInmueble);
-  const factorTipoInmueble =
-    tipoInmueble && grupoInmueble
-      ? grupoInmueble.puntos / RESUMEN_CARTERA.puntos
-      : 1;
-
-  const factorTipo = tipo === "luz" ? 0.65 : tipo === "gas" ? 0.35 : 1;
-
-  const factor = factorSociedad * factorProvincia * factorTipoInmueble * factorTipo;
+  // El peso real de la cartera filtrada (los cuatro filtros a la vez) sobre
+  // el total: así se escala el histórico de mentira. Sin filtros, esto ya
+  // da 1 solo (puntos filtrados = puntos totales), así que no hace falta
+  // tratar ese caso aparte.
+  const puntosFiltrados = useMemo(
+    () =>
+      agruparCartera("ubicacion", filtros).reduce((t, g) => t + g.puntos, 0),
+    [filtros],
+  );
+  const factor =
+    puntosFiltrados > 0 ? puntosFiltrados / RESUMEN_CARTERA.puntos : 1;
 
   const datosCoste = CONSUMO_MENSUAL_DASHBOARD.map((m) => ({
     id: m.mes,
@@ -135,6 +170,9 @@ export function ConsumoAhorro() {
     };
   }, []);
 
+  const abrir = (campo: keyof FiltrosCartera) => (abre: boolean) =>
+    setFiltroAbierto(abre ? campo : null);
+
   return (
     <>
       {/* Cabecera */}
@@ -153,49 +191,84 @@ export function ConsumoAhorro() {
         <Button size="small">Añadir nuevos suministros</Button>
       </header>
 
-      {/* Filtros */}
-      <div className="mt-06 flex flex-wrap gap-03">
-        <Select
-          aria-label="Sociedad"
-          className="w-[160px]"
-          placeholder="Sociedad"
-          value={sociedad}
-          onChange={(e) => setSociedad(e.target.value)}
-          options={OPCIONES_FILTROS.sociedades.map((s) => ({
-            value: s,
-            label: s,
-          }))}
+      {/* Filtros — de varias respuestas y excluyentes entre ellos (ver el
+          comentario de arriba). */}
+      <div className="mt-06 flex flex-wrap gap-02">
+        <FiltroCasillas
+          nombre="Sociedad"
+          abierto={filtroAbierto === "sociedades"}
+          onAbrir={abrir("sociedades")}
+          seleccion={filtros.sociedades}
+          onChange={(sociedades) => setFiltros((f) => ({ ...f, sociedades }))}
+          grupos={[
+            {
+              opciones: OPCIONES_FILTROS.sociedades
+                .filter((s) => sociedadesDisponibles.has(s))
+                .map((s) => ({ value: s, label: s })),
+            },
+          ]}
         />
-        <Select
-          aria-label="Ubicación"
-          className="w-[160px]"
-          placeholder="Ubicación"
-          value={provincia}
-          onChange={(e) => setProvincia(e.target.value)}
-          options={OPCIONES_FILTROS.provincias.map((p) => ({
-            value: p,
-            label: p,
-          }))}
+        <FiltroCasillas
+          nombre="Ubicación"
+          abierto={filtroAbierto === "direcciones"}
+          onAbrir={abrir("direcciones")}
+          seleccion={filtros.direcciones}
+          onChange={(direcciones) =>
+            setFiltros((f) => ({ ...f, direcciones }))
+          }
+          grupos={[
+            {
+              opciones: OPCIONES_FILTROS.provincias
+                .filter((p) => provinciasDisponibles.has(p))
+                .map((p) => ({ value: p, label: p })),
+            },
+          ]}
         />
-        <Select
-          aria-label="Tipo de inmueble"
-          className="w-[180px]"
-          placeholder="Tipo de inmueble"
-          value={tipoInmueble}
-          onChange={(e) => setTipoInmueble(e.target.value)}
-          options={OPCIONES_FILTROS.tiposDeInmueble}
+        <FiltroCasillas
+          nombre="Tipo de inmueble"
+          abierto={filtroAbierto === "tiposDeInmueble"}
+          onAbrir={abrir("tiposDeInmueble")}
+          seleccion={filtros.tiposDeInmueble}
+          onChange={(tiposDeInmueble) =>
+            setFiltros((f) => ({
+              ...f,
+              tiposDeInmueble: tiposDeInmueble as FiltrosCartera["tiposDeInmueble"],
+            }))
+          }
+          grupos={[
+            {
+              opciones: OPCIONES_FILTROS.tiposDeInmueble.filter((o) =>
+                tiposInmuebleDisponibles.has(o.value),
+              ),
+            },
+          ]}
         />
-        <Select
-          aria-label="Tipo de suministro"
-          className="w-[180px]"
-          placeholder="Tipo de suministro"
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-          options={OPCIONES_FILTROS.tipos}
+        <FiltroCasillas
+          nombre="Tipo de suministro"
+          abierto={filtroAbierto === "tipos"}
+          onAbrir={abrir("tipos")}
+          seleccion={filtros.tipos}
+          onChange={(tipos) =>
+            setFiltros((f) => ({
+              ...f,
+              tipos: tipos as FiltrosCartera["tipos"],
+            }))
+          }
+          grupos={[
+            {
+              opciones: OPCIONES_FILTROS.tipos.filter((o) =>
+                tiposDisponibles.has(o.value),
+              ),
+            },
+          ]}
         />
       </div>
 
-      {/* Las cuatro tarjetas de resumen — mismas que el Dashboard */}
+      {/* Las cuatro tarjetas de resumen — mismas que el Dashboard. `flex` en
+          el envoltorio (no solo en la fila) para que el `flex-1` de dentro
+          de TarjetaDato tenga de verdad un padre flex del que tirar — si no,
+          items-stretch estira el envoltorio pero la tarjeta de dentro se
+          queda con su alto de contenido, y las cuatro no miden lo mismo. */}
       <div className="mt-04 flex flex-wrap items-stretch gap-04">
         {[
           <TarjetaDato
@@ -259,7 +332,7 @@ export function ConsumoAhorro() {
         ].map((tarjeta, i) => (
           <div
             key={tarjeta.key}
-            className="anim-aparece min-w-[220px] flex-1"
+            className="anim-aparece flex min-w-[220px] flex-1"
             style={retardo(i)}
           >
             {tarjeta}
@@ -270,14 +343,17 @@ export function ConsumoAhorro() {
       {/* Coste y ahorro — TODO el bloque va dentro de una tarjeta grande
           (título incluido), y dentro de ella las tres estadísticas y la
           gráfica van CADA UNA en su propia tarjeta con borde (Figma nodo
-          797:8393): antes ni la de fuera ni las de dentro tenían caja. */}
+          797:8393). `items-stretch` + `justify-between` en la columna de
+          estadísticas: así, si la gráfica sale un pelín más alta que las
+          tres tarjetas juntas, ese margen se reparte entre ellas en vez de
+          dejar un hueco suelto al final. */}
       <section className="mt-06 rounded-md border border-border-low bg-background-base p-06">
         <Text variant="heading-s" as="h2">
           Coste y ahorro
         </Text>
 
-        <div className="mt-06 flex flex-col items-start gap-04 lg:flex-row">
-          <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
+        <div className="mt-06 flex flex-col items-stretch gap-04 lg:flex-row">
+          <div className="flex w-full flex-col justify-between gap-04 lg:w-[276px] lg:shrink-0">
             <TarjetaDato
               rotulo="Ahorro medio mensual (est.)"
               destacado
@@ -320,7 +396,7 @@ export function ConsumoAhorro() {
             />
             <div className="mt-05">
               <GraficaBarras
-                key={`coste-${sociedad}-${provincia}-${tipoInmueble}-${tipo}`}
+                key={JSON.stringify(filtros)}
                 datos={datosCoste}
                 unidad="€"
                 formatear={euros}
@@ -339,8 +415,8 @@ export function ConsumoAhorro() {
           Consumo
         </Text>
 
-        <div className="mt-06 flex flex-col items-start gap-04 lg:flex-row">
-          <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
+        <div className="mt-06 flex flex-col items-stretch gap-04 lg:flex-row">
+          <div className="flex w-full flex-col justify-between gap-04 lg:w-[276px] lg:shrink-0">
             <TarjetaDato
               rotulo="Consumo medio (est.)"
               className="border border-border-low"
@@ -392,12 +468,13 @@ export function ConsumoAhorro() {
             />
             <div className="mt-05">
               <GraficaBarras
-                key={`consumo-${sociedad}-${provincia}-${tipoInmueble}-${tipo}`}
+                key={JSON.stringify(filtros)}
                 datos={datosConsumo}
                 unidad=" kWh"
                 formatear={kwh}
                 etiquetaValorReal="Consumo"
                 etiquetaValorEstimado="Consumo (Estimado)"
+                anchoEje="w-10"
               />
             </div>
           </div>

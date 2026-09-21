@@ -78,6 +78,7 @@ export function GraficaBarras({
   etiquetaValorEstimado,
   etiquetaFondo,
   formatear = (v: number) => String(v),
+  anchoEje = "w-08",
 }: {
   datos: PuntoBarras[];
   /** Sufijo del eje Y ("€", "kWh"). */
@@ -90,6 +91,14 @@ export function GraficaBarras({
   etiquetaFondo?: string;
   /** Cómo se escribe un valor del eje Y (p. ej. con punto de millar). */
   formatear?: (valor: number) => string;
+  /**
+   * Ancho del eje Y. Por defecto `w-08` (40 px), el que mide en el Dashboard
+   * (ver el comentario de más abajo, "axis width fix"). Con números de más
+   * cifras ("1.900 kWh") esos 40 px no bastan y la marca se parte en dos
+   * líneas, lo que además estira toda la tarjeta — para esos casos hay que
+   * pasar un ancho mayor, como `w-10`.
+   */
+  anchoEje?: "w-08" | "w-09" | "w-10";
 }) {
   const mayor = Math.max(
     1,
@@ -112,7 +121,7 @@ export function GraficaBarras({
         {/* El eje Y. Ancho fijo para que las marcas de todas las gráficas del
             Dashboard midan lo mismo y las barras arranquen siempre en la
             misma columna. */}
-        <ul className="flex w-08 flex-col justify-between pb-05 text-right">
+        <ul className={`flex ${anchoEje} flex-col justify-between pb-05 text-right`}>
           {marcas.map((marca) => (
             <li key={marca}>
               <Text variant="body-s" color="low" as="span">
