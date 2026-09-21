@@ -220,6 +220,19 @@ export function FiltroCasillas({
             </div>
           )}
 
+          {/* Sin lista y sin pie: en vez de un recuadro flotante vacío (se
+              lee como que algo se ha roto), un aviso explica por qué no hay
+              nada que marcar — pasa, por ejemplo, cuando otro filtro ya ha
+              recortado la cartera hasta dejar este sin ninguna opción. */}
+          {!hayLista && !pie && (
+            <div className="p-04">
+              <Text variant="body-s" color="mid" as="p">
+                No hay opciones para {nombre.toLowerCase()} con los filtros
+                puestos.
+              </Text>
+            </div>
+          )}
+
           {pie && (
             <div className={hayLista ? "border-t border-border-low" : ""}>
               {pie}
