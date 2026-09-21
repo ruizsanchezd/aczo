@@ -2319,3 +2319,130 @@ export function puntosDelInmueble(
 
   return puntos;
 }
+
+/* -------------------------------------------------------------------------- */
+/* "Añadir nuevos suministros" (área de cliente) — alta de un suministro más  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Datos del asistente "Nuevo suministro" del área de cliente
+ * (`NuevoSuministroCliente.tsx`), que se abre desde el botón "Añadir nuevos
+ * suministros" de Dashboard/Mi cartera/Consumo y ahorro/Documentos.
+ *
+ * El Figma de este flujo (fileKey hrMu2uv5cg2Bznl43Jukrr, sección "Nuevo
+ * suministro") usa una sociedad de mentira, "Restaurante Mediterráneo S.L",
+ * que no existe en el resto del prototipo. Se sustituye por una sociedad real
+ * de `SOCIEDADES_CARTERA` — mismo criterio que `CONTRATOS_CLIENTE` y
+ * `OTROS_DOCUMENTOS_CLIENTE` más arriba: quien prueba el prototipo ya conoce
+ * esta cartera, así que "dar de alta un suministro más" tiene que hablar de
+ * una sociedad que de verdad está en ella.
+ */
+export const SOCIEDAD_NUEVO_SUMINISTRO = SOCIEDADES_CARTERA[0]; // mendesaltaren SL
+
+/** CIF de mendesaltaren SL para este asistente. `SOCIEDADES_CARTERA` no lo
+ * necesita en ningún otro sitio del área de cliente (el mapa y la lista no lo
+ * enseñan), así que se guarda aparte — inventado, igual que el resto de
+ * identificadores fiscales de este prototipo. */
+export const CIF_NUEVO_SUMINISTRO = "B-73920164";
+
+/** Dirección sobre la que se simula el alta: la primera sede/inmueble de la
+ * sociedad, ya real en `SOCIEDADES_CARTERA`. */
+export const DIRECCION_NUEVO_SUMINISTRO =
+  SOCIEDAD_NUEVO_SUMINISTRO.sedes[0].inmuebles[0].direccion;
+
+/** Resumen del análisis del paso 01 ("Revisión de tus facturas"): cuántos
+ * archivos se leyeron y cuántos de ellos no dieron problema. */
+export const RESUMEN_ANALISIS_NUEVO_SUMINISTRO = {
+  totalArchivos: 8,
+  correctos: 6,
+};
+
+/** El único error de lectura que enseña la revisión (mismo tipo que
+ * `ArchivoConError`, la subida de empresas). */
+export const ERROR_LECTURA_NUEVO_SUMINISTRO: ArchivoConError = {
+  id: "ns-error-1",
+  nombre: "Factura_gas_marzo_2026.pdf",
+  motivo: "No se ha podido leer el CUPS",
+};
+
+/** La única alerta de permanencia que enseña la revisión (mismo tipo que
+ * `ContratoAlerta`, las alertas de empresas), ya con la sociedad y el CIF de
+ * mendesaltaren SL. */
+export const PERMANENCIA_NUEVO_SUMINISTRO: ContratoAlerta = {
+  id: "ns-permanencia-1",
+  comercializadora: "Iberdrola",
+  archivo: "Factura_luz_abril_2026.pdf",
+  sociedad: SOCIEDAD_NUEVO_SUMINISTRO.nombre,
+  cif: CIF_NUEVO_SUMINISTRO,
+  cups: "ES0021000000000001JN",
+  tarifa: "2.0TD",
+  etiquetaFecha: "Fin de permanencia",
+  fecha: "12 dic 2026",
+  importe: { min: 90, max: 180 },
+};
+
+/**
+ * Las dos ofertas del paso 02 ("Ahorro y recomendación"): las mismas
+ * "Ahorro Aczo" (recomendada) y "Ahorro confort" de `PLANES` — el Figma de
+ * este asistente solo compara dos, no las tres del recorrido de alta de
+ * empresas, así que se reutilizan esas dos entradas en vez de inventar un
+ * modelo de datos nuevo.
+ *
+ * "confort" se ajusta a un `ahorroAnual` propio (3.658 €, el del Figma de
+ * este asistente): en `PLANES` las dos ofertas parten del mismo valor base
+ * (4.948 €) porque ahí "confort" solo se diferencia con las otras DOS
+ * ofertas del recorrido de empresas (nunca se compara junto a "aczo"), pero
+ * aquí sí se comparan una al lado de la otra, así que necesitan una cifra
+ * propia para no enseñar el mismo número dos veces.
+ */
+export const OFERTAS_NUEVO_SUMINISTRO: Plan[] = PLANES.filter(
+  (p) => p.id === "aczo" || p.id === "confort",
+).map((p) => (p.id === "confort" ? { ...p, ahorroAnual: 3658 } : p));
+
+/**
+ * El desglose por comercializadora del paso 02, sobre la dirección de
+ * mendesaltaren SL. Reutiliza los tipos `Comercializadora`/`Suministro` del
+ * recorrido de empresas (y el helper `suministro()`), pero con datos propios
+ * de esta sociedad: los suyos están ligados a las sociedades de `SOCIEDADES`
+ * (el mock de /empresas), que no es la que corresponde aquí.
+ */
+export const COMERCIALIZADORAS_NUEVO_SUMINISTRO: Comercializadora[] = [
+  {
+    id: "totalenergies-ns",
+    nombre: "TotalEnergies",
+    etiquetas: ["2.0TD"],
+    direcciones: [
+      {
+        id: "ns-direccion-te",
+        direccion: DIRECCION_NUEVO_SUMINISTRO,
+        sociedadId: SOCIEDAD_NUEVO_SUMINISTRO.id,
+        suministros: [
+          suministro("ns-te-1", "Oficina planta 2", "Luz", "2.0TD", 2100, 780, {
+            ciudad: "Madrid",
+          }),
+          suministro("ns-te-2", "Almacén", "Gas", "3.1", 1400, 410, {
+            ciudad: "Madrid",
+            mantenimiento: true,
+          }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "repsol-ns",
+    nombre: "Repsol",
+    etiquetas: ["2.0TD"],
+    direcciones: [
+      {
+        id: "ns-direccion-rp",
+        direccion: DIRECCION_NUEVO_SUMINISTRO,
+        sociedadId: SOCIEDAD_NUEVO_SUMINISTRO.id,
+        suministros: [
+          suministro("ns-rp-1", "Recepción", "Luz", "2.0TD", 1800, 560, {
+            ciudad: "Madrid",
+          }),
+        ],
+      },
+    ],
+  },
+];

@@ -88,9 +88,14 @@ const OPCIONES_TIPO_SUMINISTRO = [
 export function Dashboard({
   onVerCartera,
   onVerConsumo,
+  onAbrirNuevoSuministro,
 }: {
   onVerCartera?: () => void;
   onVerConsumo?: () => void;
+  /** Abre el asistente "Añadir nuevos suministros" (ver
+   * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
+   * AreaCliente2.tsx. */
+  onAbrirNuevoSuministro?: () => void;
 }) {
   const [pestañaGrafica, setPestañaGrafica] =
     useState<PestañaGrafica>("coste-luz-gas");
@@ -161,7 +166,9 @@ export function Dashboard({
             Dashboard
           </Text>
         </div>
-        <Button size="small">Añadir nuevos suministros</Button>
+        <Button size="small" onClick={onAbrirNuevoSuministro}>
+          Añadir nuevos suministros
+        </Button>
       </header>
 
       {/* Las cuatro tarjetas de resumen */}

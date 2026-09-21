@@ -52,7 +52,14 @@ const PESTAÑAS = [
 ] as const;
 type Pestaña = (typeof PESTAÑAS)[number]["id"];
 
-export function DocumentosCliente() {
+export function DocumentosCliente({
+  onAbrirNuevoSuministro,
+}: {
+  /** Abre el asistente "Añadir nuevos suministros" (ver
+   * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
+   * AreaCliente2.tsx. */
+  onAbrirNuevoSuministro?: () => void;
+}) {
   const [pestaña, setPestaña] = useState<Pestaña>("facturas");
 
   return (
@@ -70,7 +77,9 @@ export function DocumentosCliente() {
             Toda tu documentación en un mismo sitio
           </Text>
         </div>
-        <Button size="small">Añadir nuevos suministros</Button>
+        <Button size="small" onClick={onAbrirNuevoSuministro}>
+          Añadir nuevos suministros
+        </Button>
       </header>
 
       {/* Pestañas */}
