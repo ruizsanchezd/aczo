@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
@@ -502,11 +503,13 @@ function PasoRevision({ onContinuar }: { onContinuar: () => void }) {
         className="anim-aparece flex flex-col gap-06 rounded-md border border-border-low bg-background-base p-06"
         style={retardo(1)}
       >
-        <Text variant="label-s-uppercase" color="low" as="span">
-          Resumen de tu análisis · {RESUMEN_ANALISIS_NUEVO_SUMINISTRO.totalArchivos}{" "}
-          archivos leídos · {RESUMEN_ANALISIS_NUEVO_SUMINISTRO.correctos} correctos ·{" "}
-          2 alertas
-        </Text>
+        <div className="flex w-fit items-center rounded-md border border-border-low px-04 py-03">
+          <Text variant="label-s-uppercase" color="low" as="span">
+            Resumen de tu análisis · {RESUMEN_ANALISIS_NUEVO_SUMINISTRO.totalArchivos}{" "}
+            archivos leídos · {RESUMEN_ANALISIS_NUEVO_SUMINISTRO.correctos} correctos ·{" "}
+            2 alertas
+          </Text>
+        </div>
 
         <div className="flex flex-col gap-04">
           <div className="flex items-center gap-02 text-content-mid">
@@ -515,20 +518,23 @@ function PasoRevision({ onContinuar }: { onContinuar: () => void }) {
               1 alerta
             </Text>
           </div>
-          <div className="flex flex-col gap-01 rounded-md bg-warning-low p-04 text-warning-high">
-            <Text variant="label-m" as="span" className="text-warning-high">
-              Puedes continuar con el estudio, pero podrías perder parte del
-              ahorro
-            </Text>
-            <Text variant="body-m" as="span" className="text-warning-high">
-              Estas facturas no entrarán en tu estudio de ahorro. Resuélvelas
-              ahora para una recomendación más precisa y maximizar tu ahorro.
-            </Text>
-          </div>
+          <Alert tone="warning" icon="warning">
+            <div className="flex flex-col gap-01">
+              <Text variant="label-m" as="span">
+                Puedes continuar con el estudio, pero podrías perder parte
+                del ahorro
+              </Text>
+              <Text variant="body-m" color="mid" as="span">
+                Estas facturas no entrarán en tu estudio de ahorro.
+                Resuélvelas ahora para una recomendación más precisa y
+                maximizar tu ahorro.
+              </Text>
+            </div>
+          </Alert>
 
           <div className="flex items-center justify-between gap-03 py-02">
             <div className="flex min-w-0 flex-1 items-center gap-03">
-              <span className="flex shrink-0 items-center justify-center rounded-md bg-background-mid p-[10px] text-content-mid">
+              <span className="flex shrink-0 items-center justify-center rounded-md bg-warning-low p-[10px] text-warning-high">
                 <Icon name="warning" size={20} />
               </span>
               <Text variant="label-m">Errores de lectura</Text>
@@ -552,7 +558,7 @@ function PasoRevision({ onContinuar }: { onContinuar: () => void }) {
 
           <div className="flex items-center justify-between gap-03 py-02">
             <div className="flex min-w-0 flex-1 items-center gap-03">
-              <span className="flex shrink-0 items-center justify-center rounded-md bg-background-mid p-[10px] text-content-mid">
+              <span className="flex shrink-0 items-center justify-center rounded-md bg-info-low p-[10px] text-info-high">
                 <Icon name="shield" size={20} />
               </span>
               <Text variant="label-m">Permanencia vigente</Text>
@@ -653,7 +659,7 @@ function PanelRevisarNuevoSuministro({
           {tipo === "errores" ? (
             <article className="flex flex-col gap-04 rounded-md border border-border-low bg-background-low p-05">
               <div className="flex items-center gap-03">
-                <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-background-mid text-content-mid">
+                <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-warning-low text-warning-high">
                   <Icon name="warning" size={20} />
                 </span>
                 <Text variant="label-m" as="h3" className="min-w-0 truncate">
