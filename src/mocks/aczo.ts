@@ -1787,17 +1787,20 @@ export type ContratoCliente = {
 };
 
 /**
- * Los tres contratos del Figma, con las sociedades de verdad de la cartera
- * (el Figma trae otras tres, de mentira, que no existen en ningún otro sitio
- * del prototipo — se sustituyen por las nuestras para que el filtro de
- * "Sociedad" tenga sentido con el resto del área de cliente).
+ * Los tres contratos del Figma traían ejemplos genéricos (mantenimiento,
+ * alquiler, seguro) que no encajan con Aczo: aquí un "contrato" es el
+ * contrato de suministro de luz o gas que cada sociedad tiene firmado con
+ * su comercializadora — así que se sustituyen por eso, usando sociedades y
+ * comercializadoras de verdad de `SOCIEDADES_CARTERA` para que el filtro de
+ * "Sociedad"/"Comercializadora" tenga sentido con el resto del área de
+ * cliente.
  */
 export const CONTRATOS_CLIENTE: ContratoCliente[] = [
   {
     id: "contrato-1",
-    titulo: "Mantenimiento técnico",
-    categoria: "agua",
-    proveedor: "Aqualia",
+    titulo: "Contrato de luz",
+    categoria: "luz",
+    proveedor: "Repsol",
     sociedad: "mendesaltaren SL",
     firma: "04 feb 2026",
     vigencia: "04 feb 2027",
@@ -1805,9 +1808,9 @@ export const CONTRATOS_CLIENTE: ContratoCliente[] = [
   },
   {
     id: "contrato-2",
-    titulo: "Contrato de alquiler",
-    categoria: "oficina",
-    proveedor: "Meridia",
+    titulo: "Contrato de gas",
+    categoria: "gas",
+    proveedor: "TotalEnergies",
     sociedad: "Still SL",
     firma: "18 jun 2025",
     vigencia: "18 jun 2028",
@@ -1815,13 +1818,52 @@ export const CONTRATOS_CLIENTE: ContratoCliente[] = [
   },
   {
     id: "contrato-3",
-    titulo: "Seguro empresarial",
-    categoria: "negocio",
-    proveedor: "Mapfre",
+    titulo: "Contrato de luz",
+    categoria: "luz",
+    proveedor: "Endesa",
     sociedad: "Nocodehackers SL",
     firma: "30 sep 2024",
     vigencia: "30 sep 2026",
     estado: "Vigente",
+  },
+];
+
+/** Un documento de la pestaña "Otros documentos" de "Documentos" (Figma nodo 797:45011). */
+export type OtroDocumentoCliente = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  titular: string;
+  fecha: string;
+};
+
+/**
+ * Los tres documentos del Figma, con dos sociedades de verdad de la cartera
+ * en vez de la de mentira que trae el diseño, y el nombre real de quien usa
+ * el prototipo (`Ainhoa Martínez`, el mismo de la barra lateral) en vez de
+ * "Alejando M.".
+ */
+export const OTROS_DOCUMENTOS_CLIENTE: OtroDocumentoCliente[] = [
+  {
+    id: "otro-1",
+    titulo: "Escritura",
+    tipo: "Escritura",
+    titular: "mendesaltaren SL",
+    fecha: "04 feb 2027",
+  },
+  {
+    id: "otro-2",
+    titulo: "Poder de representación",
+    tipo: "Poder",
+    titular: "Still SL",
+    fecha: "18 jun 2028",
+  },
+  {
+    id: "otro-3",
+    titulo: "DNI",
+    tipo: "DNI",
+    titular: "Ainhoa Martínez (admin)",
+    fecha: "30 sep 2026",
   },
 ];
 
