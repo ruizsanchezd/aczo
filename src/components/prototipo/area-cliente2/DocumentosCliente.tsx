@@ -10,6 +10,7 @@ import {
   ACTUALIZACION_DASHBOARD,
   CONTRATOS_CLIENTE,
   FACTURAS_CLIENTE,
+  OTROS_DOCUMENTOS_CLIENTE,
   euros,
 } from "@/mocks/aczo";
 import { SelectorCompacto } from "./PiezasAreaCliente";
@@ -18,14 +19,12 @@ import { SelectorCompacto } from "./PiezasAreaCliente";
  * DocumentosCliente — "Documentos" del área de cliente (Figma nodo
  * 797:44753).
  *
- * Tres pestañas: "Facturas" (797:44753) y "Contratos" (797:44901) tienen
- * diseño en el Figma. "Otra documentación" sigue sin él — como "Sociedades
- * pendientes" en el panel de avisos, se avisa de eso en vez de inventar un
- * contenido que no está en el Figma.
+ * Tres pestañas, las tres con diseño en el Figma: "Facturas" (797:44753),
+ * "Contratos" (797:44901) y "Otros documentos" (797:45011).
  *
  * LA CABECERA DE LA TABLA VA EN OSCURO (`bg-highlight-deep`), no en blanco
- * como el resto de tablas del prototipo — así sale en las dos pestañas, y es
- * lo que distingue estas listas largas de una lista corta como la de "Mi
+ * como el resto de tablas del prototipo — así sale en las tres pestañas, y
+ * es lo que distingue estas listas largas de una lista corta como la de "Mi
  * cartera".
  *
  * Los filtros son de una sola respuesta (`SelectorCompacto`, el mismo del
@@ -38,16 +37,18 @@ import { SelectorCompacto } from "./PiezasAreaCliente";
  * para que se vea el gesto, igual que "Añadir nuevos suministros" en el
  * resto de pantallas del área de cliente.
  *
- * Los tres contratos de ejemplo del Figma traían sociedades inventadas que
- * no existen en ningún otro sitio del prototipo — en `CONTRATOS_CLIENTE` se
- * sustituyen por sociedades de verdad de la cartera, para que el filtro
- * "Sociedad" tenga sentido con el resto del área de cliente.
+ * Los ejemplos de "Contratos" y "Otros documentos" del Figma traían
+ * contenido genérico (mantenimiento, alquiler, seguro...) y sociedades
+ * inventadas que no existen en ningún otro sitio del prototipo — en
+ * `CONTRATOS_CLIENTE` y `OTROS_DOCUMENTOS_CLIENTE` se sustituyen por
+ * contratos de luz/gas y sociedades de verdad de la cartera, para que
+ * tengan sentido con el resto del área de cliente.
  */
 
 const PESTAÑAS = [
   { id: "facturas", rotulo: "Facturas" },
   { id: "contratos", rotulo: "Contratos" },
-  { id: "otra", rotulo: "Otra documentación" },
+  { id: "otros", rotulo: "Otros documentos" },
 ] as const;
 type Pestaña = (typeof PESTAÑAS)[number]["id"];
 
@@ -106,14 +107,7 @@ export function DocumentosCliente() {
       ) : pestaña === "contratos" ? (
         <TablaContratos />
       ) : (
-        <div className="mt-06 flex flex-col items-center gap-02 rounded-md border border-border-low bg-background-base p-08 text-center">
-          <Text variant="label-l" as="p">
-            Todavía no hay nada que enseñar aquí
-          </Text>
-          <Text variant="body-s" color="mid" as="p" className="max-w-[40ch]">
-            Otra documentación no tiene diseño en el Figma todavía.
-          </Text>
-        </div>
+        <TablaOtrosDocumentos />
       )}
     </>
   );
@@ -440,6 +434,7 @@ function TablaFacturas() {
 function TablaContratos() {
   const [sociedad, setSociedad] = useState("");
   const [comercializadora, setComercializadora] = useState("");
+  const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
 
   const opciones = useMemo(
     () => ({
@@ -460,6 +455,22 @@ function TablaContratos() {
       ),
     [sociedad, comercializadora],
   );
+
+  const marcados = contratos.filter((c) => seleccion.has(c.id)).length;
+  const todosMarcados = contratos.length > 0 && marcados === contratos.length;
+
+  function alternarTodos(marcar: boolean) {
+    setSeleccion(new Set(marcar ? contratos.map((c) => c.id) : []));
+  }
+
+  function alternarFila(id: string) {
+    setSeleccion((s) => {
+      const copia = new Set(s);
+      if (copia.has(id)) copia.delete(id);
+      else copia.add(id);
+      return copia;
+    });
+  }
 
   return (
     <>
@@ -502,6 +513,11 @@ function TablaContratos() {
       {/* Tabla */}
       <div className="mt-04 overflow-hidden rounded-md border border-border-low">
         <div className="flex items-center gap-04 bg-highlight-deep px-04 py-03">
+          <Checkbox
+            checked={todosMarcados}
+            indeterminate={marcados > 0 && !todosMarcados}
+            onChange={alternarTodos}
+          />
           <Text
             variant="label-s-uppercase"
             color="always-light"
@@ -565,6 +581,10 @@ function TablaContratos() {
                 key={c.id}
                 className="flex items-center gap-04 bg-background-base px-04 py-03"
               >
+                <Checkbox
+                  checked={seleccion.has(c.id)}
+                  onChange={() => alternarFila(c.id)}
+                />
                 <span className="flex min-w-0 flex-[2] items-center gap-03">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
                     <Icon name="document" className="text-content-mid" />
@@ -608,6 +628,179 @@ function TablaContratos() {
                   <button
                     type="button"
                     aria-label={`Descargar ${c.titulo}`}
+                    className="flex cursor-pointer items-center rounded-md p-02 text-content-high transition-opacity motion-micro-states hover:opacity-60"
+                  >
+                    <Icon name="download" size={16} />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** La pestaña "Otros documentos" (Figma nodo 797:45011): filtro, tabla sin paginar. */
+function TablaOtrosDocumentos() {
+  const [sociedad, setSociedad] = useState("");
+  const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
+
+  const sociedades = useMemo(
+    () => [...new Set(OTROS_DOCUMENTOS_CLIENTE.map((d) => d.titular))],
+    [],
+  );
+
+  const documentos = useMemo(
+    () =>
+      OTROS_DOCUMENTOS_CLIENTE.filter(
+        (d) => !sociedad || d.titular === sociedad,
+      ),
+    [sociedad],
+  );
+
+  const marcados = documentos.filter((d) => seleccion.has(d.id)).length;
+  const todosMarcados = documentos.length > 0 && marcados === documentos.length;
+
+  function alternarTodos(marcar: boolean) {
+    setSeleccion(new Set(marcar ? documentos.map((d) => d.id) : []));
+  }
+
+  function alternarFila(id: string) {
+    setSeleccion((s) => {
+      const copia = new Set(s);
+      if (copia.has(id)) copia.delete(id);
+      else copia.add(id);
+      return copia;
+    });
+  }
+
+  return (
+    <>
+      {/* Filtro + descargar */}
+      <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
+        <SelectorCompacto
+          etiqueta="Sociedad"
+          ancho="w-[150px]"
+          valor={sociedad}
+          onChange={setSociedad}
+          opciones={[
+            { value: "", label: "Sociedad" },
+            ...sociedades.map((s) => ({ value: s, label: s })),
+          ]}
+        />
+
+        <Button variant="secondary" size="small">
+          <span className="flex items-center gap-02">
+            <Icon name="download" size={16} />
+            Descargar todas
+          </span>
+        </Button>
+      </div>
+
+      {/* Tabla */}
+      <div className="mt-04 overflow-hidden rounded-md border border-border-low">
+        <div className="flex items-center gap-04 bg-highlight-deep px-04 py-03">
+          <Checkbox
+            checked={todosMarcados}
+            indeterminate={marcados > 0 && !todosMarcados}
+            onChange={alternarTodos}
+          />
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-[2]"
+          >
+            Documento
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Tipo
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Titular
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="min-w-0 flex-1"
+          >
+            Fecha
+          </Text>
+          <Text
+            variant="label-s-uppercase"
+            color="always-light"
+            as="span"
+            className="w-08 shrink-0 text-right"
+          >
+            Acción
+          </Text>
+        </div>
+
+        {documentos.length === 0 ? (
+          <div className="p-08 text-center">
+            <Text variant="body-m" color="mid" as="p">
+              No hay documentos con los filtros puestos.
+            </Text>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border-low">
+            {documentos.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center gap-04 bg-background-base px-04 py-03"
+              >
+                <Checkbox
+                  checked={seleccion.has(d.id)}
+                  onChange={() => alternarFila(d.id)}
+                />
+                <span className="flex min-w-0 flex-[2] items-center gap-03">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                    <Icon name="document" className="text-content-mid" />
+                  </span>
+                  <Text variant="label-m" as="span">
+                    {d.titulo}
+                  </Text>
+                </span>
+                <Text
+                  variant="body-m"
+                  color="mid"
+                  as="span"
+                  className="min-w-0 flex-1"
+                >
+                  {d.tipo}
+                </Text>
+                <Text
+                  variant="body-m"
+                  as="span"
+                  className="min-w-0 flex-1 truncate"
+                >
+                  {d.titular}
+                </Text>
+                <Text
+                  variant="body-m"
+                  color="mid"
+                  as="span"
+                  className="min-w-0 flex-1"
+                >
+                  {d.fecha}
+                </Text>
+                <span className="flex w-08 shrink-0 justify-end">
+                  <button
+                    type="button"
+                    aria-label={`Descargar ${d.titulo}`}
                     className="flex cursor-pointer items-center rounded-md p-02 text-content-high transition-opacity motion-micro-states hover:opacity-60"
                   >
                     <Icon name="download" size={16} />
