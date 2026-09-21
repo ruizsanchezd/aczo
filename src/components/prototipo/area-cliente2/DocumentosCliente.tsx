@@ -326,7 +326,7 @@ function TablaFacturas() {
                   onChange={() => alternarFila(f.id)}
                 />
                 <span className="flex min-w-0 flex-[2] items-center gap-03">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                  <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-background-low">
                     <Icon name="document" className="text-content-mid" />
                   </span>
                   <span className="flex min-w-0 flex-col">
@@ -586,7 +586,7 @@ function TablaContratos() {
                   onChange={() => alternarFila(c.id)}
                 />
                 <span className="flex min-w-0 flex-[2] items-center gap-03">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                  <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-background-low">
                     <Icon name="document" className="text-content-mid" />
                   </span>
                   <span className="flex min-w-0 flex-col">
@@ -767,7 +767,7 @@ function TablaOtrosDocumentos() {
                   onChange={() => alternarFila(d.id)}
                 />
                 <span className="flex min-w-0 flex-[2] items-center gap-03">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background-low">
+                  <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-background-low">
                     <Icon name="document" className="text-content-mid" />
                   </span>
                   <Text variant="label-m" as="span">
