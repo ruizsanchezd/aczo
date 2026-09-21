@@ -49,10 +49,13 @@ export function BarraLateralCliente({
   activa = "cartera",
   onNavegar,
   persona = "Ainhoa Martínez",
+  onAbrirAvisos,
 }: {
   activa?: string;
   onNavegar?: (id: string) => void;
   persona?: string;
+  /** Abre PanelAvisos ("Notificaciones y alertas"). */
+  onAbrirAvisos?: () => void;
 }) {
   const inicial = persona.trim().charAt(0).toUpperCase();
 
@@ -113,6 +116,7 @@ export function BarraLateralCliente({
           <button
             type="button"
             aria-label="Avisos"
+            onClick={onAbrirAvisos}
             className="cursor-pointer text-content-always-light transition-opacity motion-micro-states hover:opacity-60"
           >
             <Icon name="bell" />

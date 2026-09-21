@@ -1622,6 +1622,107 @@ export const CONSUMO_MENSUAL_DASHBOARD: PuntoConsumoMensual[] = [
   { mes: "Dic", costeConAczo: 260, costeSinAczo: 335, consumoKwh: 1850, real: false },
 ];
 
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — Panel de "Notificaciones y alertas"                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Una alerta: algo que le falta resolver a la persona para no perder ahorro.
+ * Se distingue de una notificación en que PIDE una acción (Completar,
+ * Revisar…) y se puede descartar; la notificación solo informa.
+ */
+export type AlertaCliente = {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  /** Sale la etiqueta "Urgente" en naranja delante del título. */
+  urgente?: boolean;
+  fecha: string;
+  /** Rótulo del botón principal ("Completar", "Revisar"…). */
+  accion: string;
+};
+
+export const ALERTAS_CLIENTE: AlertaCliente[] = [
+  {
+    id: "sociedades-pendientes",
+    titulo: "Sociedades pendientes",
+    descripcion: "Completa los datos de las sociedades para poder tramitar tu ahorro",
+    urgente: true,
+    fecha: "16/08/2026",
+    accion: "Completar",
+  },
+  {
+    id: "errores-lectura",
+    titulo: "Errores de lectura",
+    descripcion: "Revisa las facturas para poder calcular el ahorro correctamente",
+    fecha: "16/08/2026",
+    accion: "Revisar",
+  },
+];
+
+/** Una notificación: solo informa de algo que ya ha pasado. No se descarta, se lee. */
+export type NotificacionCliente = {
+  id: string;
+  titulo: string;
+  detalle: string;
+  fecha: string;
+};
+
+export const NOTIFICACIONES_CLIENTE: NotificacionCliente[] = [
+  {
+    id: "alta-1",
+    titulo: "Nueva alta ejecutada",
+    detalle: "Ruiz carpintería SL · CUPS: ES1234567890",
+    fecha: "Hoy",
+  },
+  {
+    id: "alta-2",
+    titulo: "Nueva alta ejecutada",
+    detalle: "mendesaltaren SL · CUPS: ES0857788126185",
+    fecha: "Hoy",
+  },
+  {
+    id: "alta-3",
+    titulo: "Nueva alta ejecutada",
+    detalle: "Still SL · CUPS: ES0955850307201",
+    fecha: "Ayer",
+  },
+];
+
+/**
+ * Una factura que ha dado error al leerse, dentro del detalle de la alerta
+ * "Errores de lectura" (se abre pulsando "Revisar"). El CUPS se enseña
+ * tapado porque, en un error de lectura, es justo el dato que no se pudo
+ * leer bien.
+ */
+export type FacturaConError = {
+  id: string;
+  comercializadora: string;
+  archivo: string;
+  sociedad: string;
+  cif: string;
+  tarifa: string;
+};
+
+export const ERRORES_LECTURA_CLIENTE: FacturaConError[] = [
+  {
+    id: "err-naturgy-1",
+    comercializadora: "Naturgy",
+    archivo: "factura_naturgy_2024_03.pdf",
+    sociedad: "Martínez SL",
+    cif: "B-91028374",
+    tarifa: "Tarifa Luz",
+  },
+  {
+    id: "err-naturgy-2",
+    comercializadora: "Naturgy",
+    archivo: "factura_naturgy_2024_03.pdf",
+    sociedad: "Martínez SL",
+    cif: "B-91028374",
+    tarifa: "Tarifa Luz",
+  },
+];
+
 /* --- Agrupar la cartera de tres maneras ------------------------------------ */
 
 /** Las tres formas de agrupar la lista de "Mi cartera". */

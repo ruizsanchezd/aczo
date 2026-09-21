@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { ConsumoAhorro } from "./ConsumoAhorro";
 import { Dashboard } from "./Dashboard";
+import { PanelAvisos } from "./PanelAvisos";
 import { PantallaCartera } from "./PantallaCartera";
 
 /**
@@ -22,6 +23,7 @@ import { PantallaCartera } from "./PantallaCartera";
  */
 export function AreaCliente2() {
   const [seccion, setSeccion] = useState("dashboard");
+  const [avisosAbiertos, setAvisosAbiertos] = useState(false);
 
   function navegar(id: string) {
     if (id === "dashboard" || id === "cartera" || id === "consumo")
@@ -33,7 +35,11 @@ export function AreaCliente2() {
       {/* La barra es `fixed` (ver BarraLateralCliente): no ocupa hueco en el
           flujo, así que aquí se deja aparte con `ml-[256px]` — sus 240 px de
           ancho más los 16 px de margen con los que flota. */}
-      <BarraLateralCliente activa={seccion} onNavegar={navegar} />
+      <BarraLateralCliente
+        activa={seccion}
+        onNavegar={navegar}
+        onAbrirAvisos={() => setAvisosAbiertos(true)}
+      />
 
       <main className="ml-[256px] min-w-0 px-06 py-07">
         {seccion === "dashboard" ? (
@@ -47,6 +53,11 @@ export function AreaCliente2() {
           <ConsumoAhorro />
         )}
       </main>
+
+      <PanelAvisos
+        abierto={avisosAbiertos}
+        onCerrar={() => setAvisosAbiertos(false)}
+      />
     </div>
   );
 }
