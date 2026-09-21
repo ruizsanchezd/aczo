@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { MES_COMPARACION_DASHBOARD } from "@/mocks/aczo";
 
@@ -53,5 +54,51 @@ export function Tendencia({ variacion }: { variacion: number }) {
     >
       {sube ? "+" : "-"} {Math.abs(variacion)}% vs {MES_COMPARACION_DASHBOARD}
     </Text>
+  );
+}
+
+/**
+ * SelectorCompacto — el desplegable sencillo de una barra de filtros
+ * ("Sociedades", "Luz y Gas"...). No es el `Select` del sistema
+ * (`ui/Input.tsx`): ese es un campo de formulario de 40 px con etiqueta, y
+ * este es un filtro de barra de herramientas de 32 px, como el de la Figma
+ * (nodos 797:6195/6197 en el Dashboard y 797:44769 en "Documentos"): mismo
+ * radio y tipografía que el resto de campos, pero más bajo y sin etiqueta
+ * encima. El propio botón enseña la opción elegida, así que no hace falta un
+ * rótulo aparte.
+ */
+export function SelectorCompacto({
+  etiqueta,
+  valor,
+  onChange,
+  opciones,
+  ancho = "w-[180px]",
+}: {
+  /** Nombre accesible del campo, para quien use lector de pantalla. */
+  etiqueta: string;
+  valor: string;
+  onChange: (valor: string) => void;
+  opciones: readonly { value: string; label: string }[];
+  /** Clase de ancho de Tailwind. Cada pantalla trae sus propias medidas. */
+  ancho?: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        aria-label={etiqueta}
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        className={`h-07 ${ancho} cursor-pointer appearance-none rounded-md border border-border-low bg-background-base px-03 text-body-s text-content-mid outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high`}
+      >
+        {opciones.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <span className="pointer-events-none absolute top-1/2 right-03 -translate-y-1/2 text-content-mid">
+        <Icon name="chevron-down" size={16} />
+      </span>
+    </div>
   );
 }

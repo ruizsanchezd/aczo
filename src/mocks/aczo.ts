@@ -1723,6 +1723,57 @@ export const ERRORES_LECTURA_CLIENTE: FacturaConError[] = [
   },
 ];
 
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — "Documentos"                                            */
+/* -------------------------------------------------------------------------- */
+
+/** Una factura de la pestaña "Facturas" de "Documentos". */
+export type FacturaCliente = {
+  id: string;
+  numero: string;
+  fecha: string;
+  tipo: TipoCartera;
+  sociedad: string;
+  comercializadora: string;
+  ubicacion: string;
+  importe: number;
+};
+
+/**
+ * Las facturas de las cuatro sociedades de la cartera, tres meses seguidos
+ * (mayo-julio 2026) y una por cada tipo de suministro que de verdad tiene su
+ * primera sede — ni sociedad ni dirección se escriben a mano, salen de
+ * `SOCIEDADES_CARTERA`, así que la lista de "Documentos" cuadra con el resto
+ * del área de cliente. El importe sí es un número de mentira (300 € de base
+ * más un escalón por factura, para que la lista no sea todo el mismo valor).
+ */
+export const FACTURAS_CLIENTE: FacturaCliente[] = (() => {
+  const meses = ["Mayo 2026", "Junio 2026", "Julio 2026"];
+  const facturas: FacturaCliente[] = [];
+  let n = 0;
+
+  for (const sociedad of SOCIEDADES_CARTERA) {
+    const sede = sociedad.sedes[0];
+    const inmueble = sede.inmuebles[0];
+    for (const mes of meses) {
+      for (const tipo of inmueble.tipos) {
+        n += 1;
+        facturas.push({
+          id: `factura-${n}`,
+          numero: `Factura ${String(n).padStart(3, "0")}`,
+          fecha: mes,
+          tipo,
+          sociedad: sociedad.nombre,
+          comercializadora: sociedad.comercializadora,
+          ubicacion: inmueble.direccion,
+          importe: 300 + ((n * 37) % 500),
+        });
+      }
+    }
+  }
+  return facturas;
+})();
+
 /* --- Agrupar la cartera de tres maneras ------------------------------------ */
 
 /** Las tres formas de agrupar la lista de "Mi cartera". */
