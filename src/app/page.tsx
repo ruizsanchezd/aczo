@@ -80,6 +80,25 @@ export default function Home() {
           </span>
         </Link>
         <Link
+          href="/area-cliente2"
+          className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
+        >
+          <span>
+            <Text variant="label-l" as="span">
+              Área de cliente
+            </Text>
+            <Text variant="body-s" color="mid">
+              Dashboard y &ldquo;Mi cartera&rdquo; para quien ya es cliente
+            </Text>
+          </span>
+          <span
+            aria-hidden
+            className="shrink-0 text-content-low transition-transform motion-micro-states group-hover:translate-x-01"
+          >
+            →
+          </span>
+        </Link>
+        <Link
           href="/estilos"
           className="group flex items-center justify-between gap-04 rounded-md border border-border-low p-04 transition-colors motion-micro-states hover:bg-background-low"
         >
