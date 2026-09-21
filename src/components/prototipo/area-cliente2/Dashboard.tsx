@@ -18,7 +18,6 @@ import {
   CONSUMO_MENSUAL_DASHBOARD,
   CONSUMO_ULTIMO_MES_DASHBOARD,
   ESTADOS_CARTERA,
-  MES_COMPARACION_DASHBOARD,
   OPCIONES_FILTROS,
   RESUMEN_CARTERA,
   SOCIEDADES_CARTERA,
@@ -29,6 +28,7 @@ import {
   type ModoAgrupacion,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
+import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
 
 /**
  * Dashboard — la primera pantalla que se ve al entrar en el área de cliente.
@@ -85,7 +85,13 @@ const OPCIONES_TIPO_SUMINISTRO = [
   { value: "gas", label: "Gas" },
 ] as const;
 
-export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
+export function Dashboard({
+  onVerCartera,
+  onVerConsumo,
+}: {
+  onVerCartera?: () => void;
+  onVerConsumo?: () => void;
+}) {
   const [pestañaGrafica, setPestañaGrafica] =
     useState<PestañaGrafica>("coste-luz-gas");
   // "" es "todas las sociedades" / "Luz y Gas": los dos desplegables son de
@@ -240,7 +246,7 @@ export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
                 el mismo problema que tuvo el rótulo de la barra lateral. */}
             <button
               type="button"
-              onClick={onVerCartera}
+              onClick={onVerConsumo}
               className="flex items-center gap-01 text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
             >
               <span className="text-label-s">Ver consumo y ahorro</span>
@@ -492,53 +498,6 @@ export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
         </section>
       </div>
     </>
-  );
-}
-
-/**
- * ValorConUnidad — el número grande de una tarjeta seguido de su unidad
- * ("8.300 €/año", "7.234 €"). Son DOS tipografías, no una: el número va en
- * la de marca (`heading-m`, 24 px, la misma en las cuatro tarjetas) y la
- * unidad en una etiqueta gris pequeña al lado (`label-s`/`content-low`) —
- * igual que "84 % completado" en el panel de Cartera. Por eso no es un único
- * `<Text>` con las dos palabras dentro.
- */
-function ValorConUnidad({
-  valor,
-  unidad,
-}: {
-  valor: string;
-  unidad: string;
-}) {
-  return (
-    <p className="flex items-baseline gap-01">
-      <Text variant="heading-m" as="span">
-        {valor}
-      </Text>
-      <Text variant="label-s" color="low" as="span">
-        {unidad}
-      </Text>
-    </p>
-  );
-}
-
-/**
- * Tendencia — la línea "- 6% vs julio 2025" bajo el coste y el consumo del
- * último mes. El signo decide el color: bajar de coste (o de consumo) es la
- * buena noticia (`success-high`) y subir es la que conviene mirar
- * (`warning-high`) — no "positivo o negativo" en abstracto, que aquí
- * significaría lo contrario de lo que se lee a simple vista.
- */
-function Tendencia({ variacion }: { variacion: number }) {
-  const sube = variacion > 0;
-  return (
-    <Text
-      variant="label-s"
-      as="p"
-      className={sube ? "text-warning-high" : "text-success-high"}
-    >
-      {sube ? "+" : "-"} {Math.abs(variacion)}% vs {MES_COMPARACION_DASHBOARD}
-    </Text>
   );
 }
 
