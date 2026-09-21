@@ -28,9 +28,10 @@ import { Text } from "@/components/ui/Text";
  * 16 px de margen) con su propio `ml-[256px]`.
  *
  * INTERACCIÓN
- *   La sección donde estás se marca en amarillo de marca (highlight-vivid) y
- *   con una barrita a la izquierda que se estira desde el centro al entrar.
- *   El resto de secciones se aclaran al pasar por encima con la misma opacidad
+ *   La sección donde estás se marca en amarillo de marca (highlight-vivid) —
+ *   sin barrita a la izquierda ni nada más: en el Figma (nodo 788:9554) la
+ *   única marca de la sección activa es el color del texto y el icono. El
+ *   resto de secciones se aclaran al pasar por encima con la misma opacidad
  *   de hover que usan los botones del sistema (opacity-60), para que el gesto
  *   se sienta igual en toda la interfaz. Duración: motion-micro-states.
  */
@@ -77,19 +78,12 @@ export function BarraLateralCliente({
                   type="button"
                   aria-current={esActiva ? "page" : undefined}
                   onClick={() => onNavegar?.(seccion.id)}
-                  className={`relative flex w-full cursor-pointer items-center gap-02 rounded-md py-03 transition-opacity motion-micro-states ${
+                  className={`flex w-full cursor-pointer items-center gap-02 rounded-md py-03 transition-opacity motion-micro-states ${
                     esActiva
                       ? "text-highlight-vivid"
                       : "text-content-always-light hover:opacity-60"
                   }`}
                 >
-                  {/* La barrita de la sección activa: crece desde el centro. */}
-                  {esActiva && (
-                    <span
-                      aria-hidden
-                      className="anim-marca-activa absolute top-1/2 -left-04 h-05 w-[var(--style-border-width-l)] -translate-y-1/2 rounded-full bg-highlight-vivid"
-                    />
-                  )}
                   <Icon name={seccion.icono} />
                   {/* Un `<span>` suelto, no `<Text>`: así el color le llega
                       heredado del botón (amarillo si es la activa, blanco si

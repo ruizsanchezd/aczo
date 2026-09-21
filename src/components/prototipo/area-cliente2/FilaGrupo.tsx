@@ -3,11 +3,7 @@
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
 import { PuntoEstado } from "@/components/ui/PuntoEstado";
-import {
-  ESTADOS_CARTERA,
-  type CategoriaInmueble,
-  type GrupoCartera,
-} from "@/mocks/aczo";
+import { ESTADOS_CARTERA, type GrupoCartera } from "@/mocks/aczo";
 import { LogoComercializadora } from "@/components/prototipo/TarjetaPlan";
 import { FilaInmueble } from "./FilaInmueble";
 
@@ -76,9 +72,7 @@ export function FilaGrupo({
   apilado = false,
   inmuebleDesplegado,
   onDesplegarInmueble,
-  inmuebleCategorizando,
-  onCategorizarInmueble,
-  onElegirCategoria,
+  onEditarInmueble,
 }: {
   grupo: GrupoCartera;
   marcado: boolean;
@@ -105,10 +99,8 @@ export function FilaGrupo({
   /** id del inmueble que tiene abierto su detalle, o null. */
   inmuebleDesplegado: string | null;
   onDesplegarInmueble: (id: string) => void;
-  /** id del inmueble que tiene abierto el desplegable de categorías, o null. */
-  inmuebleCategorizando: string | null;
-  onCategorizarInmueble: (id: string) => void;
-  onElegirCategoria: (id: string, categoria: CategoriaInmueble) => void;
+  /** Abre ModalOrganizaCartera para el inmueble con este id. */
+  onEditarInmueble: (id: string) => void;
 }) {
   return (
     <div
@@ -150,7 +142,13 @@ export function FilaGrupo({
           )}
 
           <span className="flex min-w-0 flex-col gap-01">
-            <span className="flex min-w-0 flex-wrap items-center gap-04">
+            {/* `gap-x-04 gap-y-01`, no `gap-04` a secas: en una fila ancha el
+                nombre y el resumen van seguidos con 16px de por medio, pero
+                si no caben y el resumen salta a su propia línea (una tarjeta
+                estrecha, como la de "Agrupar por Sociedad"), el hueco entre
+                líneas tiene que ser el mismo 4px de siempre entre título y
+                subtítulo — no los 16px pensados para el hueco horizontal. */}
+            <span className="flex min-w-0 flex-wrap items-center gap-x-04 gap-y-01">
               <Text variant="label-m" as="span">
                 {grupo.nombre}
               </Text>
@@ -213,11 +211,7 @@ export function FilaGrupo({
                 linea={linea}
                 desplegado={inmuebleDesplegado === linea.id}
                 onDesplegar={() => onDesplegarInmueble(linea.id)}
-                categorizando={inmuebleCategorizando === linea.id}
-                onCategorizar={() => onCategorizarInmueble(linea.id)}
-                onElegirCategoria={(categoria) =>
-                  onElegirCategoria(linea.id, categoria)
-                }
+                onEditar={() => onEditarInmueble(linea.id)}
               />
             ))}
           </ul>

@@ -9,6 +9,7 @@ import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
 import { Text } from "@/components/ui/Text";
 import { Toggle } from "@/components/ui/Toggle";
+import { Tooltip } from "@/components/ui/Tooltip";
 import {
   ACTUALIZACION_DASHBOARD,
   AHORRO_POTENCIAL_ANUAL_DASHBOARD,
@@ -18,6 +19,7 @@ import {
   CONSUMO_ULTIMO_MES_DASHBOARD,
   ESTADOS_CARTERA,
   MES_COMPARACION_DASHBOARD,
+  OPCIONES_FILTROS,
   RESUMEN_CARTERA,
   SOCIEDADES_CARTERA,
   agruparCartera,
@@ -53,8 +55,9 @@ import { retardo } from "@/lib/prototipo";
  */
 
 const PESTAÑAS_GRAFICA = [
-  { id: "coste", rotulo: "Coste (€)" },
-  { id: "consumo", rotulo: "Consumo (kWh)" },
+  { id: "coste-luz-gas", rotulo: "Coste luz y gas" },
+  { id: "consumo-luz", rotulo: "Consumo Luz" },
+  { id: "consumo-gas", rotulo: "Consumo Gas" },
 ] as const;
 type PestañaGrafica = (typeof PESTAÑAS_GRAFICA)[number]["id"];
 
@@ -73,31 +76,54 @@ const PESTAÑAS_DETALLE: { id: ModoAgrupacion; rotulo: string }[] = [
   { id: "ubicacion", rotulo: "Ubicación" },
 ];
 
+/** El filtro "Tipo de suministro" de la gráfica: a diferencia del de "Mi
+ * cartera" (casillas, sin elegir ninguna = todas), aquí "Luz y Gas" es una
+ * opción más, explícita y elegida por defecto — así lo pide el Figma. */
+const OPCIONES_TIPO_SUMINISTRO = [
+  { value: "", label: "Luz y Gas" },
+  { value: "luz", label: "Luz" },
+  { value: "gas", label: "Gas" },
+] as const;
+
 export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
   const [pestañaGrafica, setPestañaGrafica] =
-    useState<PestañaGrafica>("coste");
+    useState<PestañaGrafica>("coste-luz-gas");
+  // "" es "todas las sociedades" / "Luz y Gas": los dos desplegables son de
+  // elección única, con esa opción combinada siempre la primera de la lista
+  // (así sale en el Figma, nodo 797:6176: "Sociedades" y "Tipo de
+  // suministro" son campos sencillos, no las casillas de "Mi cartera").
   const [sociedad, setSociedad] = useState("");
+  const [tipo, setTipo] = useState("");
   const [pestañaCartera, setPestañaCartera] =
     useState<PestañaCartera>("detalle");
   const [detalleCarteraPor, setDetalleCarteraPor] =
     useState<ModoAgrupacion>("sociedad");
   const [grupoMarcado, setGrupoMarcado] = useState<string | null>(null);
 
-  const sociedadElegida = useMemo(
-    () => SOCIEDADES_CARTERA.find((s) => s.id === sociedad),
-    [sociedad],
-  );
+  const esCoste = pestañaGrafica === "coste-luz-gas";
 
-  // Sin sociedad elegida, la gráfica cuenta la cartera entera. Con una
-  // elegida, se queda con sus doce meses igual: no hay histórico por
-  // sociedad en los datos de mentira, así que lo que cambia de verdad es la
-  // etiqueta de la pestaña de "Sociedad" — es la señal de que el filtro se ha
-  // aplicado, aunque la forma de la gráfica no varíe mes a mes.
+  // Los datos de mentira no tienen histórico mensual por sociedad ni por
+  // luz/gas por separado, así que al elegir un filtro no hay con qué
+  // recortar los doce meses de verdad. En vez de dejar la gráfica quieta
+  // (que se lee como "esto no ha hecho nada"), se escala por un factor
+  // creíble: el peso de la sociedad elegida sobre el total de puntos de
+  // suministro, y un reparto fijo entre luz y gas. No es el dato real de esa
+  // sociedad — sigue siendo un cálculo de mentira, pero se MUEVE, que es lo
+  // que hace que el filtro se sienta vivo.
+  const sociedadElegida = SOCIEDADES_CARTERA.find((s) => s.nombre === sociedad);
+  const factorSociedad = sociedadElegida
+    ? puntosDeSociedad(sociedadElegida) / RESUMEN_CARTERA.puntos
+    : 1;
+  const factorTipo = tipo === "luz" ? 0.65 : tipo === "gas" ? 0.35 : 1;
+  const factor = factorSociedad * factorTipo;
+
   const datosGrafica = CONSUMO_MENSUAL_DASHBOARD.map((m) => ({
     id: m.mes,
     etiqueta: m.mes,
-    valor: pestañaGrafica === "coste" ? m.costeConAczo : m.consumoKwh,
-    valorFondo: pestañaGrafica === "coste" ? m.costeSinAczo : undefined,
+    valor: Math.round((esCoste ? m.costeConAczo : m.consumoKwh) * factor),
+    valorFondo: esCoste
+      ? Math.round(m.costeSinAczo * factor)
+      : undefined,
     real: m.real,
   }));
 
@@ -200,7 +226,12 @@ export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
               <Text variant="heading-s" as="h2">
                 Consumo y ahorro
               </Text>
-              <Icon name="info" size={16} className="text-content-low" />
+              <Tooltip
+                content="Comparamos lo que estás pagando con tu tarifa actual (estimado en los meses aún sin facturar) frente a lo que te costaría el mismo consumo con tu comercializadora anterior, antes de ser cliente Aczo."
+                tono="highlight"
+              >
+                <Icon name="info" size={16} className="text-content-low" />
+              </Tooltip>
             </span>
             {/* "DS Button" tipo enlace: texto en highlight-muted y
                 subrayado. No es el `Button` terciario del sistema (ese va en
@@ -224,39 +255,44 @@ export function Dashboard({ onVerCartera }: { onVerCartera?: () => void }) {
               valor={pestañaGrafica}
               onChange={setPestañaGrafica}
             />
-            <SelectorSociedad value={sociedad} onChange={setSociedad} />
+            <div className="flex items-center gap-02">
+              <SelectorCompacto
+                etiqueta="Sociedades"
+                valor={sociedad}
+                onChange={setSociedad}
+                opciones={[
+                  { value: "", label: "Sociedades" },
+                  ...OPCIONES_FILTROS.sociedades.map((s) => ({
+                    value: s,
+                    label: s,
+                  })),
+                ]}
+              />
+              <SelectorCompacto
+                etiqueta="Tipo de suministro"
+                valor={tipo}
+                onChange={setTipo}
+                opciones={OPCIONES_TIPO_SUMINISTRO}
+              />
+            </div>
           </div>
 
           <div className="mt-05">
             {/* La `key` hace que la gráfica vuelva a crecer al cambiar de
-                pestaña o de sociedad — el mismo truco que la lista de
-                "Mi cartera" al cambiar de agrupación. */}
+                pestaña — el mismo truco que la lista de "Mi cartera" al
+                cambiar de agrupación. */}
             <GraficaBarras
-              key={`${pestañaGrafica}-${sociedad}`}
+              key={`${pestañaGrafica}-${sociedad}-${tipo}`}
               datos={datosGrafica}
-              unidad={pestañaGrafica === "coste" ? "€" : " kWh"}
-              formatear={pestañaGrafica === "coste" ? euros : kwh}
-              etiquetaValorReal={
-                pestañaGrafica === "coste" ? "Coste con Aczo" : "Consumo"
-              }
+              unidad={esCoste ? "€" : " kWh"}
+              formatear={esCoste ? euros : kwh}
+              etiquetaValorReal={esCoste ? "Coste con Aczo" : "Consumo"}
               etiquetaValorEstimado={
-                pestañaGrafica === "coste"
-                  ? "Coste con Aczo (Estimado)"
-                  : "Consumo (Estimado)"
+                esCoste ? "Coste con Aczo (Estimado)" : "Consumo (Estimado)"
               }
-              etiquetaFondo={
-                pestañaGrafica === "coste"
-                  ? "Coste sin Aczo (Estimado)"
-                  : undefined
-              }
+              etiquetaFondo={esCoste ? "Coste sin Aczo (Estimado)" : undefined}
             />
           </div>
-          {sociedadElegida && (
-            <Text variant="body-s" color="low" as="p" className="ml-10 mt-02">
-              Mostrando {sociedadElegida.nombre} ·{" "}
-              {puntosDeSociedad(sociedadElegida)} puntos de suministro
-            </Text>
-          )}
         </section>
 
         {/* Cartera */}
@@ -507,31 +543,38 @@ function Tendencia({ variacion }: { variacion: number }) {
 }
 
 /**
- * SelectorSociedad — el desplegable compacto "Sociedad" de la cabecera de la
- * gráfica. No es el `Select` del sistema (`ui/Input.tsx`): ese es un campo de
- * formulario de 40 px con etiqueta, y este es un filtro de barra de
- * herramientas de 32 px, como el de la Figma (nodo 788:9662): mismo radio y
- * tipografía que el resto de campos, pero más bajo y sin etiqueta encima.
+ * SelectorCompacto — el desplegable sencillo "Sociedades" / "Tipo de
+ * suministro" de la cabecera de la gráfica. No es el `Select` del sistema
+ * (`ui/Input.tsx`): ese es un campo de formulario de 40 px con etiqueta, y
+ * este es un filtro de barra de herramientas de 32 px, como el de la Figma
+ * (nodo 797:6195/6197): mismo radio y tipografía que el resto de campos,
+ * pero más bajo y sin etiqueta encima. El propio botón enseña la opción
+ * elegida ("Sociedades", "Luz y Gas"...), así que no hace falta un rótulo
+ * aparte.
  */
-function SelectorSociedad({
-  value,
+function SelectorCompacto({
+  etiqueta,
+  valor,
   onChange,
+  opciones,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  /** Nombre accesible del campo, para quien use lector de pantalla. */
+  etiqueta: string;
+  valor: string;
+  onChange: (valor: string) => void;
+  opciones: readonly { value: string; label: string }[];
 }) {
   return (
     <div className="relative">
       <select
-        aria-label="Sociedad"
-        value={value}
+        aria-label={etiqueta}
+        value={valor}
         onChange={(e) => onChange(e.target.value)}
         className="h-07 w-[180px] cursor-pointer appearance-none rounded-md border border-border-low bg-background-base px-03 text-body-s text-content-mid outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high"
       >
-        <option value="">Sociedad</option>
-        {SOCIEDADES_CARTERA.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.nombre}
+        {opciones.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
           </option>
         ))}
       </select>
@@ -541,3 +584,4 @@ function SelectorSociedad({
     </div>
   );
 }
+

@@ -16,16 +16,22 @@ import { Tooltip } from "./Tooltip";
  * El fondo gris liso, en cambio, siempre es solo una referencia con la que
  * comparar, así que nunca la lleva.
  *
+ * La gráfica entera ocupa el ancho de la tarjeta (Figma, nodo 797:6176: el
+ * contenedor de barras es `flex-1`). Las columnas miden siempre 26 px — no
+ * se estiran — pero el HUECO entre ellas sí, repartiendo el ancho sobrante
+ * con `justify-between`: por eso hay que dejarlas con `flex-1` + `max-width`
+ * y no con un ancho fijo suelto, que las dejaría todas apelotonadas a la
+ * izquierda en una tarjeta ancha.
+ *
  * INTERACCIÓN Y ANIMACIÓN — esto es lo que hay que replicar en producto:
  *
  *   Las dos cajas de una misma columna CRECEN juntas al entrar, desde abajo,
  *   con un escalonado entre meses (anim-barra-crece, macro-structure: 500 ms,
  *   ease in out, 40 ms entre columna y columna). Una gráfica que aparece
  *   entera de golpe es un dibujo; una que crece se lee como "esto se está
- *   calculando", que es justo lo que pasa al cambiar de pestaña (Coste€ /
- *   Consumo kWh) o de sociedad — por eso vuelve a crecer cada vez que cambian
- *   esos datos (la `key` de fuera debe cambiar con ellos, igual que en la
- *   lista de "Mi cartera").
+ *   calculando", que es justo lo que pasa al cambiar de pestaña o de filtro —
+ *   por eso vuelve a crecer cada vez que cambian esos datos (la `key` de
+ *   fuera debe cambiar con ellos, igual que en la lista de "Mi cartera").
  *
  *   Al pasar el ratón por una columna sale el `Tooltip` del sistema con el
  *   mes, el valor exacto y, si hay serie de fondo, el ahorro de ese mes (la
@@ -101,12 +107,12 @@ export function GraficaBarras({
   const hayEstimados = datos.some((d) => !d.real);
 
   return (
-    <div className="flex flex-col gap-04">
-      <div className="flex gap-03">
+    <div className="flex flex-col items-center gap-04">
+      <div className="flex w-full gap-03">
         {/* El eje Y. Ancho fijo para que las marcas de todas las gráficas del
             Dashboard midan lo mismo y las barras arranquen siempre en la
             misma columna. */}
-        <ul className="flex w-10 flex-col justify-between pb-05 text-right">
+        <ul className="flex w-08 flex-col justify-between pb-05 text-right">
           {marcas.map((marca) => (
             <li key={marca}>
               <Text variant="body-s" color="low" as="span">
@@ -117,58 +123,81 @@ export function GraficaBarras({
           ))}
         </ul>
 
-        {/* Las columnas. El alto de 200 px y `items-end` van en esta FILA
-            (no en cada columna): así cada barra puede fijar su propio alto en
-            píxeles sin depender de que la caja del Tooltip que la envuelve
-            también tenga un alto explícito. El borde de abajo es la línea del
-            eje X, pegado a las columnas y no a las marcas del eje Y. */}
-        <div className="flex h-[200px] min-w-0 flex-1 items-end justify-between gap-04 border-b border-border-low pb-00">
-          {datos.map((punto, i) => {
-            const alturaValor = (punto.valor / techo) * ALTO_DIBUJO;
-            const retardo = { animationDelay: `${i * ESCALONADO_MS}ms` };
-            const ahorro =
-              punto.valorFondo !== undefined
-                ? punto.valorFondo - punto.valor
-                : undefined;
-            const etiquetaSerie = punto.real
-              ? etiquetaValorReal
-              : etiquetaValorEstimado;
-            // Sólida si ya hay factura; con trama si todavía es una
-            // estimación — nunca las dos cosas a la vez.
-            const estiloValor: React.CSSProperties = punto.real
-              ? { backgroundColor: "var(--color-highlight-deep)" }
-              : TRAMA;
+        {/* Las columnas y sus meses van en la MISMA columna flex, con el
+            mismo hueco entre ellos los dos: así quedan siempre alineados. El
+            bloque ocupa TODO el ancho que queda (Figma: `flex-[1_0_0]`), y
+            dentro las columnas se reparten ese ancho con `justify-between` —
+            no se estiran, es el HUECO entre ellas el que crece o se
+            encoge. */}
+        <div className="flex min-w-0 flex-1 flex-col gap-02">
+          <div className="flex h-[200px] items-end justify-between border-b border-border-low">
+            {datos.map((punto, i) => {
+              const alturaValor = (punto.valor / techo) * ALTO_DIBUJO;
+              const retardo = { animationDelay: `${i * ESCALONADO_MS}ms` };
+              const ahorro =
+                punto.valorFondo !== undefined
+                  ? punto.valorFondo - punto.valor
+                  : undefined;
+              const etiquetaSerie = punto.real
+                ? etiquetaValorReal
+                : etiquetaValorEstimado;
+              // Sólida si ya hay factura; con trama si todavía es una
+              // estimación — nunca las dos cosas a la vez.
+              const estiloValor: React.CSSProperties = punto.real
+                ? { backgroundColor: "var(--color-highlight-deep)" }
+                : TRAMA;
 
-            // Los mismos rótulos que la leyenda de debajo de la gráfica, más
-            // el ahorro — que la barra sola no puede decir, porque es la
-            // resta de dos series y no un dato con su propia altura.
-            const contenidoTooltip = (
-              <div className="flex flex-col gap-01">
-                <Text variant="label-s" color="always-light" as="p">
-                  {punto.etiqueta}
-                </Text>
-                <Text variant="body-s" color="always-light" as="p">
-                  {etiquetaSerie}: {formatear(punto.valor)}
-                  {unidad}
-                </Text>
-                {punto.valorFondo !== undefined && etiquetaFondo && (
+              // Los mismos rótulos que la leyenda de debajo de la gráfica,
+              // más el ahorro — que la barra sola no puede decir, porque es
+              // la resta de dos series y no un dato con su propia altura.
+              const contenidoTooltip = (
+                <div className="flex flex-col gap-01">
+                  <Text variant="label-s" color="always-light" as="p">
+                    {punto.etiqueta}
+                  </Text>
                   <Text variant="body-s" color="always-light" as="p">
-                    {etiquetaFondo}: {formatear(punto.valorFondo)}
+                    {etiquetaSerie}: {formatear(punto.valor)}
                     {unidad}
                   </Text>
-                )}
-                {ahorro !== undefined && (
-                  <Text variant="body-s" color="always-light" as="p">
-                    Ahorro del mes: {formatear(ahorro)}
-                    {unidad}
-                  </Text>
-                )}
-              </div>
-            );
+                  {punto.valorFondo !== undefined && etiquetaFondo && (
+                    <Text variant="body-s" color="always-light" as="p">
+                      {etiquetaFondo}: {formatear(punto.valorFondo)}
+                      {unidad}
+                    </Text>
+                  )}
+                  {ahorro !== undefined && (
+                    <Text variant="body-s" color="always-light" as="p">
+                      Ahorro del mes: {formatear(ahorro)}
+                      {unidad}
+                    </Text>
+                  )}
+                </div>
+              );
 
-            // Sin serie de fondo (p. ej. la pestaña de solo consumo): una
-            // única caja, sin nada detrás con lo que compararla.
-            if (punto.valorFondo === undefined) {
+              // Sin serie de fondo (p. ej. la pestaña de solo consumo): una
+              // única caja, sin nada detrás con lo que compararla.
+              if (punto.valorFondo === undefined) {
+                return (
+                  <Tooltip
+                    key={punto.id}
+                    content={contenidoTooltip}
+                    tono="highlight"
+                    bloque
+                    className="w-full max-w-[26px] flex-1"
+                  >
+                    <div
+                      className="anim-barra-crece w-full rounded-t-sm border border-highlight-deep"
+                      style={{
+                        height: `${alturaValor}px`,
+                        ...retardo,
+                        ...estiloValor,
+                      }}
+                    />
+                  </Tooltip>
+                );
+              }
+
+              const alturaFondo = (punto.valorFondo / techo) * ALTO_DIBUJO;
               return (
                 <Tooltip
                   key={punto.id}
@@ -177,65 +206,63 @@ export function GraficaBarras({
                   bloque
                   className="w-full max-w-[26px] flex-1"
                 >
+                  {/* Una sola columna: el fondo gris marca el techo de
+                      referencia (sin Aczo), y la caja de la serie principal
+                      se apoya en su base — NO son dos barras una junto a
+                      otra. */}
                   <div
-                    className="anim-barra-crece w-full rounded-t-sm border border-highlight-deep"
-                    style={{
-                      height: `${alturaValor}px`,
-                      ...retardo,
-                      ...estiloValor,
-                    }}
-                  />
+                    className="anim-barra-crece relative w-full rounded-t-sm border border-dashed border-border-mid bg-background-mid"
+                    style={{ height: `${alturaFondo}px`, ...retardo }}
+                  >
+                    {/* `left`/`right` en -1px, no en 0: un elemento absoluto
+                        se coloca por dentro del borde de su contenedor (la
+                        "caja de relleno"), así que con `inset-0` esta caja
+                        quedaría 2 px más estrecha que la de fuera (1 px de
+                        border a cada lado) — se notaba en que la trama
+                        quedaba más estrecha que el recuadro punteado de
+                        detrás. Retrocediendo esos mismos 1 px, el borde
+                        exterior de las dos cajas queda exactamente igual. */}
+                    <div
+                      className="absolute bottom-0 rounded-t-sm border border-highlight-deep"
+                      style={{
+                        left: -1,
+                        right: -1,
+                        height: `${alturaValor}px`,
+                        ...estiloValor,
+                      }}
+                    />
+                  </div>
                 </Tooltip>
               );
-            }
+            })}
+          </div>
 
-            const alturaFondo = (punto.valorFondo / techo) * ALTO_DIBUJO;
-            return (
-              <Tooltip
+          {/* Los meses: el mismo `justify-between` que las barras de arriba
+              y el mismo ancho por columna, así que cada uno queda centrado
+              bajo la suya sea cual sea el ancho de la tarjeta. */}
+          <div className="flex justify-between">
+            {datos.map((punto) => (
+              <div
                 key={punto.id}
-                content={contenidoTooltip}
-                tono="highlight"
-                bloque
-                className="w-full max-w-[26px] flex-1"
+                className="w-full max-w-[26px] flex-1 text-center"
               >
-                {/* Una sola columna: el fondo gris marca el techo de
-                    referencia (sin Aczo), y la caja de la serie principal se
-                    apoya en su base — NO son dos barras una junto a otra. */}
-                <div
-                  className="anim-barra-crece relative w-full rounded-t-sm border border-dashed border-border-mid bg-background-mid"
-                  style={{ height: `${alturaFondo}px`, ...retardo }}
-                >
-                  <div
-                    className="absolute right-0 bottom-0 left-0 rounded-t-sm border border-highlight-deep"
-                    style={{ height: `${alturaValor}px`, ...estiloValor }}
-                  />
-                </div>
-              </Tooltip>
-            );
-          })}
+                <Text variant="body-s" color="low" as="span">
+                  {punto.etiqueta}
+                </Text>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Los meses, alineados con sus columnas. */}
-      <ul className="ml-10 flex justify-between gap-03">
-        {datos.map((punto) => (
-          <li key={punto.id} className="w-full max-w-[26px] flex-1 text-center">
-            <Text variant="body-s" color="low" as="span">
-              {punto.etiqueta}
-            </Text>
-          </li>
-        ))}
-      </ul>
-
-      {/* La leyenda: centrada bajo las columnas (no bajo toda la gráfica, que
-          incluye el ancho del eje Y). El fondo gris no lleva trama, así que
-          su cuadrito ya se distingue solo. */}
-      <ul className="ml-10 flex flex-wrap justify-center gap-x-04 gap-y-01">
+      {/* La leyenda: centrada en la tarjeta (no bajo las columnas): así la
+          pinta el Figma, como un bloque más dentro de la tarjeta con
+          `items-center`. El fondo gris no lleva trama, así que su cuadrito
+          ya se distingue solo. */}
+      <ul className="flex flex-wrap justify-center gap-x-04 gap-y-01">
         {hayReales && (
           <li className="flex items-center gap-02">
-            <span
-              className="size-03 shrink-0 rounded-sm border border-highlight-deep bg-highlight-deep"
-            />
+            <span className="size-03 shrink-0 rounded-sm border border-highlight-deep bg-highlight-deep" />
             <Text variant="body-s" color="mid" as="span">
               {etiquetaValorReal}
             </Text>

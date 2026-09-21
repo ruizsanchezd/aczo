@@ -44,6 +44,10 @@ const colors = {
   "always-light": "text-content-always-light",
   "always-dark": "text-content-always-dark",
   disabled: "text-content-state-disabled",
+  // El verde oliva de marca (highlight-muted): el color de los "DS Button"
+  // tipo enlace sobre superficie clara. No es un color de feedback, así que
+  // no vive junto a los `always-*` — es el mismo tono en claro y en oscuro.
+  "highlight-muted": "text-highlight-muted",
 } as const;
 
 // Etiqueta HTML por defecto de cada variante, para que el documento tenga

@@ -10,6 +10,7 @@ import { PuntoEstado } from "@/components/ui/PuntoEstado";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
 import { Text } from "@/components/ui/Text";
 import { TextoRecortado } from "@/components/ui/TextoRecortado";
+import { Toast } from "@/components/ui/Toast";
 import { LogoComercializadora } from "@/components/prototipo/TarjetaPlan";
 import {
   ACTUALIZACION_CARTERA,
@@ -30,6 +31,7 @@ import {
 } from "@/mocks/aczo";
 import { motionSafe, retardo } from "@/lib/prototipo";
 import { FilaGrupo } from "./FilaGrupo";
+import { ModalOrganizaCartera } from "./ModalOrganizaCartera";
 import { OrganizaTuCartera } from "./OrganizaTuCartera";
 import { MapaProvincias } from "./MapaProvincias";
 
@@ -68,18 +70,18 @@ import { MapaProvincias } from "./MapaProvincias";
  * la escala son tokens de verdad y solo los pasos intermedios son mezcla, que
  * es lo que pide por fuerza una escala continua.
  *
- * Dos ajustes, y los dos por lo mismo (que el mapa se pueda leer):
+ * La escala es RECTA (peso directo, sin raíz): con la raíz cuadrada que había
+ * antes, las seis provincias de la cartera de mentira (entre el 18 % y el
+ * 100 % del peso de Madrid) quedaban todas comprimidas en la mitad oscura de
+ * la escala — el mapa se veía "Madrid y cinco verdes casi iguales" en vez de
+ * un degradado que se pueda leer. La recta reparte ese mismo rango de datos
+ * de punta a punta de la escala.
  *
- *   La raíz cuadrada. Madrid tiene un tercio de toda la cartera, así que en una
- *   escala recta el resto de provincias caerían todas juntas abajo del todo y
- *   el mapa sería "Madrid y un montón de pálidos iguales". La raíz separa la
- *   parte baja de la escala, que es donde está casi todo.
- *
- *   El suelo del 25 %. Por debajo de ahí el verde se confunde con el gris de la
- *   tierra y una provincia con datos parecería no tener ninguno.
+ * El suelo del 12 %: por debajo de ahí el verde se confunde con el gris de la
+ * tierra y una provincia con datos parecería no tener ninguno.
  */
 function verde(peso: number): string {
-  const porcentaje = Math.round(25 + 75 * Math.sqrt(peso));
+  const porcentaje = Math.round(12 + 88 * peso);
   return `color-mix(in oklab, var(--color-highlight-deep) ${porcentaje}%, var(--color-extended-one-light))`;
 }
 
@@ -93,7 +95,11 @@ export function PantallaCartera() {
   const [inmuebleDesplegado, setInmuebleDesplegado] = useState<string | null>(
     null,
   );
-  const [categorizando, setCategorizando] = useState<string | null>(null);
+  // id (dirección) del inmueble con el que se abrió ModalOrganizaCartera, o
+  // null si está cerrado. El modal enseña TODA la cartera agrupada igual que
+  // la lista, así que basta con saber qué inmueble desplegar de más.
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [avisoGuardado, setAvisoGuardado] = useState(false);
   // Solo puede haber un filtro abierto a la vez, así que quién está abierto lo
   // lleva la pantalla y no cada filtro por su cuenta. Es también lo que permite
   // que "Filtrar por ubicación" salte del filtro de Inmueble al de Dirección.
@@ -107,9 +113,11 @@ export function PantallaCartera() {
   const [categorias, setCategorias] = useState<
     Record<string, CategoriaInmueble>
   >({});
+  // Lo mismo, pero para el nombre que se pone en ModalOrganizaCartera.
+  const [nombres, setNombres] = useState<Record<string, string>>({});
 
   const grupos = useMemo(() => {
-    const agrupados = agruparCartera(agrupacion, filtros, categorias);
+    const agrupados = agruparCartera(agrupacion, filtros, categorias, nombres);
 
     /*
      * De qué color va cada fila, y por qué cambia con la agrupación.
@@ -140,7 +148,7 @@ export function PantallaCartera() {
 
     const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
     return agrupados.map((g) => ({ ...g, color: verde(g.puntos / mayor) }));
-  }, [agrupacion, filtros, categorias]);
+  }, [agrupacion, filtros, categorias, nombres]);
 
   // Cuántos inmuebles faltan por catalogar. Se cuenta sobre la cartera entera
   // (no sobre lo filtrado): "te quedan 5 sin clasificar" habla de toda la
@@ -185,7 +193,7 @@ export function PantallaCartera() {
     setMarcado(null);
     setDesplegado(null);
     setInmuebleDesplegado(null);
-    setCategorizando(null);
+    setEditandoId(null);
   }
 
   const puntosVisibles = grupos.reduce((t, g) => t + g.puntos, 0);
@@ -248,13 +256,14 @@ export function PantallaCartera() {
           </TarjetaDato>,
           // No es un `TarjetaDato`: esa siempre pone el rótulo ARRIBA y el
           // valor debajo, y esta tarjeta va en horizontal — "Estado" a la
-          // izquierda y la lista de puntitos a su derecha, las dos cosas
-          // centradas verticalmente. Es lo único que la distingue de las
-          // otras cuatro; por fuera lleva el mismo marco (fondo, radio,
-          // padding) para que la fila de tarjetas se siga leyendo como una.
+          // izquierda y la lista de puntitos a su derecha. `items-start`:
+          // el rótulo va arriba, alineado con el de las otras cuatro
+          // tarjetas, no centrado con el alto de la lista. Por fuera lleva
+          // el mismo marco (fondo, radio, padding) para que la fila de
+          // tarjetas se siga leyendo como una.
           <div
             key="estado"
-            className="flex flex-1 items-center justify-between gap-04 rounded-md bg-background-base p-04"
+            className="flex flex-1 items-start justify-between gap-04 rounded-md bg-background-base p-04"
           >
             <Text variant="label-s-uppercase" color="low" as="p">
               Estado
@@ -408,19 +417,37 @@ export function PantallaCartera() {
                 return (
                   <FiltroCasillas
                     key={campo}
-                    nombre="Dirección"
+                    // Agrupando por ubicación (la vista del mapa) tiene
+                    // sentido bajar hasta la dirección exacta: un encabezado
+                    // por provincia y debajo sus calles, así que ahí se
+                    // llama "Dirección". En las otras tres agrupaciones lo
+                    // que se compara ya es otra cosa (sociedad,
+                    // comercializadora, tipo de inmueble) y el detalle de la
+                    // calle sobra — el filtro es solo la provincia, una
+                    // casilla por cada una, y por eso se llama "Provincias".
+                    nombre={porUbicacion ? "Dirección" : "Provincias"}
                     {...comun}
                     seleccion={filtros.direcciones}
                     onChange={(direcciones) =>
                       setFiltros((f) => ({ ...f, direcciones }))
                     }
-                    grupos={OPCIONES_FILTROS.direcciones.map((g) => ({
-                      rotulo: g.provincia,
-                      opciones: g.direcciones.map((d) => ({
-                        value: d,
-                        label: d,
-                      })),
-                    }))}
+                    grupos={
+                      porUbicacion
+                        ? OPCIONES_FILTROS.direcciones.map((g) => ({
+                            rotulo: g.provincia,
+                            opciones: g.direcciones.map((d) => ({
+                              value: d,
+                              label: d,
+                            })),
+                          }))
+                        : [
+                            {
+                              opciones: OPCIONES_FILTROS.provincias.map(
+                                (p) => ({ value: p, label: p }),
+                              ),
+                            },
+                          ]
+                    }
                   />
                 );
 
@@ -452,15 +479,19 @@ export function PantallaCartera() {
               <Text variant="body-m" color="mid" as="span">
                 Estás viendo solo los inmuebles que faltan por clasificar.
               </Text>
-              <Button
-                variant="tertiary"
-                size="small"
+              {/* "DS Button" tipo enlace: texto en highlight-muted y
+                  subrayado, igual que "Ver cartera"/"Ver consumo y ahorro"
+                  del Dashboard — no el `Button` terciario del sistema, que
+                  va en content-high (negro) y no lleva subrayado. */}
+              <button
+                type="button"
                 onClick={() =>
                   setFiltros((f) => ({ ...f, soloSinClasificar: false }))
                 }
+                className="text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
               >
                 Ver toda la cartera
-              </Button>
+              </button>
             </div>
           </Alert>
         )}
@@ -473,7 +504,7 @@ export function PantallaCartera() {
           {/* El mapa y su leyenda — a la izquierda. */}
           <div
             className={`flex w-full shrink-0 flex-col gap-04 overflow-hidden rounded-md border border-border-low p-04 lg:h-full ${
-              porUbicacion ? "lg:w-[588px]" : "lg:w-[365px]"
+              porUbicacion ? "lg:w-[500px]" : "lg:w-[299px]"
             }`}
           >
             <div className="flex justify-center lg:min-h-0 lg:flex-1">
@@ -489,28 +520,40 @@ export function PantallaCartera() {
                   onAbrirProvincia={abrirProvincia}
                 />
               ) : (
-                <GraficaAnillo
-                  unidad="Ptos de suministro"
-                  seleccionado={marcadoVigente}
-                  onSeleccionar={(id) =>
-                    setMarcado(marcadoVigente === id ? null : id)
-                  }
-                  segmentos={grupos.map((g) => ({
-                    id: g.id,
-                    etiqueta: g.nombre,
-                    valor: g.puntos,
-                    color: g.color,
-                  }))}
-                />
+                // 220px, no el ancho entero del panel (267px de hueco libre
+                // dentro del borde): el Figma (nodo 797:31909) traía el
+                // anillo en 178px, pero a ese tamaño el hueco central queda
+                // más pequeño que la etiqueta "Ptos de suministro" y la
+                // pisa. 220px —lo mismo que el anillo del Dashboard— agranda
+                // el hueco lo justo para que el texto quepa dentro sin
+                // tocar el trazo.
+                <div className="w-[220px]">
+                  <GraficaAnillo
+                    unidad="Ptos de suministro"
+                    seleccionado={marcadoVigente}
+                    onSeleccionar={(id) =>
+                      setMarcado(marcadoVigente === id ? null : id)
+                    }
+                    segmentos={grupos.map((g) => ({
+                      id: g.id,
+                      etiqueta: g.nombre,
+                      valor: g.puntos,
+                      color: g.color,
+                    }))}
+                  />
+                </div>
               )}
             </div>
 
             {/* La leyenda solo acompaña a la GRÁFICA. Con el mapa sobra: el
                 mapa ya dice qué provincia es cada cosa por su forma y su
                 sitio, y el detalle exacto lo da el globo al pasar por encima.
-                Una leyenda ahí sería repetir lo que ya se ve. */}
+                Una leyenda ahí sería repetir lo que ya se ve.
+                Apilada en columna, no envuelta en línea: así la enseña el
+                Figma, con el nombre a la izquierda y la cifra + el
+                porcentaje a la derecha en cada fila. */}
             {!porUbicacion && (
-              <ul className="flex flex-wrap gap-x-04 gap-y-02">
+              <ul className="flex flex-col gap-02">
                 {grupos.map((grupo) => {
                   const porcentaje = puntosVisibles
                     ? Math.round((grupo.puntos / puntosVisibles) * 100)
@@ -524,23 +567,27 @@ export function PantallaCartera() {
                         onClick={() =>
                           setMarcado(esteMarcado ? null : grupo.id)
                         }
-                        className={`flex cursor-pointer items-center gap-02 rounded-sm text-left transition-opacity motion-micro-states hover:opacity-60 ${
+                        className={`flex w-full cursor-pointer items-center justify-between gap-02 rounded-sm text-left transition-opacity motion-micro-states hover:opacity-60 ${
                           marcadoVigente && !esteMarcado ? "opacity-30" : ""
                         }`}
                       >
-                        <span
-                          className="size-03 shrink-0 rounded-sm"
-                          style={{ backgroundColor: grupo.color }}
-                        />
-                        <TextoRecortado variant="body-s" color="mid">
-                          {grupo.nombre}
-                        </TextoRecortado>
-                        <Text variant="label-s" as="span">
-                          {grupo.puntos}
-                        </Text>
-                        <Text variant="body-s" color="low" as="span">
-                          {porcentaje}%
-                        </Text>
+                        <span className="flex min-w-0 items-center gap-02">
+                          <span
+                            className="size-03 shrink-0 rounded-sm"
+                            style={{ backgroundColor: grupo.color }}
+                          />
+                          <TextoRecortado variant="body-s" color="mid">
+                            {grupo.nombre}
+                          </TextoRecortado>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-02">
+                          <Text variant="label-s" as="span">
+                            {grupo.puntos}
+                          </Text>
+                          <Text variant="body-s" color="low" as="span">
+                            {porcentaje}%
+                          </Text>
+                        </span>
                       </button>
                     </li>
                   );
@@ -552,13 +599,22 @@ export function PantallaCartera() {
           {/* La lista — a la derecha. */}
           <div className="min-w-0 flex-1">
             {grupos.length === 0 ? (
-              <div className="rounded-md border border-border-low bg-background-low p-06 text-center">
-                <Text variant="label-m" as="p">
-                  No hay nada con esos filtros
-                </Text>
-                <Text variant="body-s" color="low" as="p" className="mt-01">
-                  Prueba a quitar alguno para volver a ver tu cartera.
-                </Text>
+              <div className="flex flex-col items-center gap-04 rounded-md border border-border-low bg-background-low p-06 text-center">
+                <div>
+                  <Text variant="label-m" as="p">
+                    No hay nada con esos filtros
+                  </Text>
+                  <Text variant="body-s" color="low" as="p" className="mt-01">
+                    Prueba a quitar alguno para volver a ver tu cartera.
+                  </Text>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => setFiltros(FILTROS_VACIOS)}
+                >
+                  Restablecer filtros
+                </Button>
               </div>
             ) : (
               <ul
@@ -602,14 +658,7 @@ export function PantallaCartera() {
                           inmuebleDesplegado === id ? null : id,
                         )
                       }
-                      inmuebleCategorizando={categorizando}
-                      onCategorizarInmueble={(id) =>
-                        setCategorizando(categorizando === id ? null : id)
-                      }
-                      onElegirCategoria={(id, categoria) => {
-                        setCategorias((c) => ({ ...c, [id]: categoria }));
-                        setCategorizando(null);
-                      }}
+                      onEditarInmueble={(id) => setEditandoId(id)}
                     />
                   </li>
                 ))}
@@ -618,6 +667,34 @@ export function PantallaCartera() {
           </div>
         </div>
       </section>
+
+      {editandoId && (
+        <ModalOrganizaCartera
+          key={editandoId}
+          grupos={grupos}
+          focoId={editandoId}
+          onGuardar={(cambios) => {
+            const nombresNuevos: Record<string, string> = {};
+            const categoriasNuevas: Record<string, CategoriaInmueble> = {};
+            for (const [id, cambio] of Object.entries(cambios)) {
+              if (cambio.nombre) nombresNuevos[id] = cambio.nombre;
+              if (cambio.categoria) categoriasNuevas[id] = cambio.categoria;
+            }
+            if (Object.keys(nombresNuevos).length > 0)
+              setNombres((n) => ({ ...n, ...nombresNuevos }));
+            if (Object.keys(categoriasNuevas).length > 0)
+              setCategorias((c) => ({ ...c, ...categoriasNuevas }));
+            if (Object.keys(cambios).length > 0) setAvisoGuardado(true);
+          }}
+          onCerrar={() => setEditandoId(null)}
+        />
+      )}
+
+      <Toast
+        mensaje="Nombre y tipo de activo añadido con éxito"
+        abierto={avisoGuardado}
+        onCerrar={() => setAvisoGuardado(false)}
+      />
     </>
   );
 }

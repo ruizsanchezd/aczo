@@ -1298,29 +1298,29 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Madrid",
         ciudad: "Madrid",
         inmuebles: [
-          { nombre: "Edificio Oficinas Madrid", categoria: "Oficinas", direccion: "Calle Velázquez nº 10, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 1330 },
-          { nombre: "Sede Chamartín", categoria: "Oficinas", direccion: "Paseo de la Castellana 141, Madrid", tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 620 },
-          { nombre: "Almacén Getafe", categoria: "Almacén", direccion: "Calle Los Ángeles 22, Getafe, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 810 },
+          { direccion: "Calle Velázquez nº 10, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 1330 },
+          { direccion: "Paseo de la Castellana 141, Madrid", tipos: ["luz"], puntos: { activa: 3, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 620 },
+          { direccion: "Calle Los Ángeles 22, Getafe, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 810 },
           { direccion: "Calle Orense 34, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 470 },
-          { nombre: "Local Malasaña", categoria: "Local comercial", direccion: "Calle Fuencarral 78, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 320 },
+          { direccion: "Calle Fuencarral 78, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 320 },
         ],
       },
       {
         provincia: "Barcelona",
         ciudad: "Barcelona",
         inmuebles: [
-          { nombre: "Oficinas Diagonal", categoria: "Oficinas", direccion: "Avinguda Diagonal 442, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1120 },
+          { direccion: "Avinguda Diagonal 442, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1120 },
           { direccion: "Calle Bonanova 2, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 780 },
-          { nombre: "Nave Zona Franca", categoria: "Nave industrial", direccion: "Carrer A 12, Zona Franca, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 290 },
-          { nombre: "Local Gràcia", categoria: "Local comercial", direccion: "Carrer Gran de Gràcia 90, Barcelona", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 250 },
+          { direccion: "Carrer A 12, Zona Franca, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 290 },
+          { direccion: "Carrer Gran de Gràcia 90, Barcelona", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 1 }, ahorro: 250 },
         ],
       },
       {
         provincia: "València/Valencia",
         ciudad: "València",
         inmuebles: [
-          { nombre: "Oficinas Ruzafa", categoria: "Oficinas", direccion: "Carrer de Sueca 41, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
-          { nombre: "Almacén Port", categoria: "Almacén", direccion: "Camí del Port 8, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 460 },
+          { direccion: "Carrer de Sueca 41, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { direccion: "Camí del Port 8, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 460 },
           { direccion: "Avinguda del Cid 120, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
         ],
       },
@@ -1328,15 +1328,15 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "A Coruña",
         ciudad: "A Coruña",
         inmuebles: [
-          { nombre: "Oficinas Riazor", categoria: "Oficinas", direccion: "Avenida de Buenos Aires 5, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
-          { nombre: "Nave Pocomaco", categoria: "Nave industrial", direccion: "Parcela D 14, Pocomaco, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 300 },
+          { direccion: "Avenida de Buenos Aires 5, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
+          { direccion: "Parcela D 14, Pocomaco, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 300 },
         ],
       },
       {
         provincia: "Málaga",
         ciudad: "Málaga",
         inmuebles: [
-          { nombre: "Oficinas Muelle Uno", categoria: "Oficinas", direccion: "Paseo del Muelle Uno 3, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
+          { direccion: "Paseo del Muelle Uno 3, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
           { direccion: "Calle Alfarnate 9, Málaga", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 240 },
         ],
       },
@@ -1352,8 +1352,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Madrid",
         ciudad: "Alcobendas",
         inmuebles: [
-          { nombre: "Sede Alcobendas", categoria: "Oficinas", direccion: "Avenida de Bruselas 7, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1280 },
-          { nombre: "Centro logístico Norte", categoria: "Centro logístico", direccion: "Carretera de Fuencarral km 3, Alcobendas, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 830 },
+          { direccion: "Avenida de Bruselas 7, Alcobendas, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1280 },
+          { direccion: "Carretera de Fuencarral km 3, Alcobendas, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 830 },
           { direccion: "Calle Marqués de la Valdavia 54, Alcobendas, Madrid", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 280 },
         ],
       },
@@ -1361,8 +1361,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Málaga",
         ciudad: "Málaga",
         inmuebles: [
-          { nombre: "Hotel Costa del Sol", categoria: "Hotel", direccion: "Paseo Marítimo Pablo Ruiz Picasso 12, Málaga", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 910 },
-          { nombre: "Local Soho", categoria: "Local comercial", direccion: "Calle Tomás Heredia 18, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
+          { direccion: "Paseo Marítimo Pablo Ruiz Picasso 12, Málaga", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 910 },
+          { direccion: "Calle Tomás Heredia 18, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
           { direccion: "Calle Cerrojo 5, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 230 },
         ],
       },
@@ -1370,7 +1370,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Barcelona",
         ciudad: "Barcelona",
         inmuebles: [
-          { nombre: "Oficinas Poblenou", categoria: "Oficinas", direccion: "Carrer de Pallars 193, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 560 },
+          { direccion: "Carrer de Pallars 193, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 560 },
           { direccion: "Carrer de Balmes 210, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 420 },
         ],
       },
@@ -1378,8 +1378,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "A Coruña",
         ciudad: "A Coruña",
         inmuebles: [
-          { nombre: "Oficinas Orzán", categoria: "Oficinas", direccion: "Rúa Orzán 60, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
-          { nombre: "Almacén Agrela", categoria: "Almacén", direccion: "Rúa Gutenberg 9, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
+          { direccion: "Rúa Orzán 60, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
+          { direccion: "Rúa Gutenberg 9, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
         ],
       },
     ],
@@ -1388,24 +1388,24 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
     id: "nocodehackers",
     nombre: "Nocodehackers SL",
     color: PALETA_CARTERA[2],
-    comercializadora: "Ahorra Energía",
+    comercializadora: "Endesa",
     sedes: [
       {
         provincia: "Madrid",
         ciudad: "Madrid",
         inmuebles: [
-          { nombre: "Sede Chamberí", categoria: "Oficinas", direccion: "Calle Nicasio Gallego 18, Madrid", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1080 },
-          { nombre: "Nave Vallecas", categoria: "Nave industrial", direccion: "Calle Sierra de Guadalupe 2, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 790 },
+          { direccion: "Calle Nicasio Gallego 18, Madrid", tipos: ["luz", "gas"], puntos: { activa: 4, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1080 },
+          { direccion: "Calle Sierra de Guadalupe 2, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 790 },
           { direccion: "Calle Alcalá 320, Madrid", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 250 },
-          { nombre: "Almacén Coslada", categoria: "Almacén", direccion: "Avenida de la Cañada 14, Coslada, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 180 },
+          { direccion: "Avenida de la Cañada 14, Coslada, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 180 },
         ],
       },
       {
         provincia: "València/Valencia",
         ciudad: "València",
         inmuebles: [
-          { nombre: "Oficinas Ciutat Vella", categoria: "Oficinas", direccion: "Carrer dels Cavallers 22, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 530 },
-          { nombre: "Local Mercat", categoria: "Local comercial", direccion: "Plaça del Mercat 6, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 240 },
+          { direccion: "Carrer dels Cavallers 22, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 530 },
+          { direccion: "Plaça del Mercat 6, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 240 },
           { direccion: "Carrer de Colom 1, València", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 230 },
         ],
       },
@@ -1413,8 +1413,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Murcia",
         ciudad: "Murcia",
         inmuebles: [
-          { nombre: "Nave Espinardo", categoria: "Nave industrial", direccion: "Carril de la Condomina 4, Espinardo, Murcia", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 610 },
-          { nombre: "Oficinas Gran Vía", categoria: "Oficinas", direccion: "Gran Vía Escultor Salzillo 20, Murcia", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
+          { direccion: "Carril de la Condomina 4, Espinardo, Murcia", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 610 },
+          { direccion: "Gran Vía Escultor Salzillo 20, Murcia", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 270 },
           { direccion: "Calle Trapería 18, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 220 },
         ],
       },
@@ -1422,7 +1422,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Barcelona",
         ciudad: "Barcelona",
         inmuebles: [
-          { nombre: "Oficinas Sant Cugat", categoria: "Oficinas", direccion: "Avinguda Rius i Taulet 3, Sant Cugat, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { direccion: "Avinguda Rius i Taulet 3, Sant Cugat, Barcelona", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
           { direccion: "Carrer de Muntaner 88, Barcelona", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 250 },
         ],
       },
@@ -1430,7 +1430,7 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Málaga",
         ciudad: "Málaga",
         inmuebles: [
-          { nombre: "Centro logístico Sur", categoria: "Centro logístico", direccion: "Calle Villa de Madrid 7, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
+          { direccion: "Calle Villa de Madrid 7, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 580 },
           { direccion: "Calle Camino de Antequera 40, Málaga", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 210 },
         ],
       },
@@ -1446,8 +1446,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Madrid",
         ciudad: "Pozuelo de Alarcón",
         inmuebles: [
-          { nombre: "Sede Pozuelo", categoria: "Oficinas", direccion: "Avenida de Europa 26, Pozuelo de Alarcón, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1260 },
-          { nombre: "Almacén Húmera", categoria: "Almacén", direccion: "Camino de Húmera 14, Pozuelo de Alarcón, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 800 },
+          { direccion: "Avenida de Europa 26, Pozuelo de Alarcón, Madrid", tipos: ["luz", "gas"], puntos: { activa: 5, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 1260 },
+          { direccion: "Camino de Húmera 14, Pozuelo de Alarcón, Madrid", tipos: ["luz"], puntos: { activa: 2, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 800 },
           { direccion: "Calle Las Flores 3, Pozuelo de Alarcón, Madrid", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 190 },
         ],
       },
@@ -1455,15 +1455,15 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Málaga",
         ciudad: "Málaga",
         inmuebles: [
-          { nombre: "Oficinas Teatinos", categoria: "Oficinas", direccion: "Calle Louis Pasteur 5, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 550 },
-          { nombre: "Local Centro", categoria: "Local comercial", direccion: "Calle Larios 12, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
+          { direccion: "Calle Louis Pasteur 5, Málaga", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 550 },
+          { direccion: "Calle Larios 12, Málaga", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 260 },
         ],
       },
       {
         provincia: "A Coruña",
         ciudad: "A Coruña",
         inmuebles: [
-          { nombre: "Oficinas Matogrande", categoria: "Oficinas", direccion: "Avenida Alfonso Molina 30, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
+          { direccion: "Avenida Alfonso Molina 30, A Coruña", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 570 },
           { direccion: "Rúa Real 44, A Coruña", tipos: ["luz"], puntos: { activa: 1, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 240 },
         ],
       },
@@ -1471,8 +1471,8 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "Murcia",
         ciudad: "Murcia",
         inmuebles: [
-          { nombre: "Nave Alcantarilla", categoria: "Nave industrial", direccion: "Camino de los Molinos 8, Alcantarilla, Murcia", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
-          { nombre: "Local Murcia Centro", categoria: "Local comercial", direccion: "Calle Platería 27, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 200 },
+          { direccion: "Camino de los Molinos 8, Alcantarilla, Murcia", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 520 },
+          { direccion: "Calle Platería 27, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 200 },
           { direccion: "Avenida Juan Carlos I 55, Murcia", tipos: ["luz"], puntos: { activa: 0, tramite: 1, revision: 0, "por-activar": 0 }, ahorro: 230 },
         ],
       },
@@ -1480,15 +1480,15 @@ export const SOCIEDADES_CARTERA: SociedadCartera[] = [
         provincia: "València/Valencia",
         ciudad: "València",
         inmuebles: [
-          { nombre: "Oficinas Benimaclet", categoria: "Oficinas", direccion: "Carrer de Mistral 14, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
-          { nombre: "Local Russafa", categoria: "Local comercial", direccion: "Carrer de Cadis 33, València", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 250 },
+          { direccion: "Carrer de Mistral 14, València", tipos: ["luz"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 540 },
+          { direccion: "Carrer de Cadis 33, València", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 1, "por-activar": 0 }, ahorro: 250 },
         ],
       },
       {
         provincia: "Barcelona",
         ciudad: "Barcelona",
         inmuebles: [
-          { nombre: "Vivienda Eixample", categoria: "Vivienda", direccion: "Carrer de Girona 120, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 480 },
+          { direccion: "Carrer de Girona 120, Barcelona", tipos: ["luz", "gas"], puntos: { activa: 2, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 480 },
           { direccion: "Carrer de Provença 250, Barcelona", tipos: ["luz"], puntos: { activa: 0, tramite: 0, revision: 0, "por-activar": 0 }, ahorro: 180 },
         ],
       },
@@ -1649,9 +1649,9 @@ export const FILTROS_POR_AGRUPACION: Record<
   (keyof FiltrosCartera)[]
 > = {
   ubicacion: ["direcciones", "tiposDeInmueble", "tipos", "estados"],
-  sociedad: ["sociedades", "tipos", "estados"],
-  comercializadora: ["comercializadoras", "tipos", "estados"],
-  inmueble: ["tiposDeInmueble", "tipos", "estados"],
+  sociedad: ["sociedades", "direcciones", "tipos", "estados"],
+  comercializadora: ["comercializadoras", "direcciones", "tipos", "estados"],
+  inmueble: ["tiposDeInmueble", "direcciones", "tipos", "estados"],
 };
 
 /**
@@ -1788,6 +1788,8 @@ function agruparDirecciones(): GrupoDirecciones[] {
 export function listaDeInmuebles(
   /** Las categorías puestas durante la sesión, igual que en `agruparCartera`. */
   categorias: Record<string, CategoriaInmueble> = {},
+  /** Lo mismo, pero para el nombre puesto en ModalOrganizaCartera. */
+  nombres: Record<string, string> = {},
 ): {
   id: string;
   nombre?: string;
@@ -1800,7 +1802,7 @@ export function listaDeInmuebles(
     sociedad.sedes.flatMap((sede) =>
       sede.inmuebles.map((inmueble) => ({
         id: inmueble.direccion,
-        nombre: inmueble.nombre,
+        nombre: nombres[inmueble.direccion] ?? inmueble.nombre,
         categoria: categorias[inmueble.direccion] ?? inmueble.categoria,
         direccion: inmueble.direccion,
         provincia: sede.provincia,
@@ -1828,10 +1830,22 @@ export const OPCIONES_FILTROS = {
   tiposDeInmueble: CATEGORIAS_INMUEBLE.map((c) => ({ value: c, label: c })),
   /**
    * Las direcciones de la cartera, agrupadas por provincia y ordenadas — es
-   * como las enseña el desplegable de "Dirección": un encabezado por provincia
-   * y debajo sus direcciones, cada una con su casilla.
+   * como las enseña el desplegable de "Dirección" agrupando por UBICACIÓN: un
+   * encabezado por provincia y debajo sus direcciones, cada una con su
+   * casilla. Ahí SÍ tiene sentido bajar hasta la dirección: es la propia vista
+   * de "dónde está la cartera".
    */
   direcciones: agruparDirecciones(),
+  /**
+   * Las provincias de la cartera, una sola vez y ordenadas — es como enseña
+   * el filtro "Dirección" en las agrupaciones de Sociedad, Comercializadora e
+   * Inmueble: ahí lo que se compara es OTRA cosa (quién es cada sociedad, qué
+   * tipo de inmueble...), así que bajar hasta la dirección de la calle sería
+   * un nivel de detalle de más — con la provincia ya basta para acotar.
+   */
+  provincias: [
+    ...new Set(SOCIEDADES_CARTERA.flatMap((s) => s.sedes.map((x) => x.provincia))),
+  ].sort((a, b) => a.localeCompare(b, "es")),
 };
 
 /**
@@ -1856,9 +1870,12 @@ export function agruparCartera(
    * aparte y se aplica aquí, que es el único sitio por el que pasa todo.
    */
   categorias: Record<string, CategoriaInmueble> = {},
+  /** Lo mismo que `categorias`, pero para el nombre puesto en ModalOrganizaCartera. */
+  nombres: Record<string, string> = {},
 ): GrupoCartera[] {
   const categoriaDe = (i: InmuebleCartera) =>
     categorias[i.direccion] ?? i.categoria;
+  const nombreDe = (i: InmuebleCartera) => nombres[i.direccion] ?? i.nombre;
 
   const clave = {
     ubicacion: (_s: SociedadCartera, sede: SedeCartera) => sede.provincia,
@@ -1884,7 +1901,7 @@ export function agruparCartera(
   const cajones = new Map<string, Fila[]>();
 
   // Una lista de filtro vacía quiere decir "todos", así que no recorta nada.
-  const pasaFiltros = ({ sociedad, inmueble }: Fila) =>
+  const pasaFiltros = ({ sociedad, sede, inmueble }: Fila) =>
     (filtros.sociedades.length === 0 ||
       filtros.sociedades.includes(sociedad.nombre)) &&
     (filtros.comercializadoras.length === 0 ||
@@ -1894,8 +1911,14 @@ export function agruparCartera(
     (filtros.tiposDeInmueble.length === 0 ||
       (!!categoriaDe(inmueble) &&
         filtros.tiposDeInmueble.includes(categoriaDe(inmueble)!))) &&
+    // Agrupando por ubicación el filtro baja hasta la dirección; en las
+    // otras tres agrupaciones ese mismo campo guarda provincias (ver el
+    // filtro "Dirección" en PantallaCartera), así que compara contra la
+    // provincia de la sede en vez de la dirección exacta.
     (filtros.direcciones.length === 0 ||
-      filtros.direcciones.includes(inmueble.direccion)) &&
+      (modo === "ubicacion"
+        ? filtros.direcciones.includes(inmueble.direccion)
+        : filtros.direcciones.includes(sede.provincia))) &&
     (filtros.estados.length === 0 ||
       filtros.estados.some((e) => inmueble.puntos[e] > 0)) &&
     (!filtros.soloSinClasificar || !categoriaDe(inmueble));
@@ -1938,7 +1961,7 @@ export function agruparCartera(
         sociedad: sociedad.nombre,
         provincia: sede.provincia,
         ciudad: sede.ciudad,
-        nombre: inmueble.nombre,
+        nombre: nombreDe(inmueble),
         categoria: categoriaDe(inmueble),
         direccion: inmueble.direccion,
         tipos: inmueble.tipos,
