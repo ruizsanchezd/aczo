@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { GraficaBarras } from "@/components/ui/GraficaBarras";
 import { Icon } from "@/components/ui/Icon";
@@ -193,15 +192,6 @@ export function ConsumoAhorro() {
         />
       </div>
 
-      {/* Mientras llega la primera factura, todo es estimación */}
-      <Alert tone="highlight" icon="info" className="mt-04">
-        <Text variant="body-m" as="p">
-          Mientras llega tu primera factura con la nueva comercializadora, te
-          mostramos el ahorro previsto y una estimación de tu consumo
-          construida desde las facturas que nos diste.
-        </Text>
-      </Alert>
-
       {/* Las cuatro tarjetas de resumen — mismas que el Dashboard */}
       <div className="mt-04 flex flex-wrap items-stretch gap-04">
         {[
@@ -209,6 +199,7 @@ export function ConsumoAhorro() {
             key="potencial"
             rotulo="Ahorro potencial (estimado)"
             destacado
+            className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
@@ -224,6 +215,7 @@ export function ConsumoAhorro() {
             key="real"
             rotulo="Ahorro real acumulado"
             destacado
+            className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
@@ -235,7 +227,11 @@ export function ConsumoAhorro() {
               </Text>
             </div>
           </TarjetaDato>,
-          <TarjetaDato key="coste" rotulo="Coste (último mes)">
+          <TarjetaDato
+            key="coste"
+            rotulo="Coste (último mes)"
+            className="border border-border-low"
+          >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
                 valor={euros(COSTE_ULTIMO_MES_DASHBOARD.valor)}
@@ -244,7 +240,11 @@ export function ConsumoAhorro() {
               <Tendencia variacion={COSTE_ULTIMO_MES_DASHBOARD.variacion} />
             </div>
           </TarjetaDato>,
-          <TarjetaDato key="consumo" rotulo="Consumo (último mes)">
+          <TarjetaDato
+            key="consumo"
+            rotulo="Consumo (último mes)"
+            className="border border-border-low"
+          >
             <div className="flex flex-col gap-01">
               <ValorConUnidad
                 valor={kwh(CONSUMO_ULTIMO_MES_DASHBOARD.valor)}
@@ -264,15 +264,22 @@ export function ConsumoAhorro() {
         ))}
       </div>
 
-      {/* Coste y ahorro */}
-      <section className="mt-04 rounded-md bg-background-base p-06">
+      {/* Coste y ahorro — el título va suelto, sobre el fondo de la página;
+          las tres estadísticas y la gráfica van CADA UNA en su propia
+          tarjeta con borde (Figma nodo 797:8393): antes flotaban sueltas
+          sobre el fondo, sin caja que las contuviera. */}
+      <section className="mt-06">
         <Text variant="heading-s" as="h2">
           Coste y ahorro
         </Text>
 
-        <div className="mt-06 flex flex-col items-start gap-06 lg:flex-row">
-          <div className="flex w-full flex-col gap-04 lg:w-[260px] lg:shrink-0">
-            <TarjetaDato rotulo="Ahorro medio mensual (est.)" destacado>
+        <div className="mt-04 flex flex-col items-start gap-04 lg:flex-row">
+          <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
+            <TarjetaDato
+              rotulo="Ahorro medio mensual (est.)"
+              destacado
+              className="border border-border-low"
+            >
               <div className="flex flex-col gap-01">
                 <ValorConUnidad
                   valor={euros(estadisticas.ahorroMedioMensual)}
@@ -283,13 +290,19 @@ export function ConsumoAhorro() {
                 </Text>
               </div>
             </TarjetaDato>
-            <TarjetaDato rotulo="Coste medio con Aczo (est.)">
+            <TarjetaDato
+              rotulo="Coste medio con Aczo (est.)"
+              className="border border-border-low"
+            >
               <ValorConUnidad
                 valor={euros(estadisticas.costeConAczoMedio)}
                 unidad="€"
               />
             </TarjetaDato>
-            <TarjetaDato rotulo="Coste medio sin Aczo (est.)">
+            <TarjetaDato
+              rotulo="Coste medio sin Aczo (est.)"
+              className="border border-border-low"
+            >
               <ValorConUnidad
                 valor={euros(estadisticas.costeSinAczoMedio)}
                 unidad="€"
@@ -297,7 +310,7 @@ export function ConsumoAhorro() {
             </TarjetaDato>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 rounded-md border border-border-low bg-background-base p-06">
             <CabeceraGrafica
               titulo="Coste mensual (€)"
               tooltip="Comparamos lo que estás pagando con tu tarifa actual (estimado en los meses aún sin facturar) frente a lo que te costaría el mismo consumo con tu comercializadora anterior, antes de ser cliente Aczo."
@@ -317,15 +330,18 @@ export function ConsumoAhorro() {
         </div>
       </section>
 
-      {/* Consumo */}
-      <section className="mt-04 rounded-md bg-background-base p-06">
+      {/* Consumo — misma técnica que "Coste y ahorro". */}
+      <section className="mt-06">
         <Text variant="heading-s" as="h2">
           Consumo
         </Text>
 
-        <div className="mt-06 flex flex-col items-start gap-06 lg:flex-row">
-          <div className="flex w-full flex-col gap-04 lg:w-[260px] lg:shrink-0">
-            <TarjetaDato rotulo="Consumo medio (est.)">
+        <div className="mt-04 flex flex-col items-start gap-04 lg:flex-row">
+          <div className="flex w-full flex-col gap-04 lg:w-[276px] lg:shrink-0">
+            <TarjetaDato
+              rotulo="Consumo medio (est.)"
+              className="border border-border-low"
+            >
               <div className="flex flex-col gap-01">
                 <ValorConUnidad
                   valor={kwh(Math.round(estadisticas.consumoMedio))}
@@ -336,7 +352,10 @@ export function ConsumoAhorro() {
                 </Text>
               </div>
             </TarjetaDato>
-            <TarjetaDato rotulo="Consumo máximo">
+            <TarjetaDato
+              rotulo="Consumo máximo"
+              className="border border-border-low"
+            >
               <div className="flex flex-col gap-01">
                 <ValorConUnidad
                   valor={kwh(estadisticas.maximo.consumoKwh)}
@@ -347,7 +366,10 @@ export function ConsumoAhorro() {
                 </Text>
               </div>
             </TarjetaDato>
-            <TarjetaDato rotulo="Consumo mínimo">
+            <TarjetaDato
+              rotulo="Consumo mínimo"
+              className="border border-border-low"
+            >
               <div className="flex flex-col gap-01">
                 <ValorConUnidad
                   valor={kwh(estadisticas.minimo.consumoKwh)}
@@ -360,7 +382,7 @@ export function ConsumoAhorro() {
             </TarjetaDato>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 rounded-md border border-border-low bg-background-base p-06">
             <CabeceraGrafica
               titulo="Consumo mensual (kWh)"
               tooltip="Lo que consumes cada mes, con los meses aún sin facturar estimados a partir de tu histórico de consumo."
