@@ -1556,6 +1556,14 @@ export const ACTUALIZACION_CARTERA = "06 de julio 2026";
 export const AHORRO_POTENCIAL_ANUAL_DASHBOARD = 8300;
 
 /**
+ * El importe del banner "Hemos detectado una oportunidad de ahorro extra"
+ * (Figma nodo 878:13973), en Dashboard, Mi cartera y Consumo y ahorro: un
+ * ahorro adicional al que ya se enseña en las tarjetas de arriba, por cambiar
+ * de comercializadora en algún punto de suministro suelto.
+ */
+export const AHORRO_EXTRA_DASHBOARD = 4590;
+
+/**
  * El escenario "cliente ya asentado" del Dashboard: casi un año con Aczo, ya
  * con facturas reales de por medio (a diferencia del escenario inicial, con
  * el ahorro real y el resto de tarjetas todavía en "--"). Sale del Figma
@@ -2456,6 +2464,151 @@ export const COMERCIALIZADORAS_NUEVO_SUMINISTRO: Comercializadora[] = [
         suministros: [
           suministro("ns-rp-1", "Recepción", "Luz", "2.0TD", 1800, 560, {
             ciudad: "Madrid",
+          }),
+        ],
+      },
+    ],
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Datos del flujo "Ahorro detectado" del área de cliente                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Datos del asistente "Ahorro detectado" (`AhorroDetectadoCliente.tsx`), que
+ * se abre al pulsar "Ver ahorro" en `BannerAhorroExtra` — el mismo banner
+ * "Hemos detectado una oportunidad de ahorro extra" de Dashboard, Mi cartera
+ * y Consumo y ahorro.
+ *
+ * El Figma de este flujo (fileKey hrMu2uv5cg2Bznl43Jukrr, sección "Ahorro
+ * detectado", nodeId 797:43287) usa dos sociedades de mentira, "Mendesaltaren
+ * S.L" y "Sstill S.L", que no existen en el resto del prototipo — se parecen
+ * a propósito a `SOCIEDADES_CARTERA` para que se note el guiño, pero no son
+ * las mismas. Se sustituyen por las DOS primeras sociedades reales de
+ * `SOCIEDADES_CARTERA` (mendesaltaren SL, Still SL): mismo criterio que
+ * `SOCIEDAD_NUEVO_SUMINISTRO` más arriba.
+ *
+ * A diferencia de `SOCIEDAD_NUEVO_SUMINISTRO` (una única sociedad), aquí "Confirma
+ * tus datos" lista VARIAS sociedades a la vez, cada una con su propio CIF,
+ * titular, DNI e IBAN — así que los datos van en una lista, no en constantes
+ * sueltas.
+ */
+export type SociedadAhorroDetectado = {
+  sociedad: SociedadCartera;
+  /** Inventado, igual que `CIF_NUEVO_SUMINISTRO`: `SOCIEDADES_CARTERA` no
+   * guarda CIF (el mapa y la lista de "Mi cartera" no lo enseñan). */
+  cif: string;
+  /** Dirección sobre la que se simula el ahorro: la primera sede/inmueble de
+   * la sociedad, ya real en `SOCIEDADES_CARTERA`. */
+  direccion: string;
+  titular: string;
+  dni: string;
+  iban: string;
+};
+
+export const SOCIEDADES_AHORRO_DETECTADO: SociedadAhorroDetectado[] = [
+  {
+    sociedad: SOCIEDADES_CARTERA[0], // mendesaltaren SL
+    cif: CIF_NUEVO_SUMINISTRO, // misma sociedad que "Nuevo suministro": mismo CIF
+    direccion: SOCIEDADES_CARTERA[0].sedes[0].inmuebles[0].direccion,
+    titular: TITULAR_NUEVO_SUMINISTRO,
+    dni: DNI_NUEVO_SUMINISTRO,
+    iban: IBAN_NUEVO_SUMINISTRO,
+  },
+  {
+    sociedad: SOCIEDADES_CARTERA[1], // Still SL
+    cif: "B-84610357",
+    direccion: SOCIEDADES_CARTERA[1].sedes[0].inmuebles[0].direccion,
+    titular: "Ainhoa Martínez",
+    dni: DNI_NUEVO_SUMINISTRO,
+    iban: "ES00 2103 0294 8172",
+  },
+];
+
+/**
+ * Las dos ofertas del paso "Ahorro detectado": las mismas dos que
+ * `OFERTAS_NUEVO_SUMINISTRO` ("Ahorro Aczo" recomendada, "Ahorro confort") —
+ * el Figma de este flujo repite el mismo patrón de dos tarjetas, así que se
+ * reutiliza el mismo mock en vez de duplicar el tipo `Plan`.
+ */
+export const OFERTAS_AHORRO_DETECTADO = OFERTAS_NUEVO_SUMINISTRO;
+
+/**
+ * El desglose por comercializadora del paso "Ahorro detectado", con puntos de
+ * suministro de las DOS sociedades a la vez (`sociedadId` distingue de cuál
+ * es cada dirección) — a diferencia de `COMERCIALIZADORAS_NUEVO_SUMINISTRO`,
+ * que solo cubre una. Los números del Figma (5 suministros, 4.948 €, 11+10
+ * puntos) no se usan: ni siquiera cuadran entre sí ahí (el resumen dice "4
+ * puntos de suministro" y la lista de comercializadoras suma 21), así que
+ * este es un dataset propio, consistente y documentado.
+ *
+ * Las cifras exactas (para comprobar a mano que la tarjeta grande de cada
+ * oferta cuadra con la suma de sus comercializadoras — ver `PasoAhorro` en
+ * `AhorroDetectadoCliente.tsx`):
+ *   - TotalEnergies: 780 + 410 + 920 + 340 = 2.450 €/año (mendesaltaren + Still)
+ *   - Repsol: 480 + 530 = 1.010 €/año (mendesaltaren + Still)
+ *   - Ahorro Aczo (TotalEnergies + Repsol) = 2.450 + 1.010 = 3.460 €/año
+ *   - Ahorro Confort (solo TotalEnergies) = 2.450 €/año
+ */
+export const COMERCIALIZADORAS_AHORRO_DETECTADO: Comercializadora[] = [
+  {
+    id: "totalenergies-ad",
+    nombre: "TotalEnergies",
+    etiquetas: ["2.0TD"],
+    direcciones: [
+      {
+        id: "ad-direccion-te-mendesaltaren",
+        direccion: SOCIEDADES_AHORRO_DETECTADO[0].direccion,
+        sociedadId: SOCIEDADES_AHORRO_DETECTADO[0].sociedad.id,
+        suministros: [
+          suministro("ad-te-mendesaltaren-1", "Oficina principal", "Luz", "2.0TD", 2600, 780, {
+            ciudad: "Madrid",
+          }),
+          suministro("ad-te-mendesaltaren-2", "Almacén", "Gas", "3.1", 1500, 410, {
+            ciudad: "Madrid",
+            mantenimiento: true,
+          }),
+        ],
+      },
+      {
+        id: "ad-direccion-te-still",
+        direccion: SOCIEDADES_AHORRO_DETECTADO[1].direccion,
+        sociedadId: SOCIEDADES_AHORRO_DETECTADO[1].sociedad.id,
+        suministros: [
+          suministro("ad-te-still-1", "Nave de producción", "Luz", "2.0TD", 3400, 920, {
+            ciudad: "Alcobendas",
+          }),
+          suministro("ad-te-still-2", "Oficinas centrales", "Gas", "3.1", 1350, 340, {
+            ciudad: "Alcobendas",
+            mantenimiento: true,
+          }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "repsol-ad",
+    nombre: "Repsol",
+    etiquetas: ["2.0TD"],
+    direcciones: [
+      {
+        id: "ad-direccion-rp-mendesaltaren",
+        direccion: SOCIEDADES_AHORRO_DETECTADO[0].direccion,
+        sociedadId: SOCIEDADES_AHORRO_DETECTADO[0].sociedad.id,
+        suministros: [
+          suministro("ad-rp-mendesaltaren-1", "Recepción", "Luz", "2.0TD", 1600, 480, {
+            ciudad: "Madrid",
+          }),
+        ],
+      },
+      {
+        id: "ad-direccion-rp-still",
+        direccion: SOCIEDADES_AHORRO_DETECTADO[1].direccion,
+        sociedadId: SOCIEDADES_AHORRO_DETECTADO[1].sociedad.id,
+        suministros: [
+          suministro("ad-rp-still-1", "Punto logístico", "Luz", "2.0TD", 1900, 530, {
+            ciudad: "Alcobendas",
           }),
         ],
       },

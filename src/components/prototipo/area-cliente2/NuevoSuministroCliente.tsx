@@ -26,15 +26,18 @@ import {
   SOCIEDAD_NUEVO_SUMINISTRO,
   suministrosDe,
   TITULAR_NUEVO_SUMINISTRO,
-  type Comercializadora,
   type Plan,
-  type Suministro,
 } from "@/mocks/aczo";
-import { motionSafe, retardo } from "@/lib/prototipo";
+import { animarScroll, motionSafe, posicionEnDocumento, retardo } from "@/lib/prototipo";
 import { motion } from "@/lib/motion";
-import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
 import { Bloque, CabeceraBloque, FilaResumen, FirmaCanvas } from "../PiezasCambioCompania";
-import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
+import { HuecoLogo } from "../TarjetaPlan";
+import {
+  FilaComercializadoraAhorro,
+  InterruptorMantenimientoAhorro,
+  SelectorPeriodoAhorro,
+  TarjetaOfertaAhorro,
+} from "./PiezasAreaCliente";
 
 /**
  * NuevoSuministroCliente — el asistente "Añadir nuevos suministros" del área
@@ -107,44 +110,6 @@ const VISTA_ANTERIOR: Partial<Record<Vista, Vista>> = {
   ahorro: "revision",
   cambio: "ahorro",
 };
-
-/** La posición vertical de `el` en el documento, SIN contar transforms de
- * animación (a diferencia de `getBoundingClientRect`, que sí los cuenta): el
- * contenido de cada paso entra con `anim-entra-adelante`
- * (`translateY(24px)` → `0`), así que medirlo con `getBoundingClientRect`
- * justo al montarse da una posición movediza según en qué fotograma de esa
- * animación se mida. `offsetTop` es una propiedad de layout, no de pintado:
- * no le afecta el transform, así que da siempre la posición final de
- * verdad. */
-function posicionEnDocumento(el: HTMLElement): number {
-  let y = 0;
-  let nodo: HTMLElement | null = el;
-  while (nodo) {
-    y += nodo.offsetTop;
-    nodo = nodo.offsetParent as HTMLElement | null;
-  }
-  return y;
-}
-
-/** Desliza el scroll de la ventana `distancia` píxeles hacia abajo desde
- * donde esté, en `duracion` ms con una curva de salida (ease-out) — para la
- * transición de "Sube tu factura" a "Ahorro y recomendación", ver más abajo.
- * `window.scrollTo({behavior:"smooth"})` no sirve para esto: su curva y
- * duración las decide el navegador, y para una distancia corta la resuelve
- * casi de golpe. */
-function animarScroll(distancia: number, duracion: number) {
-  const inicio = window.scrollY;
-  const t0 = performance.now();
-
-  function paso(ahora: number) {
-    const t = Math.min(1, (ahora - t0) / duracion);
-    const salida = 1 - (1 - t) ** 3;
-    window.scrollTo(0, inicio + distancia * salida);
-    if (t < 1) requestAnimationFrame(paso);
-  }
-
-  requestAnimationFrame(paso);
-}
 
 export function NuevoSuministroCliente({
   onVolver,
@@ -219,7 +184,7 @@ export function NuevoSuministroCliente({
           aria-label="Volver"
           className="flex size-07 w-fit items-center justify-center rounded-md text-content-high outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
         >
-          <Icon name="chevron-left" size={24} />
+          <Icon name="arrow-right-solid" className="rotate-180" />
         </button>
 
         <div className="flex flex-col gap-01">
@@ -910,7 +875,7 @@ function PasoAhorro({
   // La cifra de la tarjeta es la suma de sus comercializadoras, sin restar
   // nada más: tiene que coincidir exactamente con lo que se ve al desplegar
   // cada fila de abajo (que tampoco descuenta el mantenimiento de su
-  // "Ahorro potencial" — ver `FilaComercializadoraNuevoSuministro`).
+  // "Ahorro potencial" — ver `FilaComercializadoraAhorro`).
   const ahorro = ahorroBaseDelPlan(planSeleccionado);
 
   function alCambiarMantenimientoEnBloque(ids: string[], activo: boolean) {
@@ -936,13 +901,13 @@ function PasoAhorro({
         <Text variant="heading-m" as="h2">
           Tu ahorro potencial
         </Text>
-        <SelectorPeriodo mensual={mensual} onChange={setMensual} />
+        <SelectorPeriodoAhorro mensual={mensual} onChange={setMensual} />
       </div>
 
       <div role="radiogroup" aria-label="Elige una oferta" className="grid gap-04 sm:grid-cols-2">
         {OFERTAS_NUEVO_SUMINISTRO.map((plan, i) => (
           <div key={plan.id} className="anim-aparece" style={retardo(i + 1)}>
-            <TarjetaOfertaNuevoSuministro
+            <TarjetaOfertaAhorro
               plan={plan}
               mensual={mensual}
               ahorroBase={ahorroBaseDelPlan(plan)}
@@ -962,7 +927,7 @@ function PasoAhorro({
           </Text>
 
           <div className="flex flex-wrap items-center gap-04">
-            <InterruptorMantenimientoNuevoSuministro
+            <InterruptorMantenimientoAhorro
               etiqueta="Luz"
               icono="lightbulb"
               ids={idsLuz}
@@ -972,7 +937,7 @@ function PasoAhorro({
             <Text variant="label-m" color="mid" as="span">
               ·
             </Text>
-            <InterruptorMantenimientoNuevoSuministro
+            <InterruptorMantenimientoAhorro
               etiqueta="Gas"
               icono="fire"
               ids={idsGas}
@@ -984,7 +949,7 @@ function PasoAhorro({
 
         <div className="flex flex-col gap-04">
           {comercializadorasSeleccionadas.map((c) => (
-            <FilaComercializadoraNuevoSuministro
+            <FilaComercializadoraAhorro
               key={c.id}
               comercializadora={c}
               mensual={mensual}
@@ -1011,351 +976,6 @@ function PasoAhorro({
         </Button>
       </div>
     </div>
-  );
-}
-
-function SelectorPeriodo({
-  mensual,
-  onChange,
-}: {
-  mensual: boolean;
-  onChange: (mensual: boolean) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Periodo del ahorro"
-      className="flex items-center gap-00 rounded-sm border border-border-low p-02"
-    >
-      {[
-        { label: "Ver ahorro anual", activo: !mensual, valor: false },
-        { label: "Ver ahorro mensual", activo: mensual, valor: true },
-      ].map((seg) => (
-        <button
-          key={seg.label}
-          type="button"
-          role="tab"
-          aria-selected={seg.activo}
-          onClick={() => onChange(seg.valor)}
-          className={[
-            "cursor-pointer rounded-sm px-04 py-02 text-label-s whitespace-nowrap",
-            "transition-colors motion-micro-states",
-            "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
-            seg.activo ? "bg-background-high text-content-inverse" : "text-content-mid",
-          ].join(" ")}
-        >
-          {seg.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function TarjetaOfertaNuevoSuministro({
-  plan,
-  mensual,
-  ahorroBase,
-  seleccionada,
-  onSeleccionar,
-}: {
-  plan: Plan;
-  mensual: boolean;
-  /** Suma del ahorro de las comercializadoras de esta oferta — ver
-   * `ahorroBaseDelPlan` en `PasoAhorro`, más arriba. Se enseña tal cual, sin
-   * restar el mantenimiento: tiene que coincidir exactamente con la fila de
-   * "Ahorro potencial" de cada comercializadora al desplegar la oferta, que
-   * tampoco lo resta. */
-  ahorroBase: number;
-  seleccionada: boolean;
-  onSeleccionar: () => void;
-}) {
-  const cifra = mensual ? ahorroBase / 12 : ahorroBase;
-
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={seleccionada}
-      aria-label={`Elegir ${plan.nombre}`}
-      onClick={onSeleccionar}
-      className={[
-        "flex h-full w-full flex-col justify-between gap-06 rounded-md p-07 text-left",
-        "cursor-pointer outline-none transition-colors motion-micro-states",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high",
-        seleccionada ? "bg-highlight-deep" : "bg-background-base hover:bg-background-mid",
-      ].join(" ")}
-    >
-      <div className="flex flex-col gap-04">
-        <Text
-          variant="label-s-uppercase"
-          color={seleccionada ? "always-light" : "low"}
-          className={seleccionada ? "opacity-60" : ""}
-          as="h3"
-        >
-          {plan.nombre === "Ahorro Aczo" ? "Ahorro Aczo" : "Ahorro Confort"}
-        </Text>
-
-        <p
-          className={`font-heading text-heading-m ${
-            seleccionada ? "text-content-always-light" : "text-content-high"
-          }`}
-        >
-          {euros(cifra)} €/{mensual ? "mes" : "año"}
-        </p>
-
-        {plan.recomendado ? (
-          <Tag tone="vivid" icon="zap" className="w-fit">
-            Recomendado
-          </Tag>
-        ) : (
-          <Text variant="label-m" color={seleccionada ? "always-light" : "high"} as="span">
-            Máxima simplicidad en la gestión
-          </Text>
-        )}
-
-        <Text
-          variant="body-m"
-          color={seleccionada ? "always-light" : "mid"}
-          as="span"
-        >
-          {plan.ventajas[0]?.texto}
-        </Text>
-      </div>
-
-      <div className="flex flex-col gap-03">
-        <Text
-          variant="body-s"
-          color={seleccionada ? "always-light" : "mid"}
-          as="span"
-          className={seleccionada ? "opacity-60" : ""}
-        >
-          Comercializadoras seleccionadas:
-        </Text>
-        <div className="flex flex-wrap gap-02">
-          {plan.comercializadoras.map((nombre) => (
-            <HuecoLogo key={nombre} nombre={nombre} sobreOscuro={seleccionada} />
-          ))}
-        </div>
-      </div>
-
-      <span
-        className={[
-          "flex items-center justify-center rounded-md py-03 text-label-m",
-          "transition-colors motion-micro-states",
-          seleccionada
-            ? "bg-background-state-disabled text-content-state-disabled"
-            : "bg-background-high text-content-inverse",
-        ].join(" ")}
-      >
-        {seleccionada ? "Oferta seleccionada" : "Seleccionar oferta"}
-      </span>
-    </button>
-  );
-}
-
-function InterruptorMantenimientoNuevoSuministro({
-  icono,
-  etiqueta,
-  ids,
-  mantenimientoIds,
-  onCambiarTodos,
-}: {
-  icono: "lightbulb" | "fire";
-  etiqueta: string;
-  ids: string[];
-  mantenimientoIds: Set<string>;
-  onCambiarTodos: (activo: boolean) => void;
-}) {
-  const total = ids.length;
-  const activos = ids.filter((id) => mantenimientoIds.has(id)).length;
-
-  return (
-    <span className="flex items-center gap-03">
-      <span className="flex items-center gap-[2px] text-content-mid">
-        <Icon name="wrench" size={20} />
-        <Icon name={icono} size={20} />
-      </span>
-      <Text variant="label-m" color="mid" as="span">
-        Mantenimiento {etiqueta} ({activos}/{total})
-      </Text>
-      <Switch
-        checked={total > 0 && activos === total}
-        onChange={onCambiarTodos}
-        label={`Añadir mantenimiento a todos los puntos de ${etiqueta}`}
-      />
-    </span>
-  );
-}
-
-function FlechaPlegar({ abierto }: { abierto: boolean }) {
-  return (
-    <span
-      className={[
-        "flex size-07 shrink-0 items-center justify-center rounded-md",
-        "transition-transform motion-micro-states",
-        abierto ? "rotate-180" : "rotate-0",
-      ].join(" ")}
-    >
-      <Icon name="chevron-down" />
-    </span>
-  );
-}
-
-function FilaComercializadoraNuevoSuministro({
-  comercializadora,
-  mensual,
-  mantenimientoIds,
-  onCambiarMantenimiento,
-}: {
-  comercializadora: Comercializadora;
-  mensual: boolean;
-  mantenimientoIds: Set<string>;
-  onCambiarMantenimiento: (id: string, activo: boolean) => void;
-}) {
-  const [abierto, setAbierto] = useState(false);
-  const todosSuministros = suministrosDe(comercializadora);
-  const tiposPresentes = Array.from(new Set(todosSuministros.map((s) => s.tipo)));
-  const ahorro = todosSuministros.reduce((total, s) => total + s.ahorro, 0);
-  const cifra = mensual ? ahorro / 12 : ahorro;
-
-  return (
-    <article className="overflow-hidden rounded-md border border-border-low bg-background-base">
-      <div className="flex flex-wrap items-center gap-04 p-04">
-        {tieneLogoComercializadora(comercializadora.nombre) ? (
-          <LogoComercializadora nombre={comercializadora.nombre} className="size-08" />
-        ) : (
-          <HuecoLogo nombre={comercializadora.nombre} />
-        )}
-
-        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-04">
-          <Text variant="label-m" as="h3">
-            {comercializadora.nombre}
-          </Text>
-          <span className="flex gap-02">
-            {tiposPresentes.map((tipo) => (
-              <Tag key={tipo} icon={tipo === "Luz" ? "lightbulb" : "fire"}>
-                {tipo}
-              </Tag>
-            ))}
-          </span>
-          <Text variant="body-m" color="mid" as="span">
-            {todosSuministros.length}{" "}
-            {todosSuministros.length === 1 ? "punto" : "puntos"} de suministro
-          </Text>
-        </span>
-
-        {/* Botón visual, como el resto del prototipo (ver "Ver desglose" en
-            PantallaCambioCompaniaEmpresas.tsx): no abre nada, deja el gesto
-            del Figma a la vista sin construir un panel de comparación nuevo
-            solo para este asistente — ya existe uno completo en
-            PanelCompararEmpresas.tsx para cuando haga falta cablearlo. */}
-        <Button variant="secondary" size="small" iconEnd="compare">
-          Comparar comercializadoras
-        </Button>
-
-        <span className="flex items-center gap-03">
-          <span className="flex w-[150px] shrink-0 flex-col items-end">
-            <Text variant="label-s" color="low" as="span">
-              Ahorro potencial
-            </Text>
-            <span className="font-heading text-heading-s whitespace-nowrap text-content-high">
-              {euros(cifra)} €/{mensual ? "mes" : "año"}
-            </span>
-          </span>
-
-          <button
-            type="button"
-            onClick={() => setAbierto((a) => !a)}
-            aria-expanded={abierto}
-            aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${comercializadora.nombre}`}
-            className="cursor-pointer rounded-md bg-background-low text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
-          >
-            <FlechaPlegar abierto={abierto} />
-          </button>
-        </span>
-      </div>
-
-      <div
-        className="grid transition-[grid-template-rows] motion-macro-levelup"
-        style={{ gridTemplateRows: abierto ? "1fr" : "0fr" }}
-        aria-hidden={!abierto}
-      >
-        <div className="overflow-hidden">
-          <ul className="flex flex-col px-04 pb-04">
-            {todosSuministros.map((s) => (
-              <FilaPuntoSuministroNuevoSuministro
-                key={s.id}
-                suministro={s}
-                activo={mantenimientoIds.has(s.id)}
-                onCambiarMantenimiento={(activo) => onCambiarMantenimiento(s.id, activo)}
-              />
-            ))}
-          </ul>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function FilaPuntoSuministroNuevoSuministro({
-  suministro,
-  activo,
-  onCambiarMantenimiento,
-}: {
-  suministro: Suministro;
-  activo: boolean;
-  onCambiarMantenimiento: (activo: boolean) => void;
-}) {
-  const [abierto, setAbierto] = useState(false);
-
-  return (
-    <li className="border-b border-border-low last:border-b-00">
-      <div className="flex items-center gap-03 py-04">
-        <span className="flex min-w-0 flex-1 flex-col gap-02 md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-center md:gap-04">
-          <Text variant="label-m" as="span" className="truncate">
-            {suministro.nombre}
-          </Text>
-          <span>
-            <Tag icon={suministro.tipo === "Luz" ? "lightbulb" : "fire"}>
-              {suministro.tipo}
-            </Tag>
-          </span>
-          <span>
-            <Tag tone="success">€{euros(suministro.ahorro)}/año</Tag>
-          </span>
-          <span className="flex items-center gap-02">
-            <span className="text-content-mid">
-              <Icon name="wrench" size={20} />
-            </span>
-            <Switch
-              checked={activo}
-              onChange={onCambiarMantenimiento}
-              label={`Añadir mantenimiento en ${suministro.nombre}`}
-            />
-          </span>
-        </span>
-
-        <button
-          type="button"
-          onClick={() => setAbierto((a) => !a)}
-          aria-expanded={abierto}
-          aria-label={`${abierto ? "Cerrar" : "Ver"} el detalle de ${suministro.nombre}`}
-          className="shrink-0 cursor-pointer rounded-md text-content-mid outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
-        >
-          <FlechaPlegar abierto={abierto} />
-        </button>
-      </div>
-
-      <div
-        className="grid transition-[grid-template-rows] motion-macro-levelup"
-        style={{ gridTemplateRows: abierto ? "1fr" : "0fr" }}
-        aria-hidden={!abierto}
-      >
-        <div className="overflow-hidden">
-          <DetalleTecnicoSuministro suministro={suministro} />
-        </div>
-      </div>
-    </li>
   );
 }
 
@@ -1698,12 +1318,18 @@ function PasoEnviado({ onIrACartera }: { onIrACartera: () => void }) {
       </div>
 
       <div className="anim-aparece w-full" style={retardo(1)}>
-        <Alert tone="warning" icon="info">
+        {/* tone="highlight" (verde pálido, bg-highlight-soft), no "warning"
+            (naranja): así lo pinta el Figma (nodo 882:14928 de "Ahorro
+            detectado", misma pantalla que esta) — y las dos líneas van a
+            tamaño body-m (14/20), no label-m/body-s: en el Figma miden
+            igual, solo cambia el peso. `always-dark` porque highlight-soft
+            es una superficie que no cambia entre modos. */}
+        <Alert tone="highlight" icon="info">
           <div className="flex flex-col gap-01">
-            <Text variant="label-m" as="span">
+            <Text variant="body-m" color="always-dark" as="span" className="font-bold">
               Confirma el código para empezar la tramitación
             </Text>
-            <Text variant="body-s" color="mid" as="span">
+            <Text variant="body-m" color="always-dark" as="span">
               En breve recibirás un mensaje de tu comercializadora para
               confirmar el cambio. Revísalo y confírmalo para que podamos
               continuar con la tramitación.

@@ -28,7 +28,7 @@ import {
   type ModoAgrupacion,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
-import { SelectorCompacto, Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
+import { BannerAhorroExtra, SelectorCompacto, Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
 
 /**
  * Dashboard — la primera pantalla que se ve al entrar en el área de cliente.
@@ -89,6 +89,7 @@ export function Dashboard({
   onVerCartera,
   onVerConsumo,
   onAbrirNuevoSuministro,
+  onVerAhorro,
 }: {
   onVerCartera?: () => void;
   onVerConsumo?: () => void;
@@ -96,6 +97,9 @@ export function Dashboard({
    * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
    * AreaCliente2.tsx. */
   onAbrirNuevoSuministro?: () => void;
+  /** Abre el asistente "Ahorro detectado" (ver AhorroDetectadoCliente.tsx)
+   * desde el botón "Ver ahorro" de BannerAhorroExtra. */
+  onVerAhorro?: () => void;
 }) {
   const [pestañaGrafica, setPestañaGrafica] =
     useState<PestañaGrafica>("coste-luz-gas");
@@ -170,6 +174,8 @@ export function Dashboard({
           Añadir nuevos suministros
         </Button>
       </header>
+
+      <BannerAhorroExtra onVerAhorro={onVerAhorro} />
 
       {/* Las cuatro tarjetas de resumen */}
       <div className="mt-06 flex flex-wrap items-stretch gap-05">
