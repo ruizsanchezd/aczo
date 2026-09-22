@@ -35,11 +35,14 @@ export function BannerAhorroExtra() {
       <div className="flex min-w-0 flex-1 flex-col gap-01">
         {/* `font-bold` a pelo: el Figma de este aviso concreto (nodo
             878:13973) pone esta línea en negrita de verdad (peso 700), y
-            ningún token de label la trae — label-s es peso 500 siempre. No
-            hay una utilidad de peso en el sistema para esto todavía. */}
+            ningún variant de Text la trae — body-m es peso 400 siempre. No
+            hay una utilidad de peso en el sistema para esto todavía. El
+            tamaño SÍ es el de `body-m` (14/20), no `label-s` (12/16): las dos
+            líneas del aviso miden igual en el Figma, la de arriba solo
+            cambia en el peso. */}
         <p>
           <Text
-            variant="label-s"
+            variant="body-m"
             as="span"
             color="always-light"
             className="font-bold"
@@ -47,7 +50,7 @@ export function BannerAhorroExtra() {
             Hemos detectado una oportunidad de ahorro extra.
           </Text>{" "}
           <Text
-            variant="label-s"
+            variant="body-m"
             as="span"
             className="font-bold text-highlight-vivid"
           >
