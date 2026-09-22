@@ -50,12 +50,16 @@ export function BarraLateralCliente({
   onNavegar,
   persona = "Ainhoa Martínez",
   onAbrirAvisos,
+  avisosSinLeer = false,
 }: {
   activa?: string;
   onNavegar?: (id: string) => void;
   persona?: string;
   /** Abre PanelAvisos ("Notificaciones y alertas"). */
   onAbrirAvisos?: () => void;
+  /** Si hay alguna alerta o notificación sin leer en PanelAvisos: pinta el
+   * puntito rojo sobre la campana, para que se note sin tener que abrirlo. */
+  avisosSinLeer?: boolean;
 }) {
   const inicial = persona.trim().charAt(0).toUpperCase();
 
@@ -115,11 +119,17 @@ export function BarraLateralCliente({
           </span>
           <button
             type="button"
-            aria-label="Avisos"
+            aria-label={avisosSinLeer ? "Avisos (sin leer)" : "Avisos"}
             onClick={onAbrirAvisos}
-            className="cursor-pointer text-content-always-light transition-opacity motion-micro-states hover:opacity-60"
+            className="relative cursor-pointer text-content-always-light transition-opacity motion-micro-states hover:opacity-60"
           >
             <Icon name="bell" />
+            {avisosSinLeer && (
+              <span
+                aria-hidden
+                className="absolute top-00 right-00 size-02 rounded-full bg-danger-high"
+              />
+            )}
           </button>
         </div>
       </div>
