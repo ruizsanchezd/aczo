@@ -1580,6 +1580,10 @@ export const CONSUMO_ULTIMO_MES_DASHBOARD: ResumenUltimoMes = {
 /** El período contra el que se comparan las variaciones de arriba. */
 export const MES_COMPARACION_DASHBOARD = "julio 2025";
 
+/** El mes de "Coste" y "Consumo" del Dashboard y de "Consumo y ahorro" — el
+ * mismo que `ACTUALIZACION_DASHBOARD`, sin el día. */
+export const MES_ACTUAL_DASHBOARD = "julio 2026";
+
 /** Fecha de la última actualización del Dashboard. */
 export const ACTUALIZACION_DASHBOARD = "06 de julio 2026";
 

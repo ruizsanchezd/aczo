@@ -16,6 +16,7 @@ import {
   CONSUMO_MENSUAL_DASHBOARD,
   CONSUMO_ULTIMO_MES_DASHBOARD,
   FILTROS_VACIOS,
+  MES_ACTUAL_DASHBOARD,
   OPCIONES_FILTROS,
   RESUMEN_CARTERA,
   agruparCartera,
@@ -332,7 +333,7 @@ export function ConsumoAhorro({
           </TarjetaDato>,
           <TarjetaDato
             key="coste"
-            rotulo="Coste (último mes)"
+            rotulo={`Coste (${MES_ACTUAL_DASHBOARD})`}
             className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
@@ -345,7 +346,7 @@ export function ConsumoAhorro({
           </TarjetaDato>,
           <TarjetaDato
             key="consumo"
-            rotulo="Consumo (último mes)"
+            rotulo={`Consumo (${MES_ACTUAL_DASHBOARD})`}
             className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
