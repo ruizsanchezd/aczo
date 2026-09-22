@@ -333,7 +333,7 @@ export function ConsumoAhorro({
           </TarjetaDato>,
           <TarjetaDato
             key="coste"
-            rotulo={`Coste (${MES_ACTUAL_DASHBOARD})`}
+            rotulo={`Coste ${MES_ACTUAL_DASHBOARD}`}
             className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
@@ -346,7 +346,7 @@ export function ConsumoAhorro({
           </TarjetaDato>,
           <TarjetaDato
             key="consumo"
-            rotulo={`Consumo (${MES_ACTUAL_DASHBOARD})`}
+            rotulo={`Consumo ${MES_ACTUAL_DASHBOARD}`}
             className="border border-border-low"
           >
             <div className="flex flex-col gap-01">
