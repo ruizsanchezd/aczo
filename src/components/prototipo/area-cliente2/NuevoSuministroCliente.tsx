@@ -168,8 +168,12 @@ export function NuevoSuministroCliente({
     if (vista === "ahorro") {
       window.scrollTo({ top: 0, behavior: "instant" });
       requestAnimationFrame(() => {
-        const destino = contenidoRef.current?.getBoundingClientRect().top;
-        if (!destino) return;
+        const arriba = contenidoRef.current?.getBoundingClientRect().top;
+        if (arriba === undefined) return;
+        // -16: para que el borde de arriba de la tarjeta quede a la misma
+        // altura que el borde de arriba de la barra lateral (`top-04`, fija
+        // a 16 px de la ventana), no pegado del todo al borde de la ventana.
+        const destino = arriba - 16;
         if (motionSafe()) {
           animarScroll(destino, motion.macroLevelUp.duration);
         } else {
