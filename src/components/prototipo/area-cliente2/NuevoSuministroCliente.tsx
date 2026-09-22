@@ -106,6 +106,24 @@ const VISTA_ANTERIOR: Partial<Record<Vista, Vista>> = {
   cambio: "ahorro",
 };
 
+/** La posición vertical de `el` en el documento, SIN contar transforms de
+ * animación (a diferencia de `getBoundingClientRect`, que sí los cuenta): el
+ * contenido de cada paso entra con `anim-entra-adelante`
+ * (`translateY(24px)` → `0`), así que medirlo con `getBoundingClientRect`
+ * justo al montarse da una posición movediza según en qué fotograma de esa
+ * animación se mida. `offsetTop` es una propiedad de layout, no de pintado:
+ * no le afecta el transform, así que da siempre la posición final de
+ * verdad. */
+function posicionEnDocumento(el: HTMLElement): number {
+  let y = 0;
+  let nodo: HTMLElement | null = el;
+  while (nodo) {
+    y += nodo.offsetTop;
+    nodo = nodo.offsetParent as HTMLElement | null;
+  }
+  return y;
+}
+
 /** Desliza el scroll de la ventana `distancia` píxeles hacia abajo desde
  * donde esté, en `duracion` ms con una curva de salida (ease-out) — para la
  * transición de "Sube tu factura" a "Ahorro y recomendación", ver más abajo.
@@ -168,12 +186,11 @@ export function NuevoSuministroCliente({
     if (vista === "ahorro") {
       window.scrollTo({ top: 0, behavior: "instant" });
       requestAnimationFrame(() => {
-        const arriba = contenidoRef.current?.getBoundingClientRect().top;
-        if (arriba === undefined) return;
+        if (!contenidoRef.current) return;
         // -16: para que el borde de arriba de la tarjeta quede a la misma
         // altura que el borde de arriba de la barra lateral (`top-04`, fija
         // a 16 px de la ventana), no pegado del todo al borde de la ventana.
-        const destino = arriba - 16;
+        const destino = posicionEnDocumento(contenidoRef.current) - 16;
         if (motionSafe()) {
           animarScroll(destino, motion.macroLevelUp.duration);
         } else {
