@@ -91,11 +91,15 @@ function filasCon(filtros: FiltrosCartera, sinFiltro: keyof FiltrosCartera) {
 
 export function ConsumoAhorro({
   onAbrirNuevoSuministro,
+  onVerAhorro,
 }: {
   /** Abre el asistente "Añadir nuevos suministros" (ver
    * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
    * AreaCliente2.tsx. */
   onAbrirNuevoSuministro?: () => void;
+  /** Abre el asistente "Ahorro detectado" (ver AhorroDetectadoCliente.tsx)
+   * desde el botón "Ver ahorro" de BannerAhorroExtra. */
+  onVerAhorro?: () => void;
 }) {
   const [filtros, setFiltros] = useState<FiltrosCartera>(FILTROS_VACIOS);
   const [filtroAbierto, setFiltroAbierto] = useState<
@@ -207,7 +211,7 @@ export function ConsumoAhorro({
         </Button>
       </header>
 
-      <BannerAhorroExtra />
+      <BannerAhorroExtra onVerAhorro={onVerAhorro} />
 
       {/* Filtros — de varias respuestas y excluyentes entre ellos (ver el
           comentario de arriba). */}

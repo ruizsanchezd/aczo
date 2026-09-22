@@ -88,11 +88,15 @@ function verde(peso: number): string {
 
 export function PantallaCartera({
   onAbrirNuevoSuministro,
+  onVerAhorro,
 }: {
   /** Abre el asistente "Añadir nuevos suministros" (ver
    * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
    * AreaCliente2.tsx. */
   onAbrirNuevoSuministro?: () => void;
+  /** Abre el asistente "Ahorro detectado" (ver AhorroDetectadoCliente.tsx)
+   * desde el botón "Ver ahorro" de BannerAhorroExtra. */
+  onVerAhorro?: () => void;
 }) {
   // La pantalla abre por UBICACIÓN: es la vista que más dice de un vistazo
   // (dónde está la cartera y cuánta hay en cada sitio) y la única con mapa.
@@ -229,7 +233,7 @@ export function PantallaCartera({
         </div>
       </header>
 
-      <BannerAhorroExtra />
+      <BannerAhorroExtra onVerAhorro={onVerAhorro} />
 
       {/* Las cinco tarjetas de resumen */}
       <div className="mt-06 flex flex-wrap items-stretch gap-05">

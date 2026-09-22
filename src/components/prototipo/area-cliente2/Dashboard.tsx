@@ -89,6 +89,7 @@ export function Dashboard({
   onVerCartera,
   onVerConsumo,
   onAbrirNuevoSuministro,
+  onVerAhorro,
 }: {
   onVerCartera?: () => void;
   onVerConsumo?: () => void;
@@ -96,6 +97,9 @@ export function Dashboard({
    * NuevoSuministroCliente.tsx), otra sección del mismo `seccion` state de
    * AreaCliente2.tsx. */
   onAbrirNuevoSuministro?: () => void;
+  /** Abre el asistente "Ahorro detectado" (ver AhorroDetectadoCliente.tsx)
+   * desde el botón "Ver ahorro" de BannerAhorroExtra. */
+  onVerAhorro?: () => void;
 }) {
   const [pestañaGrafica, setPestañaGrafica] =
     useState<PestañaGrafica>("coste-luz-gas");
@@ -171,7 +175,7 @@ export function Dashboard({
         </Button>
       </header>
 
-      <BannerAhorroExtra />
+      <BannerAhorroExtra onVerAhorro={onVerAhorro} />
 
       {/* Las cuatro tarjetas de resumen */}
       <div className="mt-06 flex flex-wrap items-stretch gap-05">
