@@ -292,7 +292,9 @@ function PasoAhorroDetectado({
               una tarifa más económica que la actual.
             </Text>
           </div>
-          <Tag tone="warning" icon="clock" className="w-fit">
+          {/* tone="highlight" (verde pálido) + icon="zap" (el rayo), no
+              "warning" (naranja) + "clock": así la pinta el Figma. */}
+          <Tag tone="highlight" icon="zap" className="w-fit">
             Oferta válida durante 48h
           </Tag>
         </div>
@@ -851,10 +853,9 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
   const enRevisionId = todosLosPuntos[0]?.suministro.id;
   // Cada bloque de sociedad se puede plegar/desplegar (Figma nodo 882:14928:
   // la flecha junto a "Activo/En revisión" de cada sociedad) — empiezan
-  // todas desplegadas, como en el Figma.
-  const [desplegadas, setDesplegadas] = useState<Set<string>>(
-    () => new Set(SOCIEDADES_AHORRO_DETECTADO.map((s) => s.sociedad.id)),
-  );
+  // todas plegadas, para no soltar de golpe las tablas de las dos
+  // sociedades a la vez.
+  const [desplegadas, setDesplegadas] = useState<Set<string>>(() => new Set());
   function alternarDesplegada(id: string) {
     setDesplegadas((prev) => {
       const next = new Set(prev);
