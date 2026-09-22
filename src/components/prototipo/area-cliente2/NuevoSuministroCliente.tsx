@@ -28,7 +28,8 @@ import {
   type Plan,
   type Suministro,
 } from "@/mocks/aczo";
-import { retardo } from "@/lib/prototipo";
+import { motionSafe, retardo } from "@/lib/prototipo";
+import { motion } from "@/lib/motion";
 import { DetalleTecnicoSuministro } from "../DetalleTecnicoSuministro";
 import { Bloque, CabeceraBloque, FilaResumen, FirmaCanvas } from "../PiezasCambioCompania";
 import { HuecoLogo, LogoComercializadora, tieneLogoComercializadora } from "../TarjetaPlan";
@@ -105,6 +106,26 @@ const VISTA_ANTERIOR: Partial<Record<Vista, Vista>> = {
   cambio: "ahorro",
 };
 
+/** Desliza el scroll de la ventana `distancia` píxeles hacia abajo desde
+ * donde esté, en `duracion` ms con una curva de salida (ease-out) — para la
+ * transición de "Sube tu factura" a "Ahorro y recomendación", ver más abajo.
+ * `window.scrollTo({behavior:"smooth"})` no sirve para esto: su curva y
+ * duración las decide el navegador, y para una distancia corta la resuelve
+ * casi de golpe. */
+function animarScroll(distancia: number, duracion: number) {
+  const inicio = window.scrollY;
+  const t0 = performance.now();
+
+  function paso(ahora: number) {
+    const t = Math.min(1, (ahora - t0) / duracion);
+    const salida = 1 - (1 - t) ** 3;
+    window.scrollTo(0, inicio + distancia * salida);
+    if (t < 1) requestAnimationFrame(paso);
+  }
+
+  requestAnimationFrame(paso);
+}
+
 export function NuevoSuministroCliente({
   onVolver,
   onIrACartera,
@@ -129,16 +150,31 @@ export function NuevoSuministroCliente({
   }
 
   // Al entrar en "Ahorro y recomendación" (desde "Analizar facturas" de la
-  // revisión de facturas) el scroll no vuelve del todo arriba: se queda
-  // justo encima de "Tu ahorro potencial", saltándose la cabecera y el
-  // stepper — que no aportan nada nuevo, ya se han visto en el paso
-  // anterior. Va en un efecto (no dentro de `ir`) porque necesita que el
-  // contenido del paso ya esté pintado para medir dónde está.
+  // revisión de facturas) el scroll no se queda arriba del todo: sube de
+  // golpe hasta el principio y de ahí BAJA deslizándose hasta quedar justo
+  // encima de "Tu ahorro potencial" — así se ve el gesto de saltarse la
+  // cabecera y el stepper (que no aportan nada nuevo, ya se han visto en el
+  // paso anterior) en vez de que el contenido cambie sin más. El salto
+  // inicial a 0 es instantáneo (si no, con la revisión de facturas scrollada
+  // se vería un deslizamiento larguísimo y raro); solo el tramo final hasta
+  // el nuevo paso es el que se anima — con un tween propio en vez del
+  // `scrollIntoView({behavior:"smooth"})` nativo, porque para una distancia
+  // tan corta (la altura de la cabecera) el navegador lo resuelve casi de
+  // golpe y no llega a notarse el gesto. Va en un efecto (no dentro de `ir`)
+  // porque necesita que el contenido del paso ya esté pintado para medir
+  // dónde está, y un `requestAnimationFrame` de por medio para que el
+  // navegador llegue a pintar el salto a 0 antes de arrancar la animación.
   useEffect(() => {
     if (vista === "ahorro") {
-      contenidoRef.current?.scrollIntoView({
-        behavior: "instant",
-        block: "start",
+      window.scrollTo({ top: 0, behavior: "instant" });
+      requestAnimationFrame(() => {
+        const destino = contenidoRef.current?.getBoundingClientRect().top;
+        if (!destino) return;
+        if (motionSafe()) {
+          animarScroll(destino, motion.macroLevelUp.duration);
+        } else {
+          window.scrollTo({ top: destino, behavior: "instant" });
+        }
       });
     } else {
       window.scrollTo({ top: 0, behavior: "instant" });
