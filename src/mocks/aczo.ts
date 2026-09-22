@@ -1556,6 +1556,14 @@ export const ACTUALIZACION_CARTERA = "06 de julio 2026";
 export const AHORRO_POTENCIAL_ANUAL_DASHBOARD = 8300;
 
 /**
+ * El importe del banner "Hemos detectado una oportunidad de ahorro extra"
+ * (Figma nodo 878:13973), en Dashboard, Mi cartera y Consumo y ahorro: un
+ * ahorro adicional al que ya se enseña en las tarjetas de arriba, por cambiar
+ * de comercializadora en algún punto de suministro suelto.
+ */
+export const AHORRO_EXTRA_DASHBOARD = 4590;
+
+/**
  * El escenario "cliente ya asentado" del Dashboard: casi un año con Aczo, ya
  * con facturas reales de por medio (a diferencia del escenario inicial, con
  * el ahorro real y el resto de tarjetas todavía en "--"). Sale del Figma

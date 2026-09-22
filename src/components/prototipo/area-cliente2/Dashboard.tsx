@@ -28,7 +28,7 @@ import {
   type ModoAgrupacion,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
-import { SelectorCompacto, Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
+import { BannerAhorroExtra, SelectorCompacto, Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
 
 /**
  * Dashboard — la primera pantalla que se ve al entrar en el área de cliente.
@@ -170,6 +170,8 @@ export function Dashboard({
           Añadir nuevos suministros
         </Button>
       </header>
+
+      <BannerAhorroExtra />
 
       {/* Las cuatro tarjetas de resumen */}
       <div className="mt-06 flex flex-wrap items-stretch gap-05">

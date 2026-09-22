@@ -1,14 +1,70 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Text } from "@/components/ui/Text";
-import { MES_COMPARACION_DASHBOARD } from "@/mocks/aczo";
+import { AHORRO_EXTRA_DASHBOARD, euros, MES_COMPARACION_DASHBOARD } from "@/mocks/aczo";
 
 /**
  * PiezasAreaCliente — piezas pequeñas que comparte más de una pantalla del
- * área de cliente (Dashboard y "Consumo y ahorro", que es su versión
- * ampliada). Viven aparte para no duplicarlas entre las dos.
+ * área de cliente (Dashboard, "Mi cartera" y "Consumo y ahorro"). Viven
+ * aparte para no duplicarlas entre las tres.
  */
+
+/**
+ * BannerAhorroExtra — "Hemos detectado una oportunidad de ahorro extra"
+ * (Figma nodo 878:13973): la misma banda, en las tres pantallas donde
+ * aparece (Dashboard, Mi cartera, Consumo y ahorro), justo debajo de la
+ * cabecera. Es una superficie oscura fija (`highlight-deep`, igual que la
+ * barra lateral), así que el texto va con los `content-always-*` en vez de
+ * `content-high`/`content-mid` — si no, se volvería invisible el día que se
+ * active el modo oscuro (ver CLAUDE.md, "superficie oscura").
+ *
+ * "Ver ahorro" no tiene destino en el Figma todavía: es un botón visual,
+ * igual que "Comparar comercializadoras" en el asistente de nuevo
+ * suministro — deja el gesto a la vista sin inventar una pantalla que no
+ * está diseñada.
+ */
+export function BannerAhorroExtra() {
+  return (
+    <div className="mt-06 flex flex-wrap items-center gap-03 rounded-md bg-highlight-deep px-04 py-03">
+      <Icon
+        name="piggy-bank"
+        className="shrink-0 text-highlight-vivid"
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-01">
+        {/* `font-bold` a pelo: el Figma de este aviso concreto (nodo
+            878:13973) pone esta línea en negrita de verdad (peso 700), y
+            ningún token de label la trae — label-s es peso 500 siempre. No
+            hay una utilidad de peso en el sistema para esto todavía. */}
+        <p>
+          <Text
+            variant="label-s"
+            as="span"
+            color="always-light"
+            className="font-bold"
+          >
+            Hemos detectado una oportunidad de ahorro extra.
+          </Text>{" "}
+          <Text
+            variant="label-s"
+            as="span"
+            className="font-bold text-highlight-vivid"
+          >
+            Oferta válida durante 48h.
+          </Text>
+        </p>
+        <Text variant="body-m" as="p" color="always-light">
+          Podrías ahorrar {euros(AHORRO_EXTRA_DASHBOARD)} € extra al año
+          cambiando de comercializadora.
+        </Text>
+      </div>
+      <Button variant="primary" feedback="highlight" size="small">
+        Ver ahorro
+      </Button>
+    </div>
+  );
+}
 
 /**
  * ValorConUnidad — el número grande de una tarjeta seguido de su unidad

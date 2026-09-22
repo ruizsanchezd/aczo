@@ -32,6 +32,7 @@ import {
 import { motionSafe, retardo } from "@/lib/prototipo";
 import { FilaGrupo } from "./FilaGrupo";
 import { ModalOrganizaCartera } from "./ModalOrganizaCartera";
+import { BannerAhorroExtra } from "./PiezasAreaCliente";
 import { OrganizaTuCartera } from "./OrganizaTuCartera";
 import { MapaProvincias } from "./MapaProvincias";
 
@@ -227,6 +228,8 @@ export function PantallaCartera({
           </Button>
         </div>
       </header>
+
+      <BannerAhorroExtra />
 
       {/* Las cinco tarjetas de resumen */}
       <div className="mt-06 flex flex-wrap items-stretch gap-05">

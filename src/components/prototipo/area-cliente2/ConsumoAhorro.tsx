@@ -25,7 +25,7 @@ import {
   type FiltrosCartera,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
-import { Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
+import { BannerAhorroExtra, Tendencia, ValorConUnidad } from "./PiezasAreaCliente";
 
 /**
  * ConsumoAhorro — "Consumo y ahorro" (Figma nodo 797:8291).
@@ -206,6 +206,8 @@ export function ConsumoAhorro({
           Añadir nuevos suministros
         </Button>
       </header>
+
+      <BannerAhorroExtra />
 
       {/* Filtros — de varias respuestas y excluyentes entre ellos (ver el
           comentario de arriba). */}
