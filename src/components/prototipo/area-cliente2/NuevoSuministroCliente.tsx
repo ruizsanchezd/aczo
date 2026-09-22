@@ -122,11 +122,28 @@ export function NuevoSuministroCliente({
   // Foto del plan elegido en el paso 02 al pulsar "Completar tus datos", para
   // el resumen del paso 03 — mismo patrón que `ResumenCambioEmpresas`.
   const [resumen, setResumen] = useState<ResumenNuevoSuministro | null>(null);
+  const contenidoRef = useRef<HTMLDivElement>(null);
 
   function ir(destino: Vista) {
     setVista(destino);
-    window.scrollTo({ top: 0, behavior: "instant" });
   }
+
+  // Al entrar en "Ahorro y recomendación" (desde "Analizar facturas" de la
+  // revisión de facturas) el scroll no vuelve del todo arriba: se queda
+  // justo encima de "Tu ahorro potencial", saltándose la cabecera y el
+  // stepper — que no aportan nada nuevo, ya se han visto en el paso
+  // anterior. Va en un efecto (no dentro de `ir`) porque necesita que el
+  // contenido del paso ya esté pintado para medir dónde está.
+  useEffect(() => {
+    if (vista === "ahorro") {
+      contenidoRef.current?.scrollIntoView({
+        behavior: "instant",
+        block: "start",
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [vista]);
 
   function alPulsarAtras() {
     const anterior = VISTA_ANTERIOR[vista];
@@ -159,7 +176,11 @@ export function NuevoSuministroCliente({
         <StepperNuevoSuministro pasoActual={PASO_DE_VISTA[vista]} />
       </header>
 
-      <div key={vista} className="anim-entra-adelante flex flex-col rounded-md bg-background-low p-06">
+      <div
+        key={vista}
+        ref={contenidoRef}
+        className="anim-entra-adelante flex flex-col rounded-md bg-background-low p-06"
+      >
         {vista === "subida" && (
           <PasoSubida onContinuar={() => ir("revision")} />
         )}
