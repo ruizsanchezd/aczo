@@ -338,6 +338,15 @@ minúsculas tal cual (con espacios y tildes).
   `http://localhost:3000`).
 - **Dependencias:** al añadir una nueva, instalar siempre la **última versión** publicada
   (`npm install <paquete>@latest`), nunca una versión recordada o copiada de otro proyecto.
+- **Dónde se ve publicado:** **https://aczo.netlify.app**. Lo publica **Netlify** solo, cada vez
+  que algo entra en `main`, y cada propuesta (PR) genera además su propio enlace de prueba. El
+  prototipo se exporta como archivos estáticos (`output: "export"` en `next.config.ts`): no hay
+  servidor ni API, así que no hacen falta. Configuración en `netlify.toml`; el porqué de todo
+  esto, en `PUBLICAR.md`.
+- **El repositorio es PÚBLICO.** Tiene que serlo: los planes gratuitos de Netlify (y de Vercel,
+  donde estaba antes) solo publican los cambios de una persona si el repositorio es privado, y
+  aquí trabajan varias. Consecuencia: cuidado con lo que se escribe aquí, que lo ve cualquiera.
+  Nada de datos reales de cliente, credenciales ni documentos internos.
 
 Mantén esta sección al día según evolucione el prototipo.
 
