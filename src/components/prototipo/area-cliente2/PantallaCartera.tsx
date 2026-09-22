@@ -23,6 +23,7 @@ import {
   OPCIONES_FILTROS,
   PALETA_CARTERA,
   RESUMEN_CARTERA,
+  verdeCartera,
   type CategoriaInmueble,
   type EstadoCartera,
   type FiltrosCartera,
@@ -59,32 +60,6 @@ import { MapaProvincias } from "./MapaProvincias";
  *   rehecho, y no que "han desaparecido cosas".
  *   Las dos usan anim-aparece (motion-micro-appear, 350 ms, ease in).
  */
-
-/**
- * El verde de una provincia según su peso (0 a 1): cuanta más cantidad, más
- * oscuro. Se mezclan los DOS extremos de la escala tal como sale del Figma
- * (nodo 788:13581, el SVG del mapa): el verde amarillento pálido de
- * `extended-one-light` y, en el otro extremo, el verde oscuro de marca
- * `highlight-deep` — NO la familia `extended-five` (esa es azulada, no
- * amarillenta; se comprobó extrayendo los hex reales del SVG del Figma:
- * #eaf1da…#20270f, que son estos dos tokens y no aquellos). Así los bordes de
- * la escala son tokens de verdad y solo los pasos intermedios son mezcla, que
- * es lo que pide por fuerza una escala continua.
- *
- * La escala es RECTA (peso directo, sin raíz): con la raíz cuadrada que había
- * antes, las seis provincias de la cartera de mentira (entre el 18 % y el
- * 100 % del peso de Madrid) quedaban todas comprimidas en la mitad oscura de
- * la escala — el mapa se veía "Madrid y cinco verdes casi iguales" en vez de
- * un degradado que se pueda leer. La recta reparte ese mismo rango de datos
- * de punta a punta de la escala.
- *
- * El suelo del 12 %: por debajo de ahí el verde se confunde con el gris de la
- * tierra y una provincia con datos parecería no tener ninguno.
- */
-function verde(peso: number): string {
-  const porcentaje = Math.round(12 + 88 * peso);
-  return `color-mix(in oklab, var(--color-highlight-deep) ${porcentaje}%, var(--color-extended-one-light))`;
-}
 
 export function PantallaCartera({
   onAbrirNuevoSuministro,
@@ -159,7 +134,7 @@ export function PantallaCartera({
     if (agrupacion !== "ubicacion") return agrupados;
 
     const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
-    return agrupados.map((g) => ({ ...g, color: verde(g.puntos / mayor) }));
+    return agrupados.map((g) => ({ ...g, color: verdeCartera(g.puntos / mayor) }));
   }, [agrupacion, filtros, categorias, nombres]);
 
   // Cuántos inmuebles faltan por catalogar. Se cuenta sobre la cartera entera

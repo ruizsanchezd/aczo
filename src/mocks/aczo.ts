@@ -1255,6 +1255,38 @@ export const PALETA_CARTERA = [
   "var(--color-extended-two-dark)",
 ];
 
+/**
+ * El verde de una provincia según su peso (0 a 1): cuanta más cantidad, más
+ * oscuro. Se mezclan los DOS extremos de la escala tal como sale del Figma
+ * (nodo 788:13581, el SVG del mapa): el verde amarillento pálido de
+ * `extended-one-light` y, en el otro extremo, el verde oscuro de marca
+ * `highlight-deep` — NO la familia `extended-five` (esa es azulada, no
+ * amarillenta; se comprobó extrayendo los hex reales del SVG del Figma:
+ * #eaf1da…#20270f, que son estos dos tokens y no aquellos). Así los bordes de
+ * la escala son tokens de verdad y solo los pasos intermedios son mezcla, que
+ * es lo que pide por fuerza una escala continua.
+ *
+ * La escala es RECTA (peso directo, sin raíz): con la raíz cuadrada que había
+ * antes, las seis provincias de la cartera de mentira (entre el 18 % y el
+ * 100 % del peso de Madrid) quedaban todas comprimidas en la mitad oscura de
+ * la escala — el mapa se veía "Madrid y cinco verdes casi iguales" en vez de
+ * un degradado que se pueda leer. La recta reparte ese mismo rango de datos
+ * de punta a punta de la escala.
+ *
+ * El suelo del 12 %: por debajo de ahí el verde se confunde con el gris de la
+ * tierra y una provincia con datos parecería no tener ninguno.
+ *
+ * Se usa para "Ubicación" en cualquier sitio que agrupe la cartera por
+ * provincia (el mapa de "Mi cartera" y el donut de "Detalle cartera" del
+ * Dashboard): ahí el color deja de ser identidad — con solo 4 sociedades
+ * repartidas entre 6 provincias, dos provincias pueden compartir la sociedad
+ * que más pesa y saldrían del mismo color — y pasa a contar CANTIDAD.
+ */
+export function verdeCartera(peso: number): string {
+  const porcentaje = Math.round(12 + 88 * peso);
+  return `color-mix(in oklab, var(--color-highlight-deep) ${porcentaje}%, var(--color-extended-one-light))`;
+}
+
 export type InmuebleCartera = {
   /**
    * El nombre que le ha puesto la clienta y su categoría. Los dos pueden faltar

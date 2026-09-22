@@ -46,7 +46,7 @@ export default function Home() {
         >
           <span>
             <Text variant="label-l" as="span">
-              Bloque 2: Área privada Empresas
+              Bloque 2a: Área privada (Empresas)
             </Text>
             <Text variant="body-s" color="mid">
               Dashboard y &ldquo;Mi cartera&rdquo; para quien ya es cliente

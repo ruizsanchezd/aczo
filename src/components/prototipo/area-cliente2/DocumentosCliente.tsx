@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
@@ -13,7 +14,6 @@ import {
   OTROS_DOCUMENTOS_CLIENTE,
   euros,
 } from "@/mocks/aczo";
-import { SelectorCompacto } from "./PiezasAreaCliente";
 
 /**
  * DocumentosCliente — "Documentos" del área de cliente (Figma nodo
@@ -27,10 +27,11 @@ import { SelectorCompacto } from "./PiezasAreaCliente";
  * es lo que distingue estas listas largas de una lista corta como la de "Mi
  * cartera".
  *
- * Los filtros son de una sola respuesta (`SelectorCompacto`, el mismo del
- * Dashboard) y sus opciones salen de los documentos que de verdad hay — no
- * hay una lista de sociedades o comercializadoras aparte que se pueda
- * desincronizar.
+ * Los filtros son de varias respuestas (`FiltroCasillas`, el mismo de "Mi
+ * cartera" y "Consumo y ahorro"): una lista de casillas por desplegable, con
+ * "Eliminar filtros" saliendo solo cuando hay alguno puesto. Sus opciones
+ * salen de los documentos que de verdad hay — no hay una lista de sociedades
+ * o comercializadoras aparte que se pueda desincronizar.
  *
  * "Descargar todas" y el icono de descarga de cada fila no tienen archivo
  * real que descargar (todo son datos de mentira, ver CLAUDE.md): están ahí
@@ -124,15 +125,27 @@ export function DocumentosCliente({
 
 const POR_PAGINA = 10;
 
+type CampoFiltroFacturas =
+  | "fecha"
+  | "sociedad"
+  | "ubicacion"
+  | "comercializadora"
+  | "tipo";
+
 /** La pestaña "Facturas" (Figma nodo 797:44753): filtros, tabla paginada. */
 function TablaFacturas() {
-  const [fecha, setFecha] = useState("");
-  const [sociedad, setSociedad] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
-  const [comercializadora, setComercializadora] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [fecha, setFecha] = useState<string[]>([]);
+  const [sociedad, setSociedad] = useState<string[]>([]);
+  const [ubicacion, setUbicacion] = useState<string[]>([]);
+  const [comercializadora, setComercializadora] = useState<string[]>([]);
+  const [tipo, setTipo] = useState<string[]>([]);
   const [pagina, setPagina] = useState(1);
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
+  // Solo puede haber un filtro abierto a la vez, igual que en "Mi cartera" y
+  // "Consumo y ahorro".
+  const [filtroAbierto, setFiltroAbierto] = useState<CampoFiltroFacturas | null>(
+    null,
+  );
 
   const opciones = useMemo(
     () => ({
@@ -150,11 +163,12 @@ function TablaFacturas() {
     () =>
       FACTURAS_CLIENTE.filter(
         (f) =>
-          (!fecha || f.fecha === fecha) &&
-          (!sociedad || f.sociedad === sociedad) &&
-          (!ubicacion || f.ubicacion === ubicacion) &&
-          (!comercializadora || f.comercializadora === comercializadora) &&
-          (!tipo || f.tipo === tipo),
+          (fecha.length === 0 || fecha.includes(f.fecha)) &&
+          (sociedad.length === 0 || sociedad.includes(f.sociedad)) &&
+          (ubicacion.length === 0 || ubicacion.includes(f.ubicacion)) &&
+          (comercializadora.length === 0 ||
+            comercializadora.includes(f.comercializadora)) &&
+          (tipo.length === 0 || tipo.includes(f.tipo)),
       ),
     [fecha, sociedad, ubicacion, comercializadora, tipo],
   );
@@ -164,12 +178,33 @@ function TablaFacturas() {
   const inicio = (paginaSegura - 1) * POR_PAGINA;
   const facturasPagina = facturas.slice(inicio, inicio + POR_PAGINA);
 
-  function cambiarFiltro(setter: (v: string) => void) {
-    return (v: string) => {
+  function cambiarFiltro(setter: (v: string[]) => void) {
+    return (v: string[]) => {
       setter(v);
       setPagina(1);
       setSeleccion(new Set());
     };
+  }
+
+  function abrir(campo: CampoFiltroFacturas) {
+    return (abre: boolean) => setFiltroAbierto(abre ? campo : null);
+  }
+
+  const hayFiltros =
+    fecha.length > 0 ||
+    sociedad.length > 0 ||
+    ubicacion.length > 0 ||
+    comercializadora.length > 0 ||
+    tipo.length > 0;
+
+  function eliminarFiltros() {
+    setFecha([]);
+    setSociedad([]);
+    setUbicacion([]);
+    setComercializadora([]);
+    setTipo([]);
+    setPagina(1);
+    setSeleccion(new Set());
   }
 
   const marcadasEnPagina = facturasPagina.filter((f) =>
@@ -203,60 +238,87 @@ function TablaFacturas() {
       {/* Filtros + descargar */}
       <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
         <div className="flex flex-wrap gap-02">
-          <SelectorCompacto
-            etiqueta="Fecha"
-            ancho="w-[110px]"
-            valor={fecha}
+          <FiltroCasillas
+            nombre="Fecha"
+            abierto={filtroAbierto === "fecha"}
+            onAbrir={abrir("fecha")}
+            seleccion={fecha}
             onChange={cambiarFiltro(setFecha)}
-            opciones={[
-              { value: "", label: "Fecha" },
-              ...opciones.fechas.map((f) => ({ value: f, label: f })),
+            grupos={[
+              { opciones: opciones.fechas.map((f) => ({ value: f, label: f })) },
             ]}
           />
-          <SelectorCompacto
-            etiqueta="Sociedad"
-            ancho="w-[150px]"
-            valor={sociedad}
+          <FiltroCasillas
+            nombre="Sociedad"
+            abierto={filtroAbierto === "sociedad"}
+            onAbrir={abrir("sociedad")}
+            seleccion={sociedad}
             onChange={cambiarFiltro(setSociedad)}
-            opciones={[
-              { value: "", label: "Sociedad" },
-              ...opciones.sociedades.map((s) => ({ value: s, label: s })),
+            grupos={[
+              {
+                opciones: opciones.sociedades.map((s) => ({
+                  value: s,
+                  label: s,
+                })),
+              },
             ]}
           />
-          <SelectorCompacto
-            etiqueta="Ubicación"
-            ancho="w-[150px]"
-            valor={ubicacion}
+          <FiltroCasillas
+            nombre="Ubicación"
+            abierto={filtroAbierto === "ubicacion"}
+            onAbrir={abrir("ubicacion")}
+            seleccion={ubicacion}
             onChange={cambiarFiltro(setUbicacion)}
-            opciones={[
-              { value: "", label: "Ubicación" },
-              ...opciones.ubicaciones.map((u) => ({ value: u, label: u })),
+            grupos={[
+              {
+                opciones: opciones.ubicaciones.map((u) => ({
+                  value: u,
+                  label: u,
+                })),
+              },
             ]}
           />
-          <SelectorCompacto
-            etiqueta="Comercializadora"
-            ancho="w-[170px]"
-            valor={comercializadora}
+          <FiltroCasillas
+            nombre="Comercializadora"
+            abierto={filtroAbierto === "comercializadora"}
+            onAbrir={abrir("comercializadora")}
+            seleccion={comercializadora}
             onChange={cambiarFiltro(setComercializadora)}
-            opciones={[
-              { value: "", label: "Comercializadora" },
-              ...opciones.comercializadoras.map((c) => ({
-                value: c,
-                label: c,
-              })),
+            grupos={[
+              {
+                opciones: opciones.comercializadoras.map((c) => ({
+                  value: c,
+                  label: c,
+                })),
+              },
             ]}
           />
-          <SelectorCompacto
-            etiqueta="Tipo de factura"
-            ancho="w-[150px]"
-            valor={tipo}
+          <FiltroCasillas
+            nombre="Tipo de factura"
+            abierto={filtroAbierto === "tipo"}
+            onAbrir={abrir("tipo")}
+            seleccion={tipo}
             onChange={cambiarFiltro(setTipo)}
-            opciones={[
-              { value: "", label: "Tipo de factura" },
-              { value: "luz", label: "Luz" },
-              { value: "gas", label: "Gas" },
+            grupos={[
+              {
+                opciones: [
+                  { value: "luz", label: "Luz" },
+                  { value: "gas", label: "Gas" },
+                ],
+              },
             ]}
           />
+          {/* Solo sale con algo puesto: con los filtros vacíos no hay nada
+              que quitar. */}
+          {hayFiltros && (
+            <button
+              type="button"
+              onClick={eliminarFiltros}
+              className="flex h-07 cursor-pointer items-center rounded-md px-03 text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
+            >
+              Eliminar filtros
+            </button>
+          )}
         </div>
 
         <Button variant="secondary" size="small">
@@ -439,11 +501,16 @@ function TablaFacturas() {
   );
 }
 
+type CampoFiltroContratos = "sociedad" | "comercializadora";
+
 /** La pestaña "Contratos" (Figma nodo 797:44901): filtros, tabla sin paginar. */
 function TablaContratos() {
-  const [sociedad, setSociedad] = useState("");
-  const [comercializadora, setComercializadora] = useState("");
+  const [sociedad, setSociedad] = useState<string[]>([]);
+  const [comercializadora, setComercializadora] = useState<string[]>([]);
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
+  const [filtroAbierto, setFiltroAbierto] = useState<CampoFiltroContratos | null>(
+    null,
+  );
 
   const opciones = useMemo(
     () => ({
@@ -459,11 +526,23 @@ function TablaContratos() {
     () =>
       CONTRATOS_CLIENTE.filter(
         (c) =>
-          (!sociedad || c.sociedad === sociedad) &&
-          (!comercializadora || c.proveedor === comercializadora),
+          (sociedad.length === 0 || sociedad.includes(c.sociedad)) &&
+          (comercializadora.length === 0 ||
+            comercializadora.includes(c.proveedor)),
       ),
     [sociedad, comercializadora],
   );
+
+  function abrir(campo: CampoFiltroContratos) {
+    return (abre: boolean) => setFiltroAbierto(abre ? campo : null);
+  }
+
+  const hayFiltros = sociedad.length > 0 || comercializadora.length > 0;
+
+  function eliminarFiltros() {
+    setSociedad([]);
+    setComercializadora([]);
+  }
 
   const marcados = contratos.filter((c) => seleccion.has(c.id)).length;
   const todosMarcados = contratos.length > 0 && marcados === contratos.length;
@@ -486,29 +565,45 @@ function TablaContratos() {
       {/* Filtros + descargar */}
       <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
         <div className="flex flex-wrap gap-02">
-          <SelectorCompacto
-            etiqueta="Sociedad"
-            ancho="w-[150px]"
-            valor={sociedad}
+          <FiltroCasillas
+            nombre="Sociedad"
+            abierto={filtroAbierto === "sociedad"}
+            onAbrir={abrir("sociedad")}
+            seleccion={sociedad}
             onChange={setSociedad}
-            opciones={[
-              { value: "", label: "Sociedad" },
-              ...opciones.sociedades.map((s) => ({ value: s, label: s })),
+            grupos={[
+              {
+                opciones: opciones.sociedades.map((s) => ({
+                  value: s,
+                  label: s,
+                })),
+              },
             ]}
           />
-          <SelectorCompacto
-            etiqueta="Comercializadora"
-            ancho="w-[170px]"
-            valor={comercializadora}
+          <FiltroCasillas
+            nombre="Comercializadora"
+            abierto={filtroAbierto === "comercializadora"}
+            onAbrir={abrir("comercializadora")}
+            seleccion={comercializadora}
             onChange={setComercializadora}
-            opciones={[
-              { value: "", label: "Comercializadora" },
-              ...opciones.comercializadoras.map((c) => ({
-                value: c,
-                label: c,
-              })),
+            grupos={[
+              {
+                opciones: opciones.comercializadoras.map((c) => ({
+                  value: c,
+                  label: c,
+                })),
+              },
             ]}
           />
+          {hayFiltros && (
+            <button
+              type="button"
+              onClick={eliminarFiltros}
+              className="flex h-07 cursor-pointer items-center rounded-md px-03 text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
+            >
+              Eliminar filtros
+            </button>
+          )}
         </div>
 
         <Button variant="secondary" size="small">
@@ -653,8 +748,9 @@ function TablaContratos() {
 
 /** La pestaña "Otros documentos" (Figma nodo 797:45011): filtro, tabla sin paginar. */
 function TablaOtrosDocumentos() {
-  const [sociedad, setSociedad] = useState("");
+  const [sociedad, setSociedad] = useState<string[]>([]);
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
+  const [filtroAbierto, setFiltroAbierto] = useState(false);
 
   const sociedades = useMemo(
     () => [...new Set(OTROS_DOCUMENTOS_CLIENTE.map((d) => d.titular))],
@@ -664,7 +760,7 @@ function TablaOtrosDocumentos() {
   const documentos = useMemo(
     () =>
       OTROS_DOCUMENTOS_CLIENTE.filter(
-        (d) => !sociedad || d.titular === sociedad,
+        (d) => sociedad.length === 0 || sociedad.includes(d.titular),
       ),
     [sociedad],
   );
@@ -689,16 +785,27 @@ function TablaOtrosDocumentos() {
     <>
       {/* Filtro + descargar */}
       <div className="mt-06 flex flex-wrap items-center justify-between gap-03">
-        <SelectorCompacto
-          etiqueta="Sociedad"
-          ancho="w-[150px]"
-          valor={sociedad}
-          onChange={setSociedad}
-          opciones={[
-            { value: "", label: "Sociedad" },
-            ...sociedades.map((s) => ({ value: s, label: s })),
-          ]}
-        />
+        <div className="flex flex-wrap gap-02">
+          <FiltroCasillas
+            nombre="Sociedad"
+            abierto={filtroAbierto}
+            onAbrir={setFiltroAbierto}
+            seleccion={sociedad}
+            onChange={setSociedad}
+            grupos={[
+              { opciones: sociedades.map((s) => ({ value: s, label: s })) },
+            ]}
+          />
+          {sociedad.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSociedad([])}
+              className="flex h-07 cursor-pointer items-center rounded-md px-03 text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
+            >
+              Eliminar filtros
+            </button>
+          )}
+        </div>
 
         <Button variant="secondary" size="small">
           <span className="flex items-center gap-02">

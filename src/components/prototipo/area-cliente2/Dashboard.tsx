@@ -25,6 +25,7 @@ import {
   euros,
   kwh,
   puntosDeSociedad,
+  verdeCartera,
   type ModoAgrupacion,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
@@ -148,14 +149,19 @@ export function Dashboard({
     ? Math.round((activos / totalPuntos) * 100)
     : 0;
 
-  // "Detalle cartera": los mismos grupos que "Mi cartera" agrupando por
-  // sociedad o comercializadora ya traen su color (el de la sociedad que
-  // manda en el grupo — ver `GrupoCartera.color`), así que no hace falta
-  // recalcular ninguna paleta aquí.
-  const gruposDetalle = useMemo(
-    () => agruparCartera(detalleCarteraPor),
-    [detalleCarteraPor],
-  );
+  // "Detalle cartera": por sociedad o por comercializadora los grupos ya
+  // traen su color (el de la sociedad que manda en el grupo — ver
+  // `GrupoCartera.color`), así que no hace falta recalcular ninguna paleta.
+  // Por UBICACIÓN sí: ese color deja de ser identidad ahí (ver `verdeCartera`
+  // en mocks/aczo.ts) porque con solo 4 sociedades para 6 provincias, dos
+  // provincias pueden compartir la que más pesa y saldrían del mismo color —
+  // el mismo motivo por el que "Mi cartera" lo recalcula para su mapa.
+  const gruposDetalle = useMemo(() => {
+    const agrupados = agruparCartera(detalleCarteraPor);
+    if (detalleCarteraPor !== "ubicacion") return agrupados;
+    const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
+    return agrupados.map((g) => ({ ...g, color: verdeCartera(g.puntos / mayor) }));
+  }, [detalleCarteraPor]);
   const puntosDetalle = gruposDetalle.reduce((t, g) => t + g.puntos, 0);
 
   return (
