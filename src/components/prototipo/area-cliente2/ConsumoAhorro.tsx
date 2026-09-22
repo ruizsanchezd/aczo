@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FiltroCasillas } from "@/components/ui/FiltroCasillas";
+import { FiltroRadio } from "@/components/ui/FiltroRadio";
 import { GraficaBarras } from "@/components/ui/GraficaBarras";
 import { Icon } from "@/components/ui/Icon";
 import { TarjetaDato } from "@/components/ui/TarjetaDato";
 import { Text } from "@/components/ui/Text";
+import { Toggle } from "@/components/ui/Toggle";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
   ACTUALIZACION_DASHBOARD,
@@ -43,18 +45,23 @@ import { BannerAhorroExtra, Tendencia, ValorConUnidad } from "./PiezasAreaClient
  *     "-6% vs julio 2025", ahora en `PiezasAreaCliente.tsx` porque las usan
  *     las dos pantallas.
  *
- * LOS FILTROS SON DE VARIAS RESPUESTAS (`FiltroCasillas`, el mismo de "Mi
- * cartera"), no un desplegable de una sola opción: se puede marcar más de
- * una sociedad o más de una provincia a la vez, y no marcar ninguna quiere
- * decir "todas".
+ * TRES DE LOS CUATRO FILTROS SON DE VARIAS RESPUESTAS (`FiltroCasillas`, el
+ * mismo de "Mi cartera"), no un desplegable de una sola opción: se puede
+ * marcar más de una sociedad o más de una provincia a la vez, y no marcar
+ * ninguna quiere decir "todas". "Tipo de suministro" es la excepción: va con
+ * `FiltroRadio` (una sola respuesta — Luz, Gas o Luz y gas) porque un
+ * suministro SIEMPRE es luz o gas, así que no tiene sentido que se pueda
+ * quedar "sin nada marcado" (ni, por lo mismo, que otro filtro lo deje sin
+ * ninguna opción que ofrecer — ver `tiposDisponibles` más abajo, que por eso
+ * ya no existe para este filtro).
  *
- * Y SE EXCLUYEN ENTRE ELLOS: elegir una sociedad recorta las opciones que
- * ofrecen los demás filtros a lo que esa sociedad de verdad tiene — si
- * "mendesaltaren SL" no tiene ningún hotel, "Hotel" no sale en "Tipo de
- * inmueble" mientras esté marcada. `opcionesDisponibles` calcula esto
- * reutilizando `agruparCartera`: agrupa con los filtros puestos MENOS el que
- * se está calculando, y de las filas que quedan saca qué valores de ESE
- * filtro aparecen de verdad.
+ * Y LOS TRES DE VARIAS RESPUESTAS SE EXCLUYEN ENTRE ELLOS: elegir una
+ * sociedad recorta las opciones que ofrecen los demás filtros a lo que esa
+ * sociedad de verdad tiene — si "mendesaltaren SL" no tiene ningún hotel,
+ * "Hotel" no sale en "Tipo de inmueble" mientras esté marcada.
+ * `opcionesDisponibles` calcula esto reutilizando `agruparCartera`: agrupa
+ * con los filtros puestos MENOS el que se está calculando, y de las filas
+ * que quedan saca qué valores de ESE filtro aparecen de verdad.
  *
  * "Datos de mentira que se mueven": los filtros no tienen con qué recortar
  * los doce meses de verdad, así que se escala el histórico por el PESO real
@@ -105,6 +112,11 @@ export function ConsumoAhorro({
   const [filtroAbierto, setFiltroAbierto] = useState<
     keyof FiltrosCartera | null
   >(null);
+  // Con "Tipo de suministro" en Luz y gas (filtros.tipos vacío) el gráfico de
+  // Consumo necesita saber CUÁL de los dos enseñar — sumar kWh de luz y de
+  // gas no tiene sentido. Solo se usa en ese caso; con Luz o Gas puestos en
+  // el filtro de arriba, el gráfico ya enseña justo ese tipo sin más.
+  const [pestañaConsumo, setPestañaConsumo] = useState<"luz" | "gas">("luz");
 
   const sociedadesDisponibles = useMemo(
     () => new Set(filasCon(filtros, "sociedades").map((l) => l.sociedad)),
@@ -123,11 +135,6 @@ export function ConsumoAhorro({
       ),
     [filtros],
   );
-  const tiposDisponibles = useMemo(
-    () => new Set(filasCon(filtros, "tipos").flatMap((l) => l.tipos)),
-    [filtros],
-  );
-
   // El peso real de la cartera filtrada (los cuatro filtros a la vez) sobre
   // el total: así se escala el histórico de mentira. Sin filtros, esto ya
   // da 1 solo (puntos filtrados = puntos totales), así que no hace falta
@@ -154,10 +161,20 @@ export function ConsumoAhorro({
     real: m.real,
   }));
 
+  // Con "Luz y gas" puesto (filtros.tipos vacío) el consumo de la gráfica es
+  // el de la pestaña Luz/Gas elegida, con el mismo reparto 65/35 que usa el
+  // selector "Tipo de suministro" del Dashboard — no hay un dato de mentira
+  // que distinga luz de gas mes a mes, así que se aproxima igual que ahí.
+  // Con Luz o Gas ya puestos en el filtro de arriba, `factor` (que sale de
+  // `agruparCartera`, y ese sí distingue tipos de verdad) ya deja pasar solo
+  // los puntos de ese tipo, así que no hace falta ningún reparto adicional.
+  const factorTipoConsumo =
+    filtros.tipos.length > 0 ? 1 : pestañaConsumo === "luz" ? 0.65 : 0.35;
+
   const datosConsumo = CONSUMO_MENSUAL_DASHBOARD.map((m) => ({
     id: m.mes,
     etiqueta: m.mes,
-    valor: Math.round(m.consumoKwh * factor),
+    valor: Math.round(m.consumoKwh * factor * factorTipoConsumo),
     real: m.real,
   }));
 
@@ -265,23 +282,32 @@ export function ConsumoAhorro({
             },
           ]}
         />
-        <FiltroCasillas
+        {/* De una sola respuesta (Radio), no varias (Checkbox): un
+            suministro SIEMPRE es luz o gas, así que este filtro nunca puede
+            quedarse sin nada que enseñar — a diferencia de los otros tres,
+            que si acaso "no marcar nada" quiere decir "todos". "Luz y gas"
+            hace lo mismo que antes hacía no marcar ninguna casilla. */}
+        <FiltroRadio
           nombre="Tipo de suministro"
           abierto={filtroAbierto === "tipos"}
           onAbrir={abrir("tipos")}
-          seleccion={filtros.tipos}
-          onChange={(tipos) =>
+          valor={
+            filtros.tipos.includes("luz")
+              ? "luz"
+              : filtros.tipos.includes("gas")
+                ? "gas"
+                : "luz-y-gas"
+          }
+          onChange={(valor) =>
             setFiltros((f) => ({
               ...f,
-              tipos: tipos as FiltrosCartera["tipos"],
+              tipos: valor === "luz-y-gas" ? [] : [valor as FiltrosCartera["tipos"][number]],
             }))
           }
-          grupos={[
-            {
-              opciones: OPCIONES_FILTROS.tipos.filter((o) =>
-                tiposDisponibles.has(o.value),
-              ),
-            },
+          opciones={[
+            { value: "luz", label: "Luz" },
+            { value: "gas", label: "Gas" },
+            { value: "luz-y-gas", label: "Luz y gas" },
           ]}
         />
 
@@ -445,9 +471,26 @@ export function ConsumoAhorro({
 
       {/* Consumo — misma técnica que "Coste y ahorro". */}
       <section className="mt-06 rounded-md border border-border-low bg-background-base p-06">
-        <Text variant="heading-s" as="h2">
-          Consumo
-        </Text>
+        <div className="flex flex-wrap items-center justify-between gap-03">
+          <Text variant="heading-s" as="h2">
+            Consumo
+          </Text>
+          {/* Solo con "Luz y gas" puesto arriba: sumar kWh de luz y de gas no
+              tiene sentido, así que aquí hay que elegir uno de los dos. Con
+              Luz o Gas ya puestos en el filtro de arriba, el gráfico enseña
+              justo ese tipo sin más, y esta pestaña sobra. */}
+          {filtros.tipos.length === 0 && (
+            <Toggle
+              etiqueta="Ver consumo de"
+              opciones={[
+                { id: "luz", rotulo: "Luz (kWh)" },
+                { id: "gas", rotulo: "Gas (kWh)" },
+              ]}
+              valor={pestañaConsumo}
+              onChange={setPestañaConsumo}
+            />
+          )}
+        </div>
 
         <div className="mt-06 flex flex-col items-stretch gap-04 lg:flex-row">
           <div className="flex w-full flex-col justify-between gap-04 lg:w-[276px] lg:shrink-0">
@@ -502,7 +545,7 @@ export function ConsumoAhorro({
             />
             <div className="mt-05">
               <GraficaBarras
-                key={JSON.stringify(filtros)}
+                key={JSON.stringify(filtros) + pestañaConsumo}
                 datos={datosConsumo}
                 unidad=" kWh"
                 formatear={kwh}
