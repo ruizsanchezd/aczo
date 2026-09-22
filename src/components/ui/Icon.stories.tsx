@@ -56,6 +56,7 @@ const nombres: IconName[] = [
   "location",
   "download",
   "piggy-bank",
+  "arrow-right-solid",
 ];
 
 /** Todo el set de iconos del prototipo, en `currentColor` (text-content-high). */

@@ -184,7 +184,7 @@ export function NuevoSuministroCliente({
           aria-label="Volver"
           className="flex size-07 w-fit items-center justify-center rounded-md text-content-high outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
         >
-          <Icon name="chevron-left" size={24} />
+          <Icon name="arrow-right-solid" className="rotate-180" />
         </button>
 
         <div className="flex flex-col gap-01">
@@ -1318,12 +1318,18 @@ function PasoEnviado({ onIrACartera }: { onIrACartera: () => void }) {
       </div>
 
       <div className="anim-aparece w-full" style={retardo(1)}>
-        <Alert tone="warning" icon="info">
+        {/* tone="highlight" (verde pálido, bg-highlight-soft), no "warning"
+            (naranja): así lo pinta el Figma (nodo 882:14928 de "Ahorro
+            detectado", misma pantalla que esta) — y las dos líneas van a
+            tamaño body-m (14/20), no label-m/body-s: en el Figma miden
+            igual, solo cambia el peso. `always-dark` porque highlight-soft
+            es una superficie que no cambia entre modos. */}
+        <Alert tone="highlight" icon="info">
           <div className="flex flex-col gap-01">
-            <Text variant="label-m" as="span">
+            <Text variant="body-m" color="always-dark" as="span" className="font-bold">
               Confirma el código para empezar la tramitación
             </Text>
-            <Text variant="body-s" color="mid" as="span">
+            <Text variant="body-m" color="always-dark" as="span">
               En breve recibirás un mensaje de tu comercializadora para
               confirmar el cambio. Revísalo y confírmalo para que podamos
               continuar con la tramitación.

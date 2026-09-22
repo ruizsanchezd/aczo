@@ -26,6 +26,7 @@ import { Bloque, CabeceraBloque, FilaResumen, FirmaCanvas } from "../PiezasCambi
 import { HuecoLogo } from "../TarjetaPlan";
 import {
   FilaComercializadoraAhorro,
+  FlechaPlegar,
   InterruptorMantenimientoAhorro,
   SelectorPeriodoAhorro,
   TarjetaOfertaAhorro,
@@ -152,7 +153,7 @@ export function AhorroDetectadoCliente({
           aria-label="Volver"
           className="flex size-07 w-fit items-center justify-center rounded-md text-content-high outline-none transition-opacity motion-micro-states hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high active:opacity-30"
         >
-          <Icon name="chevron-left" size={24} />
+          <Icon name="arrow-right-solid" className="rotate-180" />
         </button>
         <Text variant="heading-l" as="h1">
           Ahorro detectado
@@ -848,6 +849,20 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
   // resto activo — mismo gesto que `PasoEnviado`, para que la tabla no
   // enseñe todo en verde de golpe.
   const enRevisionId = todosLosPuntos[0]?.suministro.id;
+  // Cada bloque de sociedad se puede plegar/desplegar (Figma nodo 882:14928:
+  // la flecha junto a "Activo/En revisión" de cada sociedad) — empiezan
+  // todas desplegadas, como en el Figma.
+  const [desplegadas, setDesplegadas] = useState<Set<string>>(
+    () => new Set(SOCIEDADES_AHORRO_DETECTADO.map((s) => s.sociedad.id)),
+  );
+  function alternarDesplegada(id: string) {
+    setDesplegadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="flex flex-col items-center gap-08">
@@ -867,12 +882,19 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
       </div>
 
       <div className="anim-aparece w-full" style={retardo(1)}>
-        <Alert tone="warning" icon="info">
+        {/* tone="highlight" (verde pálido, bg-highlight-soft), no "warning"
+            (naranja): así lo pinta el Figma (nodo 882:14928) — y las dos
+            líneas van a tamaño body-m (14/20), no label-m/body-s: en el
+            Figma miden igual, solo cambia el peso (la primera en negrita).
+            `always-dark` porque highlight-soft es una superficie que no
+            cambia entre modos (ver Alert.tsx y CLAUDE.md, "superficie
+            oscura"). */}
+        <Alert tone="highlight" icon="info">
           <div className="flex flex-col gap-01">
-            <Text variant="label-m" as="span">
+            <Text variant="body-m" color="always-dark" as="span" className="font-bold">
               Confirma el código para empezar la tramitación
             </Text>
-            <Text variant="body-s" color="mid" as="span">
+            <Text variant="body-m" color="always-dark" as="span">
               En breve recibirás un mensaje de tu comercializadora para
               confirmar el cambio. Revísalo y confírmalo para que podamos
               continuar con la tramitación.
@@ -886,6 +908,7 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
           const puntos = todosLosPuntos.filter((p) => p.sociedadId === s.sociedad.id);
           const activos = puntos.filter((p) => p.suministro.id !== enRevisionId).length;
           const enRevision = puntos.some((p) => p.suministro.id === enRevisionId);
+          const desplegada = desplegadas.has(s.sociedad.id);
 
           return (
             <div
@@ -893,7 +916,13 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
               className="anim-aparece flex w-full flex-col rounded-md border border-border-low"
               style={retardo(i + 2)}
             >
-              <div className="flex flex-wrap items-center justify-between gap-03 border-b border-border-low p-04">
+              <button
+                type="button"
+                onClick={() => alternarDesplegada(s.sociedad.id)}
+                aria-expanded={desplegada}
+                aria-label={`${desplegada ? "Cerrar" : "Ver"} los puntos de suministro de ${s.sociedad.nombre}`}
+                className="flex w-full flex-wrap items-center justify-between gap-03 p-04 text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high"
+              >
                 <div className="flex items-center gap-02">
                   <Text variant="label-m" as="span">
                     {s.sociedad.nombre}
@@ -916,54 +945,63 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
                     cantidad={enRevision ? 1 : 0}
                     estirado={false}
                   />
+                  <FlechaPlegar abierto={desplegada} />
+                </div>
+              </button>
+
+              <div
+                className="grid transition-[grid-template-rows] motion-macro-levelup"
+                style={{ gridTemplateRows: desplegada ? "1fr" : "0fr" }}
+                aria-hidden={!desplegada}
+              >
+                <div className="overflow-hidden">
+                  <div className="flex items-center gap-02 border-t border-b border-border-low bg-background-low px-04 py-03">
+                    <Icon name="location" size={16} className="text-content-mid" />
+                    <Text variant="body-m" as="span">
+                      {s.direccion}
+                    </Text>
+                  </div>
+
+                  <div className="hidden grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-04 px-04 py-02 text-label-s text-content-mid md:grid">
+                    <span>Punto de suministro</span>
+                    <span>Tipo de suministro</span>
+                    <span>Comercializadora</span>
+                    <span>Mantenimiento</span>
+                    <span>Estado</span>
+                  </div>
+
+                  <ul>
+                    {puntos.map(({ suministro: sm, comercializadora }) => {
+                      const puntoEnRevision = sm.id === enRevisionId;
+                      return (
+                        <li
+                          key={sm.id}
+                          className="grid grid-cols-2 gap-02 border-t border-border-low px-04 py-03 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] md:items-center md:gap-04"
+                        >
+                          <Text variant="label-m" as="span" className="truncate">
+                            {sm.nombre}
+                          </Text>
+                          <span>
+                            <Tag icon={sm.tipo === "Luz" ? "lightbulb" : "fire"}>{sm.tipo}</Tag>
+                          </span>
+                          <Text variant="body-m" color="mid" as="span">
+                            {comercializadora}
+                          </Text>
+                          <span className="flex items-center gap-01 text-body-m text-content-mid">
+                            <Icon name="wrench" size={16} />
+                            {sm.detalle.mantenimiento ? "Sí" : "No"}
+                          </span>
+                          <PuntoEstado
+                            color={puntoEnRevision ? "bg-warning-high" : "bg-success-high"}
+                            rotulo={puntoEnRevision ? "En revisión" : "Activo"}
+                            estirado={false}
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               </div>
-
-              <div className="flex items-center gap-02 border-b border-border-low bg-background-low px-04 py-03">
-                <Icon name="location" size={16} className="text-content-mid" />
-                <Text variant="body-m" as="span">
-                  {s.direccion}
-                </Text>
-              </div>
-
-              <div className="hidden grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-04 px-04 py-02 text-label-s text-content-mid md:grid">
-                <span>Punto de suministro</span>
-                <span>Tipo de suministro</span>
-                <span>Comercializadora</span>
-                <span>Mantenimiento</span>
-                <span>Estado</span>
-              </div>
-
-              <ul>
-                {puntos.map(({ suministro: sm, comercializadora }) => {
-                  const puntoEnRevision = sm.id === enRevisionId;
-                  return (
-                    <li
-                      key={sm.id}
-                      className="grid grid-cols-2 gap-02 border-t border-border-low px-04 py-03 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] md:items-center md:gap-04"
-                    >
-                      <Text variant="label-m" as="span" className="truncate">
-                        {sm.nombre}
-                      </Text>
-                      <span>
-                        <Tag icon={sm.tipo === "Luz" ? "lightbulb" : "fire"}>{sm.tipo}</Tag>
-                      </span>
-                      <Text variant="body-m" color="mid" as="span">
-                        {comercializadora}
-                      </Text>
-                      <span className="flex items-center gap-01 text-body-m text-content-mid">
-                        <Icon name="wrench" size={16} />
-                        {sm.detalle.mantenimiento ? "Sí" : "No"}
-                      </span>
-                      <PuntoEstado
-                        color={puntoEnRevision ? "bg-warning-high" : "bg-success-high"}
-                        rotulo={puntoEnRevision ? "En revisión" : "Activo"}
-                        estirado={false}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           );
         })}
