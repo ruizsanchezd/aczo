@@ -19,13 +19,24 @@ import { Text } from "@/components/ui/Text";
  * `<button>` como toca. El logo sí puede usar `<Text color="always-light">`
  * porque ahí el color no cambia con el estado.
  *
- * En el Figma (nodo 788:9554) la barra es una tarjeta de 787 px de alto fijo
- * que flota con 16 px de margen (`--ds/layout/size/04`) por arriba y por la
+ * En el Figma (nodo 788:9554) la barra es una tarjeta de 787 px de alto que
+ * flota con 16 px de margen (`--ds/layout/size/04`) por arriba y por la
  * izquierda, con las esquinas redondeadas (`rounded-md`). No es una barra a
  * sangre que se estira con el alto de la pantalla: por eso va `fixed` — se
  * queda quieta en su sitio mientras el contenido de al lado hace scroll. El
  * `<main>` de `AreaCliente2` deja el hueco correspondiente (240 px de ancho +
  * 16 px de margen) con su propio `ml-[256px]`.
+ *
+ * ALTO: 787 px es el alto que mide en el Figma, pero es un tope, no un
+ * mínimo — en una pantalla más baja (un portátil con poca altura, la ventana
+ * del navegador reducida...) esos 787 px no caben y, al ser `fixed`, el
+ * perfil y la campana del final se saldrían por debajo sin forma de llegar a
+ * ellos. Por eso el alto real es `min(787px, 100vh - 32px)` (los 32 px son
+ * los dos márgenes de 16 px, arriba y abajo) y la lista de secciones
+ * (`<ul>`) lleva su propio scroll (`overflow-y-auto`) para el caso límite de
+ * una pantalla tan baja que ni siquiera las secciones quepan enteras: así el
+ * perfil y las notificaciones, que van fuera de esa lista, están SIEMPRE a
+ * la vista, sea cual sea el alto de quien lo mira.
  *
  * INTERACCIÓN
  *   La sección donde estás se marca en amarillo de marca (highlight-vivid) —
@@ -66,7 +77,7 @@ export function BarraLateralCliente({
   return (
     <nav
       aria-label="Secciones del área de cliente"
-      className="fixed top-04 left-04 flex h-[787px] w-[240px] flex-col gap-10 rounded-md bg-highlight-deep px-04 py-06"
+      className="fixed top-04 left-04 flex h-[min(787px,calc(100vh-2*var(--spacing-04)))] w-[240px] flex-col gap-10 rounded-md bg-highlight-deep px-04 py-06"
     >
       <span className="flex items-center gap-02 text-content-always-light">
         <Logo size={30.6} />
@@ -75,8 +86,8 @@ export function BarraLateralCliente({
         </Text>
       </span>
 
-      <div className="flex flex-1 flex-col justify-between">
-        <ul className="flex flex-col">
+      <div className="flex flex-1 flex-col justify-between overflow-hidden">
+        <ul className="flex min-h-0 flex-col overflow-y-auto">
           {SECCIONES.map((seccion) => {
             const esActiva = seccion.id === activa;
             return (
