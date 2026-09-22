@@ -19,13 +19,13 @@ import {
   CONSUMO_ULTIMO_MES_DASHBOARD,
   ESTADOS_CARTERA,
   OPCIONES_FILTROS,
+  PALETA_CARTERA,
   RESUMEN_CARTERA,
   SOCIEDADES_CARTERA,
   agruparCartera,
   euros,
   kwh,
   puntosDeSociedad,
-  verdeCartera,
   type ModoAgrupacion,
 } from "@/mocks/aczo";
 import { retardo } from "@/lib/prototipo";
@@ -152,15 +152,22 @@ export function Dashboard({
   // "Detalle cartera": por sociedad o por comercializadora los grupos ya
   // traen su color (el de la sociedad que manda en el grupo — ver
   // `GrupoCartera.color`), así que no hace falta recalcular ninguna paleta.
-  // Por UBICACIÓN sí: ese color deja de ser identidad ahí (ver `verdeCartera`
-  // en mocks/aczo.ts) porque con solo 4 sociedades para 6 provincias, dos
-  // provincias pueden compartir la que más pesa y saldrían del mismo color —
-  // el mismo motivo por el que "Mi cartera" lo recalcula para su mapa.
+  // Por UBICACIÓN sí: ese color deja de ser identidad ahí (heredaría el de la
+  // sociedad que más pesa en la provincia, y con solo 4 sociedades para 6
+  // provincias dos de ellas pueden compartir la que más pesa y saldrían del
+  // mismo color). Aquí NO hay mapa al lado que ya diga qué provincia es cada
+  // cual (a diferencia de "Mi cartera", que por eso reutiliza el color para
+  // CANTIDAD con `verdeCartera` — ver PantallaCartera.tsx): la única pista de
+  // qué es cada porción del donut es su color contra la leyenda de debajo, así
+  // que aquí el color tiene que seguir siendo identidad. Mismo reparto que
+  // "Tipo de inmueble" en "Mi cartera": la paleta categórica por orden.
   const gruposDetalle = useMemo(() => {
     const agrupados = agruparCartera(detalleCarteraPor);
     if (detalleCarteraPor !== "ubicacion") return agrupados;
-    const mayor = Math.max(1, ...agrupados.map((g) => g.puntos));
-    return agrupados.map((g) => ({ ...g, color: verdeCartera(g.puntos / mayor) }));
+    return agrupados.map((g, i) => ({
+      ...g,
+      color: PALETA_CARTERA[i % PALETA_CARTERA.length],
+    }));
   }, [detalleCarteraPor]);
   const puntosDetalle = gruposDetalle.reduce((t, g) => t + g.puntos, 0);
 
