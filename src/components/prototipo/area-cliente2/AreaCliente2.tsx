@@ -29,6 +29,10 @@ import { PantallaCartera } from "./PantallaCartera";
 export function AreaCliente2() {
   const [seccion, setSeccion] = useState("dashboard");
   const [avisosAbiertos, setAvisosAbiertos] = useState(false);
+  // Lo mantiene PanelAvisos (sabe si queda alguna alerta/notificación sin
+  // leer) y lo lee la campana de la barra lateral, para pintar su puntito
+  // rojo también con el panel cerrado.
+  const [avisosSinLeer, setAvisosSinLeer] = useState(false);
 
   function navegar(id: string) {
     if (
@@ -50,6 +54,7 @@ export function AreaCliente2() {
         activa={seccion}
         onNavegar={navegar}
         onAbrirAvisos={() => setAvisosAbiertos(true)}
+        avisosSinLeer={avisosSinLeer}
       />
 
       <main className="ml-[256px] min-w-0 px-06 py-07">
@@ -82,6 +87,7 @@ export function AreaCliente2() {
       <PanelAvisos
         abierto={avisosAbiertos}
         onCerrar={() => setAvisosAbiertos(false)}
+        onCambiarSinLeer={setAvisosSinLeer}
       />
     </div>
   );

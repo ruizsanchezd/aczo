@@ -47,9 +47,14 @@ import {
 export function PanelAvisos({
   abierto,
   onCerrar,
+  onCambiarSinLeer,
 }: {
   abierto: boolean;
   onCerrar: () => void;
+  /** Avisa hacia arriba cada vez que cambia si queda algo sin leer, para que
+   * la campana de la barra lateral pueda pintar su puntito rojo sin tener
+   * que duplicar aquí el estado de lectura. */
+  onCambiarSinLeer?: (hay: boolean) => void;
 }) {
   const [cerrando, setCerrando] = useState(false);
   const [pestaña, setPestaña] = useState<"alertas" | "notificaciones">(
@@ -90,11 +95,18 @@ export function PanelAvisos({
     setAlertas((a) => a.filter((alerta) => alerta.id !== id));
   }
 
-  if (!abierto || typeof document === "undefined") return null;
-
   const hayAlertasSinLeer = alertas.length > 0 && !alertasLeidas;
   const hayNotificacionesSinLeer =
     NOTIFICACIONES_CLIENTE.length > 0 && !notificacionesLeidas;
+
+  // Independiente de `abierto`: la campana necesita saberlo también con el
+  // panel cerrado, así que se avisa cada vez que cambia (no solo al abrir).
+  useEffect(() => {
+    onCambiarSinLeer?.(hayAlertasSinLeer || hayNotificacionesSinLeer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hayAlertasSinLeer, hayNotificacionesSinLeer]);
+
+  if (!abierto || typeof document === "undefined") return null;
 
   return createPortal(
     <div className="fixed inset-00 z-50">
