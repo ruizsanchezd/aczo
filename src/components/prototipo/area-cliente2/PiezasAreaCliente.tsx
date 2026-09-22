@@ -27,10 +27,10 @@ import { AHORRO_EXTRA_DASHBOARD, euros, MES_COMPARACION_DASHBOARD } from "@/mock
  */
 export function BannerAhorroExtra() {
   return (
-    <div className="mt-06 flex flex-wrap items-center gap-03 rounded-md bg-highlight-deep px-04 py-03">
+    <div className="mt-06 flex flex-wrap items-start gap-03 rounded-md bg-highlight-deep px-04 py-03">
       <Icon
         name="piggy-bank"
-        className="shrink-0 text-highlight-vivid"
+        className="mt-[2px] shrink-0 text-highlight-vivid"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-01">
         {/* `font-bold` a pelo: el Figma de este aviso concreto (nodo
