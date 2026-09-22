@@ -15,15 +15,17 @@ import { Text } from "@/components/ui/Text";
 import {
   CIF_NUEVO_SUMINISTRO,
   COMERCIALIZADORAS_NUEVO_SUMINISTRO,
-  conMantenimientoMixto,
   DIRECCION_NUEVO_SUMINISTRO,
+  DNI_NUEVO_SUMINISTRO,
   ERROR_LECTURA_NUEVO_SUMINISTRO,
   euros,
+  IBAN_NUEVO_SUMINISTRO,
   OFERTAS_NUEVO_SUMINISTRO,
   PERMANENCIA_NUEVO_SUMINISTRO,
   RESUMEN_ANALISIS_NUEVO_SUMINISTRO,
   SOCIEDAD_NUEVO_SUMINISTRO,
   suministrosDe,
+  TITULAR_NUEVO_SUMINISTRO,
   type Comercializadora,
   type Plan,
   type Suministro,
@@ -905,10 +907,11 @@ function PasoAhorro({
     () => new Set(todosLosSuministros.filter((s) => s.tipo === "Gas").map((s) => s.id)),
   );
 
-  const ahorro = conMantenimientoMixto(
-    ahorroBaseDelPlan(planSeleccionado),
-    puntosConMantenimientoDelPlan(planSeleccionado),
-  );
+  // La cifra de la tarjeta es la suma de sus comercializadoras, sin restar
+  // nada más: tiene que coincidir exactamente con lo que se ve al desplegar
+  // cada fila de abajo (que tampoco descuenta el mantenimiento de su
+  // "Ahorro potencial" — ver `FilaComercializadoraNuevoSuministro`).
+  const ahorro = ahorroBaseDelPlan(planSeleccionado);
 
   function alCambiarMantenimientoEnBloque(ids: string[], activo: boolean) {
     setMantenimientoIds((prev) => {
@@ -943,7 +946,6 @@ function PasoAhorro({
               plan={plan}
               mensual={mensual}
               ahorroBase={ahorroBaseDelPlan(plan)}
-              puntosConMantenimiento={puntosConMantenimientoDelPlan(plan)}
               seleccionada={plan.id === planId}
               onSeleccionar={() => setPlanId(plan.id)}
             />
@@ -1053,22 +1055,21 @@ function TarjetaOfertaNuevoSuministro({
   plan,
   mensual,
   ahorroBase,
-  puntosConMantenimiento,
   seleccionada,
   onSeleccionar,
 }: {
   plan: Plan;
   mensual: boolean;
   /** Suma del ahorro de las comercializadoras de esta oferta — ver
-   * `ahorroBaseDelPlan` en `PasoAhorro`, más arriba: la cifra de la tarjeta
-   * tiene que cuadrar con lo que se ve debajo al elegirla. */
+   * `ahorroBaseDelPlan` en `PasoAhorro`, más arriba. Se enseña tal cual, sin
+   * restar el mantenimiento: tiene que coincidir exactamente con la fila de
+   * "Ahorro potencial" de cada comercializadora al desplegar la oferta, que
+   * tampoco lo resta. */
   ahorroBase: number;
-  puntosConMantenimiento: number;
   seleccionada: boolean;
   onSeleccionar: () => void;
 }) {
-  const ahorro = conMantenimientoMixto(ahorroBase, puntosConMantenimiento);
-  const cifra = mensual ? ahorro / 12 : ahorro;
+  const cifra = mensual ? ahorroBase / 12 : ahorroBase;
 
   return (
     <button
@@ -1374,9 +1375,9 @@ function PasoCambio({
   const [enNombreDeOtro, setEnNombreDeOtro] = useState(false);
   const [razonSocial, setRazonSocial] = useState(SOCIEDAD_NUEVO_SUMINISTRO.nombre);
   const [cif, setCif] = useState(CIF_NUEVO_SUMINISTRO);
-  const [titular, setTitular] = useState("");
-  const [dni, setDni] = useState("");
-  const [iban, setIban] = useState("");
+  const [titular, setTitular] = useState(TITULAR_NUEVO_SUMINISTRO);
+  const [dni, setDni] = useState(DNI_NUEVO_SUMINISTRO);
+  const [iban, setIban] = useState(IBAN_NUEVO_SUMINISTRO);
   const [firmado, setFirmado] = useState(false);
   const [declaracionAceptada, setDeclaracionAceptada] = useState(false);
   const [formaAutorizar, setFormaAutorizar] = useState<FormaAutorizar>("tengo-poderes");

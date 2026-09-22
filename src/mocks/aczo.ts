@@ -2354,6 +2354,18 @@ export const CIF_NUEVO_SUMINISTRO = "B-73920164";
 export const DIRECCION_NUEVO_SUMINISTRO =
   SOCIEDAD_NUEVO_SUMINISTRO.sedes[0].inmuebles[0].direccion;
 
+/**
+ * Nombre del titular, DNI e IBAN con los que llega ya rellena "Confirma tus
+ * datos": quien tramita este asistente ha iniciado sesión en el área de
+ * cliente, así que esos datos ya se conocen (no hace falta escribirlos a
+ * mano) — igual que `SOCIEDAD_NUEVO_SUMINISTRO` y `CIF_NUEVO_SUMINISTRO` de
+ * arriba. El titular es la misma persona de la barra lateral
+ * (`Ainhoa Martínez`); DNI e IBAN son inventados, igual que el CIF.
+ */
+export const TITULAR_NUEVO_SUMINISTRO = "Ainhoa Martínez";
+export const DNI_NUEVO_SUMINISTRO = "04950573P";
+export const IBAN_NUEVO_SUMINISTRO = "ES00 3493 9349 3094";
+
 /** Resumen del análisis del paso 01 ("Revisión de tus facturas"): cuántos
  * archivos se leyeron y cuántos de ellos no dieron problema. */
 export const RESUMEN_ANALISIS_NUEVO_SUMINISTRO = {
