@@ -825,15 +825,28 @@ function PasoAhorro({
     () => OFERTAS_NUEVO_SUMINISTRO.find((p) => p.recomendado)?.id ?? OFERTAS_NUEVO_SUMINISTRO[0].id,
   );
 
-  const todosLosSuministros = COMERCIALIZADORAS_NUEVO_SUMINISTRO.flatMap(suministrosDe);
-  const idsLuz = todosLosSuministros.filter((s) => s.tipo === "Luz").map((s) => s.id);
-  const idsGas = todosLosSuministros.filter((s) => s.tipo === "Gas").map((s) => s.id);
+  // Qué comercializadoras RECOMIENDA cada oferta — no todas incluyen las
+  // mismas: "Ahorro Confort" es solo TotalEnergies, "Ahorro Aczo" es
+  // TotalEnergies + Repsol (mismo criterio que `PantallaAhorroEmpresas`, ver
+  // `resolverComercializadoras`).
+  function comercializadorasDelPlan(plan: Plan) {
+    return COMERCIALIZADORAS_NUEVO_SUMINISTRO.filter((c) =>
+      plan.comercializadoras.includes(c.nombre),
+    );
+  }
 
-  // El gas llega con el mantenimiento ya incluido (mismo criterio que
-  // `PantallaAhorroEmpresas`); la luz empieza apagada.
-  const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
-    () => new Set(idsGas),
-  );
+  // El ahorro de cada oferta ES la suma de sus comercializadoras (antes de
+  // aplicar el descuento de mantenimiento): así la cifra grande de la
+  // tarjeta cuadra siempre con lo que se ve debajo al elegirla, en vez de
+  // salir de un `ahorroAnual` suelto en `PLANES` que no tiene por qué sumar
+  // igual con estos puntos de suministro.
+  function ahorroBaseDelPlan(plan: Plan) {
+    return comercializadorasDelPlan(plan)
+      .flatMap(suministrosDe)
+      .reduce((total, s) => total + s.ahorro, 0);
+  }
+
+  const todosLosSuministros = COMERCIALIZADORAS_NUEVO_SUMINISTRO.flatMap(suministrosDe);
 
   // Qué comercializadora es cada punto, para saber si pertenece o no a una
   // oferta concreta (una oferta solo incluye SUS comercializadoras).
@@ -846,8 +859,7 @@ function PasoAhorro({
   // El descuento de mantenimiento de cada oferta es el suyo: depende de los
   // puntos de SUS propias comercializadoras (mismo criterio que
   // `PantallaAhorroEmpresas`) — si no, "Ahorro Aczo" y "Ahorro Confort"
-  // enseñarían la misma cifra, porque en `PLANES` (mocks/aczo.ts) las dos
-  // parten del mismo `ahorroAnual` de base.
+  // enseñarían la misma cifra.
   function puntosConMantenimientoDelPlan(plan: Plan) {
     return todosLosSuministros.filter(
       (s) =>
@@ -857,11 +869,23 @@ function PasoAhorro({
   }
 
   const planSeleccionado = OFERTAS_NUEVO_SUMINISTRO.find((p) => p.id === planId) ?? OFERTAS_NUEVO_SUMINISTRO[0];
-  const puntosConMantenimiento = todosLosSuministros.filter((s) =>
-    mantenimientoIds.has(s.id),
-  ).length;
+
+  // El resumen, los interruptores de mantenimiento y las filas de
+  // comercializadora de abajo reflejan SOLO las comercializadoras de la
+  // oferta elegida (ver el aviso de arriba en `comercializadorasDelPlan`).
+  const comercializadorasSeleccionadas = comercializadorasDelPlan(planSeleccionado);
+  const suministrosSeleccionados = comercializadorasSeleccionadas.flatMap(suministrosDe);
+  const idsLuz = suministrosSeleccionados.filter((s) => s.tipo === "Luz").map((s) => s.id);
+  const idsGas = suministrosSeleccionados.filter((s) => s.tipo === "Gas").map((s) => s.id);
+
+  // El gas llega con el mantenimiento ya incluido (mismo criterio que
+  // `PantallaAhorroEmpresas`); la luz empieza apagada.
+  const [mantenimientoIds, setMantenimientoIds] = useState<Set<string>>(
+    () => new Set(todosLosSuministros.filter((s) => s.tipo === "Gas").map((s) => s.id)),
+  );
+
   const ahorro = conMantenimientoMixto(
-    planSeleccionado.ahorroAnual,
+    ahorroBaseDelPlan(planSeleccionado),
     puntosConMantenimientoDelPlan(planSeleccionado),
   );
 
@@ -897,6 +921,7 @@ function PasoAhorro({
             <TarjetaOfertaNuevoSuministro
               plan={plan}
               mensual={mensual}
+              ahorroBase={ahorroBaseDelPlan(plan)}
               puntosConMantenimiento={puntosConMantenimientoDelPlan(plan)}
               seleccionada={plan.id === planId}
               onSeleccionar={() => setPlanId(plan.id)}
@@ -905,12 +930,12 @@ function PasoAhorro({
         ))}
       </div>
 
-      <div className="anim-aparece flex flex-col gap-06" style={retardo(3)}>
+      <div key={planId} className="anim-aparece flex flex-col gap-06" style={retardo(3)}>
         <div className="flex flex-wrap items-center justify-between gap-04">
           <Text variant="label-m" color="mid" as="span">
             1 Sociedad · 1 activo ·{" "}
-            {todosLosSuministros.length}{" "}
-            {todosLosSuministros.length === 1 ? "punto" : "puntos"} de suministro
+            {suministrosSeleccionados.length}{" "}
+            {suministrosSeleccionados.length === 1 ? "punto" : "puntos"} de suministro
           </Text>
 
           <div className="flex flex-wrap items-center gap-04">
@@ -935,7 +960,7 @@ function PasoAhorro({
         </div>
 
         <div className="flex flex-col gap-04">
-          {COMERCIALIZADORAS_NUEVO_SUMINISTRO.map((c) => (
+          {comercializadorasSeleccionadas.map((c) => (
             <FilaComercializadoraNuevoSuministro
               key={c.id}
               comercializadora={c}
@@ -953,8 +978,8 @@ function PasoAhorro({
           onClick={() =>
             onContinuar({
               plan: planSeleccionado,
-              totalPuntos: todosLosSuministros.length,
-              puntosConMantenimiento,
+              totalPuntos: suministrosSeleccionados.length,
+              puntosConMantenimiento: puntosConMantenimientoDelPlan(planSeleccionado),
               ahorroAnual: ahorro,
             })
           }
@@ -1006,17 +1031,22 @@ function SelectorPeriodo({
 function TarjetaOfertaNuevoSuministro({
   plan,
   mensual,
+  ahorroBase,
   puntosConMantenimiento,
   seleccionada,
   onSeleccionar,
 }: {
   plan: Plan;
   mensual: boolean;
+  /** Suma del ahorro de las comercializadoras de esta oferta — ver
+   * `ahorroBaseDelPlan` en `PasoAhorro`, más arriba: la cifra de la tarjeta
+   * tiene que cuadrar con lo que se ve debajo al elegirla. */
+  ahorroBase: number;
   puntosConMantenimiento: number;
   seleccionada: boolean;
   onSeleccionar: () => void;
 }) {
-  const ahorro = conMantenimientoMixto(plan.ahorroAnual, puntosConMantenimiento);
+  const ahorro = conMantenimientoMixto(ahorroBase, puntosConMantenimiento);
   const cifra = mensual ? ahorro / 12 : ahorro;
 
   return (
