@@ -892,7 +892,8 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
         <Alert tone="highlight" icon="info">
           <div className="flex flex-col gap-01">
             <Text variant="body-m" color="always-dark" as="span" className="font-bold">
-              Confirma el código para empezar la tramitación
+              Confirma el código que recibirás por SMS para empezar la
+              tramitación
             </Text>
             <Text variant="body-m" color="always-dark" as="span">
               En breve recibirás un mensaje de tu comercializadora para
@@ -923,15 +924,17 @@ function PasoEnviadoAhorroDetectado({ onIrACartera }: { onIrACartera: () => void
                 aria-label={`${desplegada ? "Cerrar" : "Ver"} los puntos de suministro de ${s.sociedad.nombre}`}
                 className="flex w-full flex-wrap items-center justify-between gap-03 p-04 text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-high"
               >
-                <div className="flex items-center gap-02">
-                  <Text variant="label-m" as="span">
-                    {s.sociedad.nombre}
+                <div className="flex min-w-0 items-center gap-03">
+                  <div className="flex shrink-0 items-center gap-02">
+                    <Text variant="label-m" as="span">
+                      {s.sociedad.nombre}
+                    </Text>
+                    <Tag>CIF {s.cif}</Tag>
+                  </div>
+                  <Text variant="body-s" color="low" as="span" className="shrink-0">
+                    {puntos.length} puntos de suministro
                   </Text>
-                  <Tag>CIF {s.cif}</Tag>
                 </div>
-                <Text variant="body-s" color="low" as="span">
-                  {puntos.length} puntos de suministro
-                </Text>
                 <div className="flex items-center gap-04">
                   <PuntoEstado
                     color="bg-success-high"
