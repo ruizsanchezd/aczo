@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ERRORES_LECTURA_CLIENTE, type FacturaConError } from "@/mocks/aczo";
 import { AhorroDetectadoCliente } from "./AhorroDetectadoCliente";
 import { BarraLateralCliente } from "./BarraLateralCliente";
 import { ConsumoAhorro } from "./ConsumoAhorro";
@@ -32,6 +33,12 @@ import { PantallaCartera } from "./PantallaCartera";
  *     `BannerAhorroExtra`, el banner "Hemos detectado una oportunidad de
  *     ahorro extra" de Dashboard, Mi cartera y Consumo y ahorro (ver
  *     `onVerAhorro`).
+ *
+ * "nuevo-suministro" tiene una segunda puerta de entrada: "Subir factura de
+ * nuevo", en una factura con error de lectura dentro de "Notificaciones y
+ * alertas" (ver PanelAvisos.tsx). Por eso `erroresLectura` y
+ * `facturaAResolver` viven aquí, no en PanelAvisos ni en
+ * NuevoSuministroCliente: son el único sitio por el que pasan los dos.
  */
 export function AreaCliente2() {
   const [seccion, setSeccion] = useState("dashboard");
@@ -40,6 +47,25 @@ export function AreaCliente2() {
   // leer) y lo lee la campana de la barra lateral, para pintar su puntito
   // rojo también con el panel cerrado.
   const [avisosSinLeer, setAvisosSinLeer] = useState(false);
+  // Las facturas con error de lectura pendientes de PanelAvisos — aquí, no
+  // ahí, porque quien las resuelve (NuevoSuministroCliente) vive fuera de
+  // ese panel (ver la nota de cabecera).
+  const [erroresLectura, setErroresLectura] = useState(ERRORES_LECTURA_CLIENTE);
+  // Qué factura se está resolviendo ahora mismo dentro del asistente, o null
+  // si se ha abierto para dar de alta un suministro nuevo desde cero.
+  const [facturaAResolver, setFacturaAResolver] = useState<FacturaConError | null>(
+    null,
+  );
+
+  // Cambia de sección y, salvo que se vaya AL asistente, olvida qué factura
+  // se estaba resolviendo — si no, salir de él sin terminarlo (la flecha de
+  // "volver" del paso 01, o pulsando otra sección de la barra lateral a
+  // media resolución) dejaría el aviso y el archivo precargado puestos la
+  // próxima vez que se abra para dar de alta un suministro normal.
+  function ir(id: string) {
+    if (id !== "nuevo-suministro") setFacturaAResolver(null);
+    setSeccion(id);
+  }
 
   function navegar(id: string) {
     if (
@@ -50,7 +76,7 @@ export function AreaCliente2() {
       id === "nuevo-suministro" ||
       id === "ahorro-detectado"
     )
-      setSeccion(id);
+      ir(id);
   }
 
   return (
@@ -68,34 +94,47 @@ export function AreaCliente2() {
       <main className="ml-[256px] min-w-0 px-06 py-07">
         {seccion === "dashboard" ? (
           <Dashboard
-            onVerCartera={() => setSeccion("cartera")}
-            onVerConsumo={() => setSeccion("consumo")}
-            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
-            onVerAhorro={() => setSeccion("ahorro-detectado")}
+            onVerCartera={() => ir("cartera")}
+            onVerConsumo={() => ir("consumo")}
+            onAbrirNuevoSuministro={() => ir("nuevo-suministro")}
+            onVerAhorro={() => ir("ahorro-detectado")}
           />
         ) : seccion === "cartera" ? (
           <PantallaCartera
-            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
-            onVerAhorro={() => setSeccion("ahorro-detectado")}
+            onAbrirNuevoSuministro={() => ir("nuevo-suministro")}
+            onVerAhorro={() => ir("ahorro-detectado")}
           />
         ) : seccion === "consumo" ? (
           <ConsumoAhorro
-            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
-            onVerAhorro={() => setSeccion("ahorro-detectado")}
+            onAbrirNuevoSuministro={() => ir("nuevo-suministro")}
+            onVerAhorro={() => ir("ahorro-detectado")}
           />
         ) : seccion === "documentos" ? (
           <DocumentosCliente
-            onAbrirNuevoSuministro={() => setSeccion("nuevo-suministro")}
+            onAbrirNuevoSuministro={() => ir("nuevo-suministro")}
           />
         ) : seccion === "nuevo-suministro" ? (
           <NuevoSuministroCliente
-            onVolver={() => setSeccion("dashboard")}
-            onIrACartera={() => setSeccion("cartera")}
+            // El asistente no se desmonta al pulsar la campana (el panel de
+            // avisos flota por encima, no cambia `seccion`): sin esta `key`
+            // reutilizaría su estado interno (`vista`, en qué paso se había
+            // quedado) al resolver una SEGUNDA factura seguida, en vez de
+            // volver a arrancar en "Sube tu factura".
+            key={facturaAResolver?.id ?? "nuevo-suministro"}
+            onVolver={() => ir("dashboard")}
+            onIrACartera={() => ir("cartera")}
+            facturaAResolver={facturaAResolver}
+            onResueltoErrorLectura={() => {
+              if (!facturaAResolver) return;
+              setErroresLectura((es) =>
+                es.filter((e) => e.id !== facturaAResolver.id),
+              );
+            }}
           />
         ) : (
           <AhorroDetectadoCliente
-            onVolver={() => setSeccion("dashboard")}
-            onIrACartera={() => setSeccion("cartera")}
+            onVolver={() => ir("dashboard")}
+            onIrACartera={() => ir("cartera")}
           />
         )}
       </main>
@@ -104,6 +143,12 @@ export function AreaCliente2() {
         abierto={avisosAbiertos}
         onCerrar={() => setAvisosAbiertos(false)}
         onCambiarSinLeer={setAvisosSinLeer}
+        errores={erroresLectura}
+        onSubirFacturaDeNuevo={(factura) => {
+          setFacturaAResolver(factura);
+          setAvisosAbiertos(false);
+          ir("nuevo-suministro");
+        }}
       />
     </div>
   );

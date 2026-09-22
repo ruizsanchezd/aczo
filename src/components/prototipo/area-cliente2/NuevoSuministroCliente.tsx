@@ -26,6 +26,7 @@ import {
   SOCIEDAD_NUEVO_SUMINISTRO,
   suministrosDe,
   TITULAR_NUEVO_SUMINISTRO,
+  type FacturaConError,
   type Plan,
 } from "@/mocks/aczo";
 import { animarScroll, motionSafe, posicionEnDocumento, retardo } from "@/lib/prototipo";
@@ -84,6 +85,19 @@ import {
  * vuelve a la sección desde la que se abrió el asistente (simplificado a
  * "volver siempre al Dashboard", ver `onVolver`); en el resto, retrocede un
  * paso — igual que el botón "Atrás" de la barra inferior de los pasos 02 y 03.
+ *
+ * RESOLVER UN "ERROR DE LECTURA": este mismo asistente es también el destino
+ * de "Subir factura de nuevo", el botón de cada factura fallida dentro de
+ * "Notificaciones y alertas" (ver PanelAvisos.tsx, nodo de Figma 797:38507 —
+ * ahí solo hay una portada de documentación que describe la intención: "el
+ * usuario debe subir archivos que se quedaron sin poder leer de nuevo para
+ * calcular el ahorro y dar de alta un nuevo suministro"). AreaCliente2 le
+ * pasa la factura en cuestión por `facturaAResolver`: el paso 01 la enseña
+ * ya adjuntada (con un aviso que explica por qué) en vez de partir vacío, y
+ * al llegar al paso 04 ("Solicitud enviada", la confirmación de que el ciclo
+ * completo — leer, calcular el ahorro y dar de alta — ha terminado bien) se
+ * avisa hacia arriba con `onResueltoErrorLectura` para que esa factura
+ * desaparezca de la lista de errores.
  */
 
 type Vista = "subida" | "revision" | "ahorro" | "cambio" | "enviado";
@@ -114,6 +128,8 @@ const VISTA_ANTERIOR: Partial<Record<Vista, Vista>> = {
 export function NuevoSuministroCliente({
   onVolver,
   onIrACartera,
+  facturaAResolver,
+  onResueltoErrorLectura,
 }: {
   /** El paso 01 no tiene vista anterior dentro del asistente: vuelve a la
    * sección desde la que se abrió. Se simplifica a "volver siempre al
@@ -123,12 +139,28 @@ export function NuevoSuministroCliente({
   onVolver: () => void;
   /** El botón final "Ir a mi cartera" del paso 04. */
   onIrACartera: () => void;
+  /** Si no es null, este asistente se ha abierto para resolver ESTA factura
+   * con error de lectura (ver la nota "RESOLVER UN ERROR DE LECTURA" de
+   * arriba), en vez de para dar de alta un suministro nuevo desde cero. */
+  facturaAResolver?: FacturaConError | null;
+  /** Se llama una sola vez, al llegar al paso 04, si `facturaAResolver` iba
+   * puesta. */
+  onResueltoErrorLectura?: () => void;
 }) {
   const [vista, setVista] = useState<Vista>("subida");
   // Foto del plan elegido en el paso 02 al pulsar "Completar tus datos", para
   // el resumen del paso 03 — mismo patrón que `ResumenCambioEmpresas`.
   const [resumen, setResumen] = useState<ResumenNuevoSuministro | null>(null);
   const contenidoRef = useRef<HTMLDivElement>(null);
+
+  // Avisa hacia arriba en cuanto se llega a "Solicitud enviada" — el ciclo
+  // completo que pedía la factura (leer, calcular el ahorro, dar de alta) ya
+  // ha terminado. Solo una vez por apertura: el efecto no vuelve a disparar
+  // aunque `vista` no cambie más.
+  useEffect(() => {
+    if (vista === "enviado" && facturaAResolver) onResueltoErrorLectura?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vista]);
 
   function ir(destino: Vista) {
     setVista(destino);
@@ -206,7 +238,10 @@ export function NuevoSuministroCliente({
         className="anim-entra-adelante flex flex-col rounded-md bg-background-low p-06"
       >
         {vista === "subida" && (
-          <PasoSubida onContinuar={() => ir("revision")} />
+          <PasoSubida
+            facturaAResolver={facturaAResolver}
+            onContinuar={() => ir("revision")}
+          />
         )}
         {vista === "revision" && (
           <PasoRevision onContinuar={() => ir("ahorro")} />
@@ -311,9 +346,40 @@ function BadgeArchivo({ extension }: { extension: string }) {
  * (progreso a saltos aleatorios, sin backend real), pero SIN los campos de
  * nombre/email: quien entra a este asistente ya tiene sesión iniciada en el
  * área de cliente, así que esos datos ya se conocen.
+ *
+ * Resolviendo un error de lectura (`facturaAResolver` puesta): el archivo que
+ * falló ya sale adjuntado y listo — no tiene sentido hacer que la persona
+ * vuelva a arrastrarlo a mano, el gesto que importa aquí es "vuelve a
+ * intentarlo", no "búscalo en tu ordenador otra vez" — con un aviso encima
+ * que explica de qué factura se trata y deja quitarla y adjuntar otra si hace
+ * falta.
  */
-function PasoSubida({ onContinuar }: { onContinuar: () => void }) {
-  const [archivos, setArchivos] = useState<Archivo[]>([]);
+function PasoSubida({
+  facturaAResolver,
+  onContinuar,
+}: {
+  facturaAResolver?: FacturaConError | null;
+  onContinuar: () => void;
+}) {
+  const [archivos, setArchivos] = useState<Archivo[]>(() =>
+    facturaAResolver
+      ? [
+          {
+            id: facturaAResolver.id,
+            nombre: facturaAResolver.archivo,
+            extension:
+              (facturaAResolver.archivo.split(".").pop() || "").toUpperCase().slice(0, 4) ||
+              "DOC",
+            // Tamaño de mentira, fijo: no hay un archivo real detrás (ver
+            // CLAUDE.md, "todo son datos de mentira"), así que no hay bytes
+            // que medir.
+            tamanoBytes: 350 * 1024,
+            progreso: 100,
+            estado: "listo" as const,
+          },
+        ]
+      : [],
+  );
   const [arrastrando, setArrastrando] = useState(false);
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
   const [confirmaDatos, setConfirmaDatos] = useState(false);
@@ -375,6 +441,24 @@ function PasoSubida({ onContinuar }: { onContinuar: () => void }) {
           facturas de un mismo punto de suministro, más precisión.
         </Text>
       </div>
+
+      {facturaAResolver && (
+        <div className="anim-aparece" style={retardo(1)}>
+          <Alert tone="highlight" icon="info">
+            <div className="flex flex-col gap-01">
+              <Text variant="body-m" color="always-dark" as="span" className="font-bold">
+                Volviendo a intentar leer una factura
+              </Text>
+              <Text variant="body-m" color="always-dark" as="span">
+                {facturaAResolver.archivo} de {facturaAResolver.comercializadora}{" "}
+                no se pudo leer la primera vez. Ya la hemos vuelto a adjuntar:
+                revisa que sea la correcta y continúa, o quítala y sube otra en
+                su lugar.
+              </Text>
+            </div>
+          </Alert>
+        </div>
+      )}
 
       <div className="flex flex-col gap-06">
         {!hayArchivos && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -9,9 +9,9 @@ import { Tag } from "@/components/ui/Tag";
 import { Text } from "@/components/ui/Text";
 import {
   ALERTAS_CLIENTE,
-  ERRORES_LECTURA_CLIENTE,
   NOTIFICACIONES_CLIENTE,
   type AlertaCliente,
+  type FacturaConError,
   type NotificacionCliente,
 } from "@/mocks/aczo";
 
@@ -40,6 +40,17 @@ import {
  * todavía (como "Organizar cartera" en su momento, ver
  * OrganizaTuCartera.tsx): de momento no navega a ningún sitio.
  *
+ * "Subir factura de nuevo", en cada factura de esa lista, sí tiene destino:
+ * abre el asistente "Añadir nuevos suministros" (`onSubirFacturaDeNuevo`,
+ * que AreaCliente2 resuelve navegando a NuevoSuministroCliente — ver la nota
+ * "RESOLVER UN ERROR DE LECTURA" de ese archivo). La lista de errores
+ * (`errores`) la lleva AreaCliente2, no este panel: el asistente que la
+ * resuelve vive fuera de aquí (en `<main>`, no en este panel), así que hace
+ * falta que los dos compartan el mismo estado. En cuanto una factura se
+ * resuelve, desaparece de la lista y, si era la última, la propia alerta
+ * "Errores de lectura" desaparece de la pestaña Alertas — sin que la persona
+ * tenga que descartarla a mano.
+ *
  * MISMO PATRÓN DE VENTANA QUE ModalSuministrosGrandes.tsx (ahí está
  * explicado con más detalle): portal, velo, cerrar con la X/Escape/fuera,
  * crecer/salir con las animaciones del sistema.
@@ -48,6 +59,8 @@ export function PanelAvisos({
   abierto,
   onCerrar,
   onCambiarSinLeer,
+  errores,
+  onSubirFacturaDeNuevo,
 }: {
   abierto: boolean;
   onCerrar: () => void;
@@ -55,6 +68,12 @@ export function PanelAvisos({
    * la campana de la barra lateral pueda pintar su puntito rojo sin tener
    * que duplicar aquí el estado de lectura. */
   onCambiarSinLeer?: (hay: boolean) => void;
+  /** Las facturas con error de lectura pendientes. La lleva AreaCliente2 (ver
+   * la nota de cabecera): así el asistente que las resuelve, fuera de este
+   * panel, puede ir quitándolas de la misma lista. */
+  errores: FacturaConError[];
+  /** "Subir factura de nuevo" de una fila. AreaCliente2 abre el asistente. */
+  onSubirFacturaDeNuevo: (factura: FacturaConError) => void;
 }) {
   const [cerrando, setCerrando] = useState(false);
   const [pestaña, setPestaña] = useState<"alertas" | "notificaciones">(
@@ -64,6 +83,15 @@ export function PanelAvisos({
   const [alertas, setAlertas] = useState(ALERTAS_CLIENTE);
   const [alertasLeidas, setAlertasLeidas] = useState(false);
   const [notificacionesLeidas, setNotificacionesLeidas] = useState(false);
+
+  // La alerta "Errores de lectura" solo tiene sentido mientras queda alguna
+  // factura sin resolver: en cuanto `errores` se vacía (el asistente las va
+  // resolviendo, ver `onResueltoErrorLectura` en NuevoSuministroCliente)
+  // desaparece sola de la lista, sin que haga falta descartarla a mano.
+  const alertasVisibles = useMemo(
+    () => alertas.filter((a) => a.id !== "errores-lectura" || errores.length > 0),
+    [alertas, errores],
+  );
 
   useEffect(() => {
     if (!abierto) return;
@@ -95,7 +123,7 @@ export function PanelAvisos({
     setAlertas((a) => a.filter((alerta) => alerta.id !== id));
   }
 
-  const hayAlertasSinLeer = alertas.length > 0 && !alertasLeidas;
+  const hayAlertasSinLeer = alertasVisibles.length > 0 && !alertasLeidas;
   const hayNotificacionesSinLeer =
     NOTIFICACIONES_CLIENTE.length > 0 && !notificacionesLeidas;
 
@@ -214,67 +242,73 @@ export function PanelAvisos({
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {vista === "errores-lectura" ? (
-            <div className="flex flex-col gap-04 p-05">
-              {ERRORES_LECTURA_CLIENTE.map((f) => (
-                <div
-                  key={f.id}
-                  className="rounded-md bg-background-low p-04"
-                >
-                  <div className="flex items-start justify-between gap-04">
-                    <span className="flex items-start gap-03">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-highlight-deep text-highlight-soft">
-                        <Icon name="document" />
+            errores.length === 0 ? (
+              <EstadoVacio mensaje="No te queda ninguna factura con error de lectura." />
+            ) : (
+              <div className="flex flex-col gap-04 p-05">
+                {errores.map((f) => (
+                  <div
+                    key={f.id}
+                    className="rounded-md bg-background-low p-04"
+                  >
+                    <div className="flex items-start justify-between gap-04">
+                      <span className="flex items-start gap-03">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-highlight-deep text-highlight-soft">
+                          <Icon name="document" />
+                        </span>
+                        <span className="flex flex-col">
+                          <Text variant="label-l" as="span">
+                            {f.comercializadora}
+                          </Text>
+                          <Text variant="body-s" color="low" as="span">
+                            {f.archivo}
+                          </Text>
+                        </span>
                       </span>
-                      <span className="flex flex-col">
-                        <Text variant="label-l" as="span">
-                          {f.comercializadora}
+                      <Tag tone="outline" className="border border-border-low shrink-0">
+                        {f.tarifa}
+                      </Tag>
+                    </div>
+
+                    <div className="mt-04 grid grid-cols-3 gap-03">
+                      <span className="flex flex-col gap-01">
+                        <Text variant="label-s-uppercase" color="low" as="span">
+                          Sociedad
                         </Text>
-                        <Text variant="body-s" color="low" as="span">
-                          {f.archivo}
+                        <Text variant="label-m" as="span">
+                          {f.sociedad}
                         </Text>
                       </span>
-                    </span>
-                    <Tag tone="outline" className="border border-border-low shrink-0">
-                      {f.tarifa}
-                    </Tag>
-                  </div>
+                      <span className="flex flex-col gap-01">
+                        <Text variant="label-s-uppercase" color="low" as="span">
+                          CIF
+                        </Text>
+                        <Text variant="label-m" as="span">
+                          {f.cif}
+                        </Text>
+                      </span>
+                      <span className="flex flex-col gap-01">
+                        <Text variant="label-s-uppercase" color="low" as="span">
+                          CUPS
+                        </Text>
+                        <Text variant="label-m" as="span">
+                          *******************
+                        </Text>
+                      </span>
+                    </div>
 
-                  <div className="mt-04 grid grid-cols-3 gap-03">
-                    <span className="flex flex-col gap-01">
-                      <Text variant="label-s-uppercase" color="low" as="span">
-                        Sociedad
-                      </Text>
-                      <Text variant="label-m" as="span">
-                        {f.sociedad}
-                      </Text>
-                    </span>
-                    <span className="flex flex-col gap-01">
-                      <Text variant="label-s-uppercase" color="low" as="span">
-                        CIF
-                      </Text>
-                      <Text variant="label-m" as="span">
-                        {f.cif}
-                      </Text>
-                    </span>
-                    <span className="flex flex-col gap-01">
-                      <Text variant="label-s-uppercase" color="low" as="span">
-                        CUPS
-                      </Text>
-                      <Text variant="label-m" as="span">
-                        *******************
-                      </Text>
-                    </span>
+                    <div className="mt-04 flex flex-wrap items-center justify-between gap-03">
+                      <Tag tone="warning">Lectura del CUPS incorrecta</Tag>
+                      <Button size="small" onClick={() => onSubirFacturaDeNuevo(f)}>
+                        Subir factura de nuevo
+                      </Button>
+                    </div>
                   </div>
-
-                  <div className="mt-04 flex flex-wrap items-center justify-between gap-03">
-                    <Tag tone="warning">Lectura del CUPS incorrecta</Tag>
-                    <Button size="small">Subir factura de nuevo</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           ) : pestaña === "alertas" ? (
-            alertas.length === 0 ? (
+            alertasVisibles.length === 0 ? (
               <EstadoVacio mensaje="No tienes alertas actualmente. Tu panel está actualizado y no hay incidencias pendientes." />
             ) : (
               <div className="flex flex-col gap-04 p-05">
@@ -291,7 +325,7 @@ export function PanelAvisos({
                 </Alert>
 
                 <ul className="flex flex-col gap-04">
-                  {alertas.map((alerta) => (
+                  {alertasVisibles.map((alerta) => (
                     <FilaAlerta
                       key={alerta.id}
                       alerta={alerta}
@@ -317,7 +351,7 @@ export function PanelAvisos({
         </div>
 
         {vista === "lista" &&
-          ((pestaña === "alertas" && alertas.length > 0) ||
+          ((pestaña === "alertas" && alertasVisibles.length > 0) ||
             (pestaña === "notificaciones" &&
               NOTIFICACIONES_CLIENTE.length > 0)) && (
             <footer className="border-t border-border-low p-04 text-center">
