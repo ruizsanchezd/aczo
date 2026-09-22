@@ -1397,21 +1397,20 @@ function PasoCambio({
 
   return (
     <div className="flex flex-col gap-08">
-      <div className="anim-aparece flex flex-col gap-03 rounded-md bg-info-low p-04 text-info-high" style={retardo(0)}>
-        <div className="flex items-start gap-03">
-          <Icon name="info" size={20} className="mt-[2px] shrink-0" />
+      <div className="anim-aparece" style={retardo(0)}>
+        <Alert tone="info" icon="info">
           <div className="flex flex-col gap-01">
-            <Text variant="label-m" as="span" className="text-info-high">
+            <Text variant="label-m" as="span">
               La sociedad detectada ya existe en tu cartera
             </Text>
-            <Text variant="body-m" as="span" className="text-info-high">
+            <Text variant="body-m" color="mid" as="span">
               Si necesitas modificar algún dato, puedes editarlos a
               continuación y se actualizarán automáticamente. Recuerda que si
               modificas el IBAN, se pasarán los cobros de todos los
               suministros a la cuenta corriente actualizada.
             </Text>
           </div>
-        </div>
+        </Alert>
       </div>
 
       <div className="anim-aparece flex items-center gap-03" style={retardo(1)}>
@@ -1602,17 +1601,18 @@ function PasoCambio({
             </div>
           </Bloque>
 
-          <div className="anim-aparece flex flex-col gap-01 rounded-md bg-warning-low p-04 text-warning-high" style={retardo(3)}>
-            <div className="flex items-center gap-02">
-              <Icon name="info" size={16} />
-              <Text variant="label-m" as="span" className="text-warning-high">
-                La oferta caduca en 40h
-              </Text>
-            </div>
-            <Text variant="body-s" as="span" className="text-warning-high">
-              Podemos mantener esta oferta solo 48h. Confirma el cambio
-              dentro de este plazo para no perderla.
-            </Text>
+          <div className="anim-aparece" style={retardo(3)}>
+            <Alert tone="warning" icon="info">
+              <div className="flex flex-col gap-01">
+                <Text variant="label-m" as="span">
+                  La oferta caduca en 40h
+                </Text>
+                <Text variant="body-s" color="mid" as="span">
+                  Podemos mantener esta oferta solo 48h. Confirma el cambio
+                  dentro de este plazo para no perderla.
+                </Text>
+              </div>
+            </Alert>
           </div>
         </aside>
       </div>
@@ -1697,18 +1697,19 @@ function PasoEnviado({ onIrACartera }: { onIrACartera: () => void }) {
         </div>
       </div>
 
-      <div className="anim-aparece flex w-full flex-col gap-01 rounded-md bg-warning-low p-04 text-warning-high" style={retardo(1)}>
-        <div className="flex items-center gap-02">
-          <Icon name="info" size={16} />
-          <Text variant="label-m" as="span" className="text-warning-high">
-            Confirma el código para empezar la tramitación
-          </Text>
-        </div>
-        <Text variant="body-s" as="span" className="text-warning-high">
-          En breve recibirás un mensaje de tu comercializadora para confirmar
-          el cambio. Revísalo y confírmalo para que podamos continuar con la
-          tramitación.
-        </Text>
+      <div className="anim-aparece w-full" style={retardo(1)}>
+        <Alert tone="warning" icon="info">
+          <div className="flex flex-col gap-01">
+            <Text variant="label-m" as="span">
+              Confirma el código para empezar la tramitación
+            </Text>
+            <Text variant="body-s" color="mid" as="span">
+              En breve recibirás un mensaje de tu comercializadora para
+              confirmar el cambio. Revísalo y confírmalo para que podamos
+              continuar con la tramitación.
+            </Text>
+          </div>
+        </Alert>
       </div>
 
       <div className="anim-aparece flex w-full flex-col rounded-md border border-border-low" style={retardo(2)}>
