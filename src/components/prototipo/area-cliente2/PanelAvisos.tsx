@@ -252,15 +252,15 @@ export function PanelAvisos({
                     className="rounded-md bg-background-low p-04"
                   >
                     <div className="flex items-start justify-between gap-04">
-                      <span className="flex items-start gap-03">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-highlight-deep text-highlight-soft">
-                          <Icon name="document" />
+                      <span className="flex min-w-0 items-start gap-03">
+                        <span className="flex size-08 shrink-0 items-center justify-center rounded-md bg-highlight-deep text-highlight-soft">
+                          <Icon name="document" size={20} />
                         </span>
-                        <span className="flex flex-col">
-                          <Text variant="label-l" as="span">
+                        <span className="flex min-w-0 flex-col">
+                          <Text variant="label-l" as="span" className="truncate">
                             {f.comercializadora}
                           </Text>
-                          <Text variant="body-s" color="low" as="span">
+                          <Text variant="body-s" color="low" as="span" className="truncate">
                             {f.archivo}
                           </Text>
                         </span>
@@ -271,28 +271,28 @@ export function PanelAvisos({
                     </div>
 
                     <div className="mt-04 grid grid-cols-3 gap-03">
-                      <span className="flex flex-col gap-01">
+                      <span className="flex min-w-0 flex-col gap-01">
                         <Text variant="label-s-uppercase" color="low" as="span">
                           Sociedad
                         </Text>
-                        <Text variant="label-m" as="span">
+                        <Text variant="label-m" as="span" className="truncate">
                           {f.sociedad}
                         </Text>
                       </span>
-                      <span className="flex flex-col gap-01">
+                      <span className="flex min-w-0 flex-col gap-01">
                         <Text variant="label-s-uppercase" color="low" as="span">
                           CIF
                         </Text>
-                        <Text variant="label-m" as="span">
+                        <Text variant="label-m" as="span" className="truncate">
                           {f.cif}
                         </Text>
                       </span>
-                      <span className="flex flex-col gap-01">
+                      <span className="flex min-w-0 flex-col gap-01">
                         <Text variant="label-s-uppercase" color="low" as="span">
                           CUPS
                         </Text>
-                        <Text variant="label-m" as="span">
-                          *******************
+                        <Text variant="label-m" as="span" className="truncate">
+                          {f.cups}
                         </Text>
                       </span>
                     </div>

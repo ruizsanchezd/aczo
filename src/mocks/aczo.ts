@@ -1735,9 +1735,10 @@ export const NOTIFICACIONES_CLIENTE: NotificacionCliente[] = [
 
 /**
  * Una factura que ha dado error al leerse, dentro del detalle de la alerta
- * "Errores de lectura" (se abre pulsando "Revisar"). El CUPS se enseña
- * tapado porque, en un error de lectura, es justo el dato que no se pudo
- * leer bien.
+ * "Errores de lectura" (se abre pulsando "Revisar"). El CUPS que se lee sale
+ * de `cupsDe`, igual que en el resto del prototipo: no es el CUPS que la
+ * factura debería tener (ese es justo el dato que no se pudo leer bien),
+ * sino uno de pega para que la tarjeta no se quede con el campo en blanco.
  */
 export type FacturaConError = {
   id: string;
@@ -1745,6 +1746,7 @@ export type FacturaConError = {
   archivo: string;
   sociedad: string;
   cif: string;
+  cups: string;
   tarifa: string;
 };
 
@@ -1755,6 +1757,7 @@ export const ERRORES_LECTURA_CLIENTE: FacturaConError[] = [
     archivo: "factura_naturgy_2024_03.pdf",
     sociedad: "Martínez SL",
     cif: "B-91028374",
+    cups: cupsDe("err-naturgy-1"),
     tarifa: "Tarifa Luz",
   },
   {
@@ -1763,6 +1766,7 @@ export const ERRORES_LECTURA_CLIENTE: FacturaConError[] = [
     archivo: "factura_naturgy_2024_03.pdf",
     sociedad: "Martínez SL",
     cif: "B-91028374",
+    cups: cupsDe("err-naturgy-2"),
     tarifa: "Tarifa Luz",
   },
 ];
