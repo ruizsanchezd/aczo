@@ -203,6 +203,44 @@ export function useDesplazado(umbral = 8): boolean {
   return desplazado;
 }
 
+/** La posición vertical de `el` en el documento, SIN contar transforms de
+ * animación (a diferencia de `getBoundingClientRect`, que sí los cuenta): el
+ * contenido de un paso que entra con `anim-entra-adelante`
+ * (`translateY(24px)` → `0`) da una posición movediza si se mide con
+ * `getBoundingClientRect` justo al montarse, según en qué fotograma de esa
+ * animación se mida. `offsetTop` es una propiedad de layout, no de pintado:
+ * no le afecta el transform, así que da siempre la posición final de
+ * verdad. La usan los asistentes del área de cliente (Nuevo suministro,
+ * Ahorro detectado) para alinear el scroll de entrada con la barra lateral. */
+export function posicionEnDocumento(el: HTMLElement): number {
+  let y = 0;
+  let nodo: HTMLElement | null = el;
+  while (nodo) {
+    y += nodo.offsetTop;
+    nodo = nodo.offsetParent as HTMLElement | null;
+  }
+  return y;
+}
+
+/** Desliza el scroll de la ventana `distancia` píxeles hacia abajo desde
+ * donde esté, en `duracion` ms con una curva de salida (ease-out).
+ * `window.scrollTo({behavior:"smooth"})` no sirve para esto: su curva y
+ * duración las decide el navegador, y para una distancia corta la resuelve
+ * casi de golpe, sin que el gesto llegue a notarse. */
+export function animarScroll(distancia: number, duracion: number) {
+  const inicio = window.scrollY;
+  const t0 = performance.now();
+
+  function paso(ahora: number) {
+    const t = Math.min(1, (ahora - t0) / duracion);
+    const salida = 1 - (1 - t) ** 3;
+    window.scrollTo(0, inicio + distancia * salida);
+    if (t < 1) requestAnimationFrame(paso);
+  }
+
+  requestAnimationFrame(paso);
+}
+
 /**
  * true en cuanto se ha bajado más de `umbral` (0 a 1) del recorrido de scroll
  * de la página. Para no mostrar algo (p. ej. la barra de CTAs al final de una

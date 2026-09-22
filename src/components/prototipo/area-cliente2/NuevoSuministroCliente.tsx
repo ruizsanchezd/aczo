@@ -28,7 +28,7 @@ import {
   TITULAR_NUEVO_SUMINISTRO,
   type Plan,
 } from "@/mocks/aczo";
-import { motionSafe, retardo } from "@/lib/prototipo";
+import { animarScroll, motionSafe, posicionEnDocumento, retardo } from "@/lib/prototipo";
 import { motion } from "@/lib/motion";
 import { Bloque, CabeceraBloque, FilaResumen, FirmaCanvas } from "../PiezasCambioCompania";
 import { HuecoLogo } from "../TarjetaPlan";
@@ -110,44 +110,6 @@ const VISTA_ANTERIOR: Partial<Record<Vista, Vista>> = {
   ahorro: "revision",
   cambio: "ahorro",
 };
-
-/** La posición vertical de `el` en el documento, SIN contar transforms de
- * animación (a diferencia de `getBoundingClientRect`, que sí los cuenta): el
- * contenido de cada paso entra con `anim-entra-adelante`
- * (`translateY(24px)` → `0`), así que medirlo con `getBoundingClientRect`
- * justo al montarse da una posición movediza según en qué fotograma de esa
- * animación se mida. `offsetTop` es una propiedad de layout, no de pintado:
- * no le afecta el transform, así que da siempre la posición final de
- * verdad. */
-function posicionEnDocumento(el: HTMLElement): number {
-  let y = 0;
-  let nodo: HTMLElement | null = el;
-  while (nodo) {
-    y += nodo.offsetTop;
-    nodo = nodo.offsetParent as HTMLElement | null;
-  }
-  return y;
-}
-
-/** Desliza el scroll de la ventana `distancia` píxeles hacia abajo desde
- * donde esté, en `duracion` ms con una curva de salida (ease-out) — para la
- * transición de "Sube tu factura" a "Ahorro y recomendación", ver más abajo.
- * `window.scrollTo({behavior:"smooth"})` no sirve para esto: su curva y
- * duración las decide el navegador, y para una distancia corta la resuelve
- * casi de golpe. */
-function animarScroll(distancia: number, duracion: number) {
-  const inicio = window.scrollY;
-  const t0 = performance.now();
-
-  function paso(ahora: number) {
-    const t = Math.min(1, (ahora - t0) / duracion);
-    const salida = 1 - (1 - t) ** 3;
-    window.scrollTo(0, inicio + distancia * salida);
-    if (t < 1) requestAnimationFrame(paso);
-  }
-
-  requestAnimationFrame(paso);
-}
 
 export function NuevoSuministroCliente({
   onVolver,

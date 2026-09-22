@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -20,7 +20,8 @@ import {
   type Plan,
   type SociedadAhorroDetectado,
 } from "@/mocks/aczo";
-import { retardo } from "@/lib/prototipo";
+import { animarScroll, motionSafe, posicionEnDocumento, retardo } from "@/lib/prototipo";
+import { motion } from "@/lib/motion";
 import { Bloque, CabeceraBloque, FilaResumen, FirmaCanvas } from "../PiezasCambioCompania";
 import { HuecoLogo } from "../TarjetaPlan";
 import {
@@ -102,9 +103,34 @@ export function AhorroDetectadoCliente({
   // compañía", para el resumen de "Confirma tus datos" — mismo patrón que
   // `ResumenNuevoSuministro`.
   const [resumen, setResumen] = useState<ResumenAhorroDetectado | null>(null);
+  const contenidoRef = useRef<HTMLDivElement>(null);
 
+  // Al entrar en este asistente (al pulsar "Ver ahorro" desde el banner) el
+  // scroll no se queda arriba del todo: sube de golpe hasta el principio y
+  // de ahí BAJA deslizándose hasta que "Hemos encontrado una mejora para ti"
+  // queda justo a la altura de la barra lateral — mismo gesto que
+  // `NuevoSuministroCliente` al entrar en "Ahorro y recomendación" (ver ahí
+  // la explicación completa de por qué es un tween propio y no
+  // `scrollIntoView({behavior:"smooth"})`). Aquí el paso "ahorro" es
+  // también el primero del asistente, así que el mismo efecto cubre tanto
+  // la entrada inicial como cualquier vuelta a él con "Atrás".
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    if (vista === "ahorro") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      requestAnimationFrame(() => {
+        if (!contenidoRef.current) return;
+        // -16: para que el borde de arriba del bloque quede a la misma
+        // altura que el borde de arriba de la barra lateral (`top-04`).
+        const destino = posicionEnDocumento(contenidoRef.current) - 16;
+        if (motionSafe()) {
+          animarScroll(destino, motion.macroLevelUp.duration);
+        } else {
+          window.scrollTo({ top: destino, behavior: "instant" });
+        }
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   }, [vista]);
 
   function ir(destino: Vista) {
@@ -135,6 +161,7 @@ export function AhorroDetectadoCliente({
 
       <div
         key={vista}
+        ref={contenidoRef}
         className="anim-entra-adelante flex flex-col rounded-md bg-background-low p-06"
       >
         {vista === "ahorro" && (
@@ -248,23 +275,27 @@ function PasoAhorroDetectado({
 
   return (
     <div className="flex flex-col gap-08">
-      <div className="anim-aparece flex flex-col gap-04" style={retardo(0)}>
-        <div className="flex flex-col gap-01">
-          <Text variant="heading-m" as="h2">
-            Hemos encontrado una mejora para ti
-          </Text>
-          <Text variant="body-m" color="low">
-            En {todosLosSuministros.length} suministros de tus{" "}
-            {SOCIEDADES_AHORRO_DETECTADO.length} sociedades hemos detectado
-            una tarifa más económica que la actual.
-          </Text>
+      {/* `items-end`: el selector "Ver ahorro anual/mensual" queda a la
+          altura de la etiqueta "Oferta válida durante 48h" (la última línea
+          de la columna de la izquierda), no centrado con todo el bloque de
+          título+descripción+etiqueta. */}
+      <div className="anim-aparece flex flex-wrap items-end justify-between gap-04" style={retardo(0)}>
+        <div className="flex flex-col gap-04">
+          <div className="flex flex-col gap-01">
+            <Text variant="heading-m" as="h2">
+              Hemos encontrado una mejora para ti
+            </Text>
+            <Text variant="body-m" color="low">
+              En {todosLosSuministros.length} suministros de tus{" "}
+              {SOCIEDADES_AHORRO_DETECTADO.length} sociedades hemos detectado
+              una tarifa más económica que la actual.
+            </Text>
+          </div>
+          <Tag tone="warning" icon="clock" className="w-fit">
+            Oferta válida durante 48h
+          </Tag>
         </div>
-        <Tag tone="warning" icon="clock" className="w-fit">
-          Oferta válida durante 48h
-        </Tag>
-      </div>
 
-      <div className="anim-aparece flex flex-wrap items-center justify-end gap-04" style={retardo(1)}>
         <SelectorPeriodoAhorro mensual={mensual} onChange={setMensual} />
       </div>
 
