@@ -2651,3 +2651,57 @@ export const COMERCIALIZADORAS_AHORRO_DETECTADO: Comercializadora[] = [
     ],
   },
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Área de cliente — "Mi perfil"                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Los datos de cuenta de quien ha iniciado sesión, para "Mi perfil" (Figma
+ * nodo 797:44542). El nombre y la inicial del avatar ya salían en la barra
+ * lateral (`persona`, en BarraLateralCliente); aquí se añaden el resto de
+ * campos que solo se ven en esta pantalla.
+ */
+export const ROL_PERFIL_CLIENTE = "Administrador/a";
+export const GRUPO_PERFIL_CLIENTE = "Grupo Hostelero Ibérico S.L";
+export const EMAIL_PERFIL_CLIENTE = "ainhora@gmail.com";
+export const TELEFONO_PERFIL_CLIENTE = "454645454543";
+
+/** El "File item" de "DNI", ya subido — mismo nombre de archivo de ejemplo
+ * que usa el resto de este Figma para un documento de identidad (p. ej. el
+ * placeholder "Ej: Laura Rodríguez" del paso de identidad de empresas). */
+export const ARCHIVO_DNI_PERFIL_CLIENTE = {
+  nombre: "DNI_Laura Rodrúguez",
+  extension: "JPG",
+  tamano: "2.4 MB",
+};
+
+export const CONTRASENA_ACTUALIZADA_PERFIL_CLIENTE = "Actualizada hace 3 meses";
+
+/**
+ * El CIF de cada sociedad, para el acordeón "Mis sociedades". El titular y
+ * el DNI son siempre los de quien ha iniciado sesión (administra las
+ * cuatro), así que no cambian con la sociedad — mismos
+ * `TITULAR_NUEVO_SUMINISTRO`/`DNI_NUEVO_SUMINISTRO` que ya usa "Nuevo
+ * suministro". mendesaltaren SL reutiliza también su CIF de ahí (misma
+ * sociedad); las otras tres no aparecen en ningún otro flujo, así que su CIF
+ * se deriva del id con el mismo criterio que `cupsDe()`, para no escribirlo
+ * a mano. El IBAN NO se precarga (el propio Figma lo enseña vacío, con
+ * "Escribe aquí el IBAN" de placeholder): es el único de los cinco campos
+ * que en el diseño aparece pendiente de rellenar.
+ */
+function cifDe(id: string): string {
+  const digitos = Array.from(id)
+    .map((c) => c.codePointAt(0)! % 10)
+    .join("")
+    .padEnd(8, "0")
+    .slice(0, 8);
+  return `B-${digitos}`;
+}
+
+export const CIF_POR_SOCIEDAD: Record<string, string> = Object.fromEntries(
+  SOCIEDADES_CARTERA.map((s) => [
+    s.id,
+    s.id === SOCIEDAD_NUEVO_SUMINISTRO.id ? CIF_NUEVO_SUMINISTRO : cifDe(s.id),
+  ]),
+);

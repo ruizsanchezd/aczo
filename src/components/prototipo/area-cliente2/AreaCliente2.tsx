@@ -7,6 +7,7 @@ import { BarraLateralCliente } from "./BarraLateralCliente";
 import { ConsumoAhorro } from "./ConsumoAhorro";
 import { Dashboard } from "./Dashboard";
 import { DocumentosCliente } from "./DocumentosCliente";
+import { MiPerfilCliente } from "./MiPerfilCliente";
 import { NuevoSuministroCliente } from "./NuevoSuministroCliente";
 import { PanelAvisos } from "./PanelAvisos";
 import { PantallaCartera } from "./PantallaCartera";
@@ -33,7 +34,10 @@ import { PantallaCartera } from "./PantallaCartera";
  *     `BannerAhorroExtra`, el banner "Hemos detectado una oportunidad de
  *     ahorro extra" de Dashboard, Mi cartera y Consumo y ahorro (ver
  *     `onVerAhorro`).
+ *   - "perfil" — se abre pulsando el nombre/avatar del pie de la barra
+ *     lateral (`onAbrirPerfil`), no una de las cuatro secciones del menú.
  *
+
  * "nuevo-suministro" tiene una segunda puerta de entrada: "Subir factura de
  * nuevo", en una factura con error de lectura dentro de "Notificaciones y
  * alertas" (ver PanelAvisos.tsx). Por eso `erroresLectura` y
@@ -89,6 +93,7 @@ export function AreaCliente2() {
         onNavegar={navegar}
         onAbrirAvisos={() => setAvisosAbiertos(true)}
         avisosSinLeer={avisosSinLeer}
+        onAbrirPerfil={() => ir("perfil")}
       />
 
       <main className="ml-[256px] min-w-0 px-06 py-07">
@@ -131,6 +136,8 @@ export function AreaCliente2() {
               );
             }}
           />
+        ) : seccion === "perfil" ? (
+          <MiPerfilCliente />
         ) : (
           <AhorroDetectadoCliente
             onVolver={() => ir("dashboard")}

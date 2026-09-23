@@ -47,6 +47,12 @@ import { Text } from "@/components/ui/Text";
  *   resto de secciones se aclaran al pasar por encima con la misma opacidad
  *   de hover que usan los botones del sistema (opacity-60), para que el gesto
  *   se sienta igual en toda la interfaz. Duración: motion-micro-states.
+ *
+ *   El nombre/avatar del pie abre "Mi perfil" (MiPerfilCliente, nodo
+ *   797:44542) — no es una de las cuatro secciones de `SECCIONES`, así que
+ *   ninguna se marca activa mientras se ve: el aviso de "aquí estás" es el
+ *   anillo alrededor del avatar (`activa === "perfil"`), no el color del
+ *   texto.
  */
 
 type Seccion = { id: string; rotulo: string; icono: IconName };
@@ -64,6 +70,7 @@ export function BarraLateralCliente({
   persona = "Ainhoa Martínez",
   onAbrirAvisos,
   avisosSinLeer = false,
+  onAbrirPerfil,
 }: {
   activa?: string;
   onNavegar?: (id: string) => void;
@@ -73,6 +80,8 @@ export function BarraLateralCliente({
   /** Si hay alguna alerta o notificación sin leer en PanelAvisos: pinta el
    * puntito rojo sobre la campana, para que se note sin tener que abrirlo. */
   avisosSinLeer?: boolean;
+  /** Abre "Mi perfil" (MiPerfilCliente), pulsando el nombre o el avatar. */
+  onAbrirPerfil?: () => void;
 }) {
   const inicial = persona.trim().charAt(0).toUpperCase();
 
@@ -123,8 +132,24 @@ export function BarraLateralCliente({
         </ul>
 
         <div className="flex items-center justify-between pr-03">
-          <span className="flex items-center gap-03">
-            <span className="flex size-07 items-center justify-center rounded-full bg-highlight-neutral">
+          <button
+            type="button"
+            onClick={onAbrirPerfil}
+            aria-current={activa === "perfil" ? "page" : undefined}
+            className="flex cursor-pointer items-center gap-03 rounded-md transition-opacity motion-micro-states hover:opacity-60"
+          >
+            {/* El anillo de "aquí estás" (nodo 788:9554, variante de la
+                sociedad activa) es un efecto propio con dos sombras que no
+                sale de ningún token compuesto — solo sus dos colores sí lo
+                son (`border-inverse` y `highlight-vivid`), así que va a pelo
+                en vez de inventarse una utilidad para un único sitio. */}
+            <span
+              className={`flex size-07 items-center justify-center rounded-full bg-highlight-neutral ${
+                activa === "perfil"
+                  ? "shadow-[0_0_0_2px_var(--color-border-inverse),0_0_0_4px_var(--color-highlight-vivid)]"
+                  : ""
+              }`}
+            >
               <Text
                 variant="label-m"
                 as="span"
@@ -136,7 +161,7 @@ export function BarraLateralCliente({
             <Text variant="label-s" as="span" color="always-light">
               {persona}
             </Text>
-          </span>
+          </button>
           <button
             type="button"
             aria-label={avisosSinLeer ? "Avisos (sin leer)" : "Avisos"}
