@@ -21,7 +21,8 @@ import {
  * Se abre desde la campana de la barra lateral. No es un diálogo centrado
  * como ModalSuministrosGrandes: es un panel que flota a media pantalla,
  * pegado a la izquierda justo donde termina la barra lateral — por eso mide
- * lo mismo de alto que ella (787 px) y comparte su margen de 16 px.
+ * lo mismo de alto que ella (todo el alto de la ventana menos 32 px) y
+ * comparte su margen de 16 px. Ancho 531 px, como en el Figma (nodo 797:38845).
  *
  * DOS PESTAÑAS, dos cosas distintas:
  *   Alertas         pide una acción (Completar, Revisar…) y se puede
@@ -129,13 +130,13 @@ export function PanelAvisos({
         aria-modal="true"
         aria-label="Notificaciones y alertas"
         className={[
-          "fixed top-04 left-[256px] flex h-[787px] w-[440px] flex-col overflow-hidden rounded-md border border-border-low bg-background-base shadow-md",
+          "fixed top-04 left-[256px] flex h-[calc(100vh-2*var(--spacing-04))] w-[531px] max-w-[calc(100vw-256px-var(--spacing-04))] flex-col overflow-hidden rounded-md bg-background-base shadow-md",
           cerrando
             ? "-translate-x-02 opacity-00 transition-[transform,opacity] motion-micro-leave"
             : "anim-aparece",
         ].join(" ")}
       >
-        <header className="flex items-center justify-between gap-04 p-05 pb-0">
+        <header className="flex items-center justify-between gap-04 border-t border-border-low p-04">
           <span className="flex items-center gap-02">
             {vista === "errores-lectura" && (
               <button
@@ -147,7 +148,7 @@ export function PanelAvisos({
                 <Icon name="chevron-left" size={16} />
               </button>
             )}
-            <Text variant="heading-xs" as="h2">
+            <Text variant="heading-s" as="h2">
               {vista === "errores-lectura"
                 ? "Errores de lectura"
                 : "Notificaciones y alertas"}
@@ -157,9 +158,9 @@ export function PanelAvisos({
             type="button"
             aria-label="Cerrar"
             onClick={() => iniciarCierre()}
-            className="shrink-0 cursor-pointer rounded-sm p-01 text-content-high transition-opacity motion-micro-states hover:opacity-60 active:opacity-30"
+            className="flex size-07 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-background-low text-content-high transition-opacity motion-micro-states hover:opacity-60 active:opacity-30"
           >
-            <Icon name="close" />
+            <Icon name="close" size={16} />
           </button>
         </header>
 
@@ -167,7 +168,7 @@ export function PanelAvisos({
           <div
             role="tablist"
             aria-label="Ver por"
-            className="mt-04 flex gap-06 border-b border-border-low px-05"
+            className="flex items-center p-03"
           >
             {(
               [
@@ -187,9 +188,9 @@ export function PanelAvisos({
                   role="tab"
                   aria-selected={activa}
                   onClick={() => setPestaña(p.id)}
-                  className={`flex cursor-pointer items-center gap-02 border-b-2 py-03 transition-colors motion-micro-states ${
+                  className={`flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-02 border-b-2 py-02 transition-colors motion-micro-states ${
                     activa
-                      ? "border-content-high"
+                      ? "border-border-high"
                       : "border-transparent hover:opacity-60"
                   }`}
                 >
@@ -277,20 +278,22 @@ export function PanelAvisos({
             alertas.length === 0 ? (
               <EstadoVacio mensaje="No tienes alertas actualmente. Tu panel está actualizado y no hay incidencias pendientes." />
             ) : (
-              <div className="flex flex-col gap-04 p-05">
-                <Alert tone="highlight" icon="info">
-                  <div className="flex flex-col gap-01">
-                    <Text variant="label-m" as="p">
-                      Resuelve las incidencias y maximiza tu ahorro
-                    </Text>
-                    <Text variant="body-s" as="p">
-                      Recuerda que tienes incidencias pendientes de resolver.
-                      Resuélvelas para maximizar tu ahorro
-                    </Text>
-                  </div>
-                </Alert>
+              <div className="flex flex-col">
+                <div className="p-03">
+                  <Alert tone="highlight" icon="info">
+                    <div className="flex flex-col gap-01">
+                      <Text variant="body-m" color="always-dark" as="p" className="font-bold">
+                        Resuelve las incidencias y maximiza tu ahorro
+                      </Text>
+                      <Text variant="body-m" color="always-dark" as="p">
+                        Recuerda que tienes incidencias pendientes de resolver.
+                        Resuélvelas para maximizar tu ahorro
+                      </Text>
+                    </div>
+                  </Alert>
+                </div>
 
-                <ul className="flex flex-col gap-04">
+                <ul className="flex flex-col">
                   {alertas.map((alerta) => (
                     <FilaAlerta
                       key={alerta.id}
@@ -300,6 +303,7 @@ export function PanelAvisos({
                           setVista("errores-lectura");
                       }}
                       onDescartar={() => descartarAlerta(alerta.id)}
+                      sinLeer={!alertasLeidas}
                     />
                   ))}
                 </ul>
@@ -308,9 +312,9 @@ export function PanelAvisos({
           ) : NOTIFICACIONES_CLIENTE.length === 0 ? (
             <EstadoVacio mensaje="No tienes notificaciones pendientes. Tu panel está actualizado." />
           ) : (
-            <ul className="flex flex-col gap-04 p-05">
+            <ul className="flex flex-col">
               {NOTIFICACIONES_CLIENTE.map((n) => (
-                <FilaNotificacion key={n.id} notificacion={n} />
+                <FilaNotificacion key={n.id} notificacion={n} sinLeer={!notificacionesLeidas} />
               ))}
             </ul>
           )}
@@ -320,7 +324,7 @@ export function PanelAvisos({
           ((pestaña === "alertas" && alertas.length > 0) ||
             (pestaña === "notificaciones" &&
               NOTIFICACIONES_CLIENTE.length > 0)) && (
-            <footer className="border-t border-border-low p-04 text-center">
+            <footer className="flex h-[57px] shrink-0 items-center justify-center border-t border-border-low px-04">
               <button
                 type="button"
                 onClick={() =>
@@ -328,7 +332,7 @@ export function PanelAvisos({
                     ? setAlertasLeidas(true)
                     : setNotificacionesLeidas(true)
                 }
-                className="cursor-pointer text-label-s text-highlight-muted underline transition-opacity motion-micro-states hover:opacity-60"
+                className="cursor-pointer text-label-m text-highlight-muted transition-opacity motion-micro-states hover:opacity-60"
               >
                 Marcar todo como leído
               </button>
@@ -340,32 +344,50 @@ export function PanelAvisos({
   );
 }
 
+/** El cuadrado del icono de cada fila. 34 px es la medida del Figma (nodo
+ * 797:38861: 20 de icono + 7 de aire por cada lado) y no hay token para ella. */
+const CAJA_ICONO = "flex size-[34px] shrink-0 items-center justify-center rounded-md";
+
+/** El puntito de "sin leer" de cada fila — 6 px en el Figma, sin token. */
+function PuntoSinLeer() {
+  return (
+    <span
+      aria-hidden
+      className="size-[6px] shrink-0 rounded-full bg-highlight-muted"
+    />
+  );
+}
+
 /** Una alerta: icono, título (+ "Urgente" si toca), descripción, acciones y fecha. */
 function FilaAlerta({
   alerta,
   onAccion,
   onDescartar,
+  sinLeer,
 }: {
   alerta: AlertaCliente;
   onAccion: () => void;
   onDescartar: () => void;
+  sinLeer: boolean;
 }) {
   return (
-    <li className="flex items-start gap-03">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-warning-low text-warning-high">
+    <li className="flex items-start gap-03 p-04">
+      <span className={`${CAJA_ICONO} bg-warning-low text-warning-high`}>
         <Icon name="warning" size={20} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-02">
-        <span className="flex flex-wrap items-center gap-02">
-          <Text variant="label-l" as="span">
-            {alerta.titulo}
+        <div className="flex flex-col gap-01">
+          <span className="flex flex-wrap items-center gap-01">
+            <Text variant="label-m" as="span">
+              {alerta.titulo}
+            </Text>
+            {alerta.urgente && <Tag tone="warning">Urgente</Tag>}
+          </span>
+          <Text variant="body-s" color="mid" as="p">
+            {alerta.descripcion}
           </Text>
-          {alerta.urgente && <Tag tone="warning">Urgente</Tag>}
-        </span>
-        <Text variant="body-s" color="mid" as="p">
-          {alerta.descripcion}
-        </Text>
-        <div className="mt-01 flex items-center gap-02">
+        </div>
+        <div className="flex items-center gap-02">
           <Button size="small" onClick={onAccion}>
             {alerta.accion}
           </Button>
@@ -377,6 +399,7 @@ function FilaAlerta({
           {alerta.fecha}
         </Text>
       </div>
+      {sinLeer && <PuntoSinLeer />}
     </li>
   );
 }
@@ -384,16 +407,18 @@ function FilaAlerta({
 /** Una notificación: icono, título, detalle y fecha. Sin botones: solo informa. */
 function FilaNotificacion({
   notificacion,
+  sinLeer,
 }: {
   notificacion: NotificacionCliente;
+  sinLeer: boolean;
 }) {
   return (
-    <li className="flex items-start gap-03">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-success-low text-success-high">
+    <li className="flex items-start gap-03 p-04">
+      <span className={`${CAJA_ICONO} bg-success-low text-success-high`}>
         <Icon name="check-circle" size={20} />
       </span>
-      <div className="flex min-w-0 flex-col gap-01">
-        <Text variant="label-l" as="span">
+      <div className="flex min-w-0 flex-1 flex-col gap-01">
+        <Text variant="label-m" as="span">
           {notificacion.titulo}
         </Text>
         <Text variant="body-s" color="mid" as="p">
@@ -403,6 +428,7 @@ function FilaNotificacion({
           {notificacion.fecha}
         </Text>
       </div>
+      {sinLeer && <PuntoSinLeer />}
     </li>
   );
 }
