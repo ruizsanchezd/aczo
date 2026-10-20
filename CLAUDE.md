@@ -222,7 +222,8 @@ las variables se referenciarían a sí mismas. Ver `src/fonts/README.md`.
   las vistas, igual que `Recorrido.tsx` en el particular. De momento están: subir las facturas de
   varias sociedades (`PantallaSubidaEmpresas`), la pantalla de carga (`PantallaCargaEmpresas`), el
   resultado con errores y alertas (`PantallaResultadoEmpresas` + el panel `PanelAlertasEmpresas`,
-  con pestañas "Permanencia"/"Vencidas") y "Tu ahorro potencial" agrupado por sociedad
+  con pestañas "Permanencia"/"Vencidas") — o, si ninguna factura sirve para el estudio, la pantalla de error fatal
+  (`PantallaSinFacturasValidasEmpresas`, se ve con `/empresas?caso=sin-facturas-validas`) y "Tu ahorro potencial" agrupado por sociedad
   (`PantallaAhorroEmpresas`) — donde el mantenimiento de luz de los puntos de más de 30 kW llega
   ya activado y un aviso con acciones lo explica: se abre solo la primera vez que se baja hasta esa
   fila (nunca al cargar la pantalla) y, si se desactiva por segunda vez, vuelve a salir cambiando

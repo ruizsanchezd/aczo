@@ -29,16 +29,13 @@ import { Text } from "@/components/ui/Text";
  * `<main>` de `AreaCliente2` deja el hueco correspondiente (240 px de ancho +
  * 16 px de margen) con su propio `ml-[256px]`.
  *
- * ALTO: 787 px es el alto que mide en el Figma, pero es un tope, no un
- * mínimo — en una pantalla más baja (un portátil con poca altura, la ventana
- * del navegador reducida...) esos 787 px no caben y, al ser `fixed`, el
- * perfil y la campana del final se saldrían por debajo sin forma de llegar a
- * ellos. Por eso el alto real es `min(787px, 100vh - 32px)` (los 32 px son
- * los dos márgenes de 16 px, arriba y abajo) y la lista de secciones
- * (`<ul>`) lleva su propio scroll (`overflow-y-auto`) para el caso límite de
- * una pantalla tan baja que ni siquiera las secciones quepan enteras: así el
- * perfil y las notificaciones, que van fuera de esa lista, están SIEMPRE a
- * la vista, sea cual sea el alto de quien lo mira.
+ * ALTO: la barra ocupa SIEMPRE todo el alto de la ventana menos los dos
+ * márgenes de 16 px (arriba y abajo): `100vh - 32px`. En el Figma mide 787 px
+ * porque ese es el alto de su lienzo, pero aquí se adapta a cada pantalla. La
+ * lista de secciones (`<ul>`) lleva su propio scroll (`overflow-y-auto`) para
+ * el caso límite de una pantalla tan baja que ni siquiera las secciones
+ * quepan enteras: así el perfil y las notificaciones, que van fuera de esa
+ * lista, están SIEMPRE a la vista.
  *
  * INTERACCIÓN
  *   La sección donde estás se marca en amarillo de marca (highlight-vivid) —
@@ -79,10 +76,13 @@ export function BarraLateralCliente({
   return (
     <nav
       aria-label="Secciones del área de cliente"
-      className="fixed top-04 left-04 flex h-[min(787px,calc(100vh-2*var(--spacing-04)))] w-[240px] flex-col gap-10 rounded-md bg-highlight-deep px-04 py-06"
+      className="fixed top-04 left-04 flex h-[calc(100vh-2*var(--spacing-04))] w-[240px] flex-col gap-10 rounded-md bg-highlight-deep px-04 py-06"
     >
       <span className="flex items-center gap-02 text-content-always-light">
-        <Logo size={30.64} />
+        {/* La rejilla va en amarillo de marca (el texto "Aczo" sigue en blanco). */}
+        <span className="flex text-highlight-vivid">
+          <Logo size={30.64} />
+        </span>
         {/* El lockup "Aczo" de esta barra es más grande que `heading-xs`
             (16px, el que usan las cabeceras normales) pero no llega a
             `heading-s`: en el Figma (nodo 878:9554) mide 26.934px con un

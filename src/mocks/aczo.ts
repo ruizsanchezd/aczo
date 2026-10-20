@@ -975,6 +975,31 @@ export const ARCHIVOS_CON_ERROR: ArchivoConError[] = [
   { id: "err-2", nombre: "foto_factura_repsol.png", motivo: "Imagen borrosa o cortada" },
 ];
 
+/**
+ * Caso "error fatal" de la subida de empresas: NINGUNO de los archivos sirve
+ * para hacer el estudio, así que no se puede pasar a "Calcular ahorro". Se ve
+ * entrando en /empresas?caso=sin-facturas-validas. Los motivos cubren los
+ * casos típicos por los que una factura no vale (no es factura, es antigua,
+ * no se lee, está protegida o le faltan páginas).
+ */
+export const ARCHIVOS_NO_VALIDOS_EMPRESAS: ArchivoConError[] = [
+  { id: "fatal-1", nombre: "contrato_alquiler_nave.pdf", motivo: "No es una factura de luz ni de gas" },
+  { id: "fatal-2", nombre: "factura_endesa_2023_11.pdf", motivo: "Tiene más de 12 meses" },
+  { id: "fatal-3", nombre: "foto_contador_oficina.jpg", motivo: "Imagen borrosa o cortada" },
+  { id: "fatal-4", nombre: "facturas_Q3.zip", motivo: "Archivo protegido con contraseña" },
+  { id: "fatal-5", nombre: "factura_naturgy_p1.pdf", motivo: "Faltan páginas de la factura" },
+];
+
+/** Qué tiene que tener una factura para que sirva. Se enseña en la pantalla de
+ * error fatal, para que la segunda subida salga bien a la primera. */
+export const REQUISITOS_FACTURA_VALIDA = [
+  "Facturas de luz o gas, no contratos ni otros documentos",
+  "Emitidas en los últimos 12 meses",
+  "Completas, con todas sus páginas",
+  "Legibles: mejor el PDF original que una foto",
+  "Sin contraseña, también los ZIP",
+] as const;
+
 /** Total de archivos leídos en la subida de empresas (dato de la maqueta). */
 export const TOTAL_ARCHIVOS_LEIDOS_EMPRESAS = 46;
 
