@@ -7,6 +7,7 @@ import { PantallaAltaEmpresas } from "./PantallaAltaEmpresas";
 import { PantallaCambioCompaniaEmpresas } from "./PantallaCambioCompaniaEmpresas";
 import { PantallaCargaEmpresas } from "./PantallaCargaEmpresas";
 import { PantallaResultadoEmpresas } from "./PantallaResultadoEmpresas";
+import { PantallaSinFacturasValidasEmpresas } from "./PantallaSinFacturasValidasEmpresas";
 import { PantallaSubidaEmpresas } from "./PantallaSubidaEmpresas";
 
 /**
@@ -22,6 +23,8 @@ import { PantallaSubidaEmpresas } from "./PantallaSubidaEmpresas";
  *   subida       01          arrastrar las facturas de las sociedades
  *   carga        (ninguno)   pantalla de carga a pantalla completa
  *   resultado    01          errores y alertas del análisis (sigue en el paso 1)
+ *   sinValidas   01          error fatal: ninguna factura sirve (solo con
+ *                            ?caso=sin-facturas-validas en la dirección)
  *   ahorro       02          "Tu ahorro potencial", tras "Calcular ahorro"
  *   cambio       03          "Cambio de compañía", tras "Hacer el cambio"
  *   alta         03          "Alta completada"/"Alta en tramitación", tras "Activar cambio"
@@ -36,15 +39,19 @@ import { PantallaSubidaEmpresas } from "./PantallaSubidaEmpresas";
  *   - `pendienteAprobacion`: si en `cambio` se eligió "enviar solicitud de
  *     firma" (todavía falta que la persona representante confirme), para que
  *     `alta` muestre "Alta en tramitación" en vez de "Alta completada".
+ *   - `reintentado`: si ya se pulsó "Volver a analizar" en la pantalla de
+ *     "ninguna factura sirve" (?caso=sin-facturas-validas), para que el
+ *     segundo intento salga bien y lleve al resultado normal.
  */
 
-const VISTAS = ["subida", "carga", "resultado", "ahorro", "cambio", "alta"] as const;
+const VISTAS = ["subida", "carga", "resultado", "sinValidas", "ahorro", "cambio", "alta"] as const;
 type Vista = (typeof VISTAS)[number];
 
 const PASO_DE_VISTA: Record<Vista, number | null> = {
   subida: 0,
   carga: null,
   resultado: 0,
+  sinValidas: 0,
   ahorro: 1,
   cambio: 2,
   alta: 3,
@@ -55,6 +62,15 @@ export function RecorridoEmpresas() {
   const [datosContratante, setDatosContratante] = useState({ nombre: "", email: "" });
   const [resumenCambio, setResumenCambio] = useState<ResumenCambioEmpresas | null>(null);
   const [pendienteAprobacion, setPendienteAprobacion] = useState(false);
+  const [reintentado, setReintentado] = useState(false);
+
+  // El caso de error fatal se elige desde la dirección, para poder enseñar los
+  // dos caminos sin tocar código: /empresas?caso=sin-facturas-validas. Se mira
+  // al terminar la carga; tras "Volver a analizar" ya no se repite.
+  function tocaErrorFatal() {
+    const caso = new URLSearchParams(window.location.search).get("caso");
+    return caso === "sin-facturas-validas" && !reintentado;
+  }
 
   // Cada cambio de paso entra por el inicio de la página, nunca por donde se
   // había quedado el scroll en el paso anterior — mismo patrón que
@@ -88,10 +104,20 @@ export function RecorridoEmpresas() {
           />
         )}
         {vista === "carga" && (
-          <PantallaCargaEmpresas onTerminar={() => ir("resultado")} />
+          <PantallaCargaEmpresas
+            onTerminar={() => ir(tocaErrorFatal() ? "sinValidas" : "resultado")}
+          />
         )}
         {vista === "resultado" && (
           <PantallaResultadoEmpresas onContinuar={() => ir("ahorro")} />
+        )}
+        {vista === "sinValidas" && (
+          <PantallaSinFacturasValidasEmpresas
+            onReintentar={() => {
+              setReintentado(true);
+              ir("carga");
+            }}
+          />
         )}
         {vista === "ahorro" && (
           <PantallaAhorroEmpresas

@@ -299,6 +299,26 @@ tarjeta de revisión con errores y alertas. Nada de esto bloquea el avance — s
      reciente" — no hay nada que estimar, así que no hay caja ni interruptor.
    - Se cierra con la X, con Escape y pulsando fuera, igual que el panel particular.
 
+
+### Pantalla 3 bis · Ninguna factura sirve (error fatal)
+
+`PantallaSinFacturasValidasEmpresas`. Sustituye al resultado cuando NINGÚN archivo vale para el
+estudio. En el prototipo se ve entrando en `/empresas?caso=sin-facturas-validas`. Sigue en el paso
+01 del indicador. Aquí sí se bloquea el avance: no hay "Calcular ahorro".
+
+1. **Entrada en cascada** (`anim-aparece` + 60 ms entre piezas) de titular, tarjeta y zona de
+   arrastre, igual que el resultado normal: que se sienta un paso más, no un "pantallazo" de error.
+2. **Filas de archivos no válidos en cascada**, una detrás de otra, para que se lea como "los
+   hemos revisado uno a uno".
+3. **Zona de arrastre** otra vez grande (es la acción principal), con el mismo comportamiento
+   que en la subida: borde y fondo oliva al pasar un archivo y el icono crece un 5 %
+   (`micro-states`).
+4. **Facturas nuevas** aparecen debajo con `anim-aparece`; quitarlas las desvanece con
+   `micro-leave` (250 ms).
+5. **"Volver a analizar"** está desactivado hasta que hay al menos una factura nueva (paso a
+   activo con `micro-states`). Al pulsarlo vuelve a la pantalla de carga y de ahí al resultado
+   normal.
+
 ### Pantalla 4 · Tu ahorro potencial
 
 Al pulsar "Calcular ahorro" en la pantalla 3 (`PantallaAhorroEmpresas`). Mismo espíritu que la
